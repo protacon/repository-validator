@@ -6,6 +6,12 @@ For example, repositories should have
   * README.MD-files
   * Licenses 
 
+## Build
+This project requires dotnet core 2.1
+```
+dotnet build
+```
+
 ## Usage
 
 In development (while in solution folder)
