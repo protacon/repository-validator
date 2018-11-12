@@ -2,9 +2,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Binder;
 using Octokit;
 using ValidationLibrary;
 using ValidationLibrary.Rules;
+using ValidationLibrary.Slack;
 
 namespace Runner
 {
@@ -13,29 +15,28 @@ namespace Runner
         public static void Main(string[] args)
         {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            IConfiguration config = new ConfigurationBuilder()
+            IConfiguration  config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
                 .AddJsonFile($"appsettings.Development.json", optional: true)
                 .Build();
+            
+            var githubConfig = new GitHubConfiguration();
+            config.GetSection("GitHub").Bind(githubConfig);
 
-            Run(config["Token"], config["Organization"]).Wait();
+            var slackConfig = new SlackConfiguration();
+            config.GetSection("Slack").Bind(slackConfig);
+
+            var client = new ValidationClient(githubConfig);
+            var repositories = client.ValidateOrganization().Result;
+            Report(slackConfig, repositories).Wait();
         }
 
-        public static async Task Run(string token, string organization)
+        private static async Task Report(SlackConfiguration config, ValidationReport[] reports)
         {
-            var validator = new RepositoryValidator();
-
-            var client = new GitHubClient(new ProductHeaderValue("Protacon-Repository-Validator-DEV"));
-            var tokenAuth = new Credentials(token);
-            client.Credentials = tokenAuth;
-            var allRepos = await client.Repository.GetAllForOrg(organization);
-            var problemRepositories = allRepos.Select(repo => validator.Validate(repo))
-                                            .Where(report => report.Results.Any(result => !result.IsValid));
-
-            foreach (var repo in problemRepositories)
-            {
-                Console.WriteLine("Repo: {0}", repo.RepositoryName);
-            }
+            var slackClient = new SlackClient(config);
+            var response = await slackClient.SendMessageAsync(reports);
+            var isValid = response.IsSuccessStatusCode ? "valid" : "invalid";
+            Console.WriteLine($"Received {isValid} response.");
         }
     }
 }

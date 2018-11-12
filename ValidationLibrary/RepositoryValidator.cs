@@ -17,6 +17,7 @@ namespace ValidationLibrary
             return new ValidationReport
             {
                 RepositoryName = repository.FullName,
+                RepositoryUrl = repository.HtmlUrl,
                 Results = validationResults.ToArray()
             };
         }
