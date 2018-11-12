@@ -31,6 +31,7 @@ Configuration parameters are read from appsettings.json-file.
 
 When developing, create appsettings.Development.json and
 replace configuration values with personal values
+and use `setx ASPNETCORE_ENVIRONMENT "Development"` to set environment
 
 ## License
 See LICENSE-file
