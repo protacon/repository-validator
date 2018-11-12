@@ -2,7 +2,7 @@
 Checks that organization repositories conforms to policies defined by organization
 
 For example, repositories should have
-  * descriptions
+  * Descriptions
   * README.MD-files
   * Licenses 
 
@@ -31,7 +31,6 @@ Configuration parameters are read from appsettings.json-file.
 
 When developing, create appsettings.Development.json and
 replace configuration values with personal values
-
 
 ## License
 See LICENSE-file
