@@ -9,7 +9,7 @@ For example, repositories should have
   * Licenses 
 
 ## Build
-This project requires dotnet core 2.1
+This project requires [dotnet core 2.1](https://www.microsoft.com/net/download)
 ```
 dotnet build
 ```
