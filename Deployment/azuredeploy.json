@@ -8,23 +8,29 @@
                 "description": "The name of the function app that you wish to create."
             }
         },
-        "storageAccountType": {
-            "type": "string",
-            "defaultValue": "Standard_LRS",
-            "allowedValues": [
-                "Standard_LRS",
-                "Standard_GRS",
-                "Standard_RAGRS"
-            ],
-            "metadata": {
-                "description": "Storage Account type"
-            }
-        },
         "location": {
             "type": "string",
             "defaultValue": "[resourceGroup().location]",
             "metadata": {
                 "description": "Location for all resources."
+            }
+        },
+        "gitHubToken": {
+            "type": "string",
+            "metadata": {
+                "description": "GitHub token that is used to access repositories"
+            }
+        },
+        "gitHubOrganization": {
+            "type": "string",
+            "metadata": {
+                "description": "GitHub organization that is to be validated"
+            }
+        },
+        "slackWebhookUrl": {
+            "type": "string",
+            "metadata": {
+                "description": "Slack messages are sent to this url"
             }
         }
     },
@@ -43,7 +49,7 @@
             "location": "[parameters('location')]",
             "kind": "Storage",
             "sku": {
-                "name": "[parameters('storageAccountType')]"
+                "name": "Standard_LRS"
             }
         },
         {
@@ -101,6 +107,22 @@
                         {
                             "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
                             "value": "[reference(resourceId('microsoft.insights/components/', variables('applicationInsightsName')), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "GitHub:Token",
+                            "value": "[parameters('gitHubToken')]"
+                        },
+                        {
+                            "name": "GitHub:Organization",
+                            "value": "[parameters('gitHubOrganization')]"
+                        },
+                        {
+                            "name": "Slack:WebHookUrl",
+                            "value": "[parameters('slackWebhookUrl')]"
+                        },
+                        {
+                            "name": "Slack:ReportLimit",
+                            "value": "20"
                         }
                     ]
                 }

@@ -11,12 +11,11 @@ namespace ValidationLibrary.AzureFunctions
     public static class TimedRepositoryValidator
     {
         [FunctionName("TimedRepositoryValidator")]
-        public static async Task Run([TimerTrigger("0 0 0 1 1 *")]TimerInfo timer, ILogger log)
+        public static async Task Run([TimerTrigger("0 0 0 1 1 *")]TimerInfo timer, ILogger log, ExecutionContext context)
         {
             log.LogDebug("Loading configuration.");
-            IConfiguration  config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-                .AddJsonFile($"appsettings.Development.json", optional: true)
+            IConfiguration config = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
                 .Build();
             
             var githubConfig = new GitHubConfiguration();

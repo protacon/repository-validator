@@ -330,3 +330,4 @@ ASALocalRun/
 .mfractor/
 
 **/appsettings.Development.json
+Deployment/azuredeploy.parameters.json
