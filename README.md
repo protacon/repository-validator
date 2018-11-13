@@ -1,5 +1,8 @@
 # Repository Validator
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Build Status](https://jenkins.protacon.cloud/buildStatus/icon?job=www.github.com/repository-validator/master)](https://jenkins.protacon.cloud/blue/organizations/jenkins/www.github.com%2Frepository-validator/activity)
+
+NOTE: This is still WIP.
 
 Checks that organization repositories conforms to policies defined by organization
 
@@ -9,7 +12,7 @@ For example, repositories should have
   * Licenses 
 
 ## Build
-This project requires dotnet core 2.1
+This project requires [dotnet core 2.1](https://www.microsoft.com/net/download)
 ```
 dotnet build
 ```
@@ -56,4 +59,5 @@ Use Deployment\Publish.ps1
 ```
 
 ## License
-See LICENSE-file
+
+[The MIT License (MIT)](LICENSE)
