@@ -14,4 +14,4 @@ $publishFolder = "publish"
 $destination = "publish.zip"
 if(Test-path $destination) {Remove-item $destination}
 Add-Type -assembly "system.io.compression.filesystem"
-[io.compression.zipfile]::CreateFromDirectory("ValidationLibrary.AzureFunctions\$publishFolder", $destination)
+[io.compression.zipfile]::CreateFromDirectory("ValidationLibrary.AzureFunctions/$publishFolder", $destination)
