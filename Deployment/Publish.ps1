@@ -21,6 +21,8 @@ param(
     [Parameter(Mandatory=$true)][string]$ResourceGroup,
     [Parameter(Mandatory=$true)][string]$WebAppName)
 
+$ErrorActionPreference = "Stop"
+	
 $publishFolder = "publish"
 
 # delete any previous publish

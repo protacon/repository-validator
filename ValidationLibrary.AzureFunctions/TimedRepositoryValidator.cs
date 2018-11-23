@@ -13,6 +13,8 @@ namespace ValidationLibrary.AzureFunctions
         [FunctionName("TimedRepositoryValidator")]
         public static async Task Run([TimerTrigger("0 0 0 1 1 *")]TimerInfo timer, ILogger log, ExecutionContext context)
         {
+            log.LogInformation("Starting repository validator.");
+
             log.LogDebug("Loading configuration.");
             IConfiguration config = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
@@ -24,7 +26,10 @@ namespace ValidationLibrary.AzureFunctions
             var slackConfig = new SlackConfiguration();
             config.GetSection("Slack").Bind(slackConfig);
 
+            ValidateConfig(githubConfig, slackConfig);
+
             log.LogDebug("Doing validation.");
+            
             var client = new ValidationClient(githubConfig);
             var repositories = await client.ValidateOrganization();
 
@@ -38,8 +43,24 @@ namespace ValidationLibrary.AzureFunctions
         {
             var slackClient = new SlackClient(config);
             var response = await slackClient.SendMessageAsync(reports);
-            var isValid = response.IsSuccessStatusCode ? "valid" : "invalid";
-            Console.WriteLine($"Received {isValid} response.");
+        }
+
+        private static void ValidateConfig(GitHubConfiguration gitHubConfiguration, SlackConfiguration slackConfiguration)
+        {
+            if (gitHubConfiguration.Organization == null)
+            {
+                throw new ArgumentNullException(nameof(gitHubConfiguration.Organization), "Organization was missing.");
+            }
+
+            if (gitHubConfiguration.Token == null)
+            {
+                throw new ArgumentNullException(nameof(gitHubConfiguration.Token), "Token was missing.");
+            }
+
+            if (slackConfiguration.WebHookUrl == null)
+            {
+                throw new ArgumentNullException(nameof(slackConfiguration.WebHookUrl), "WebHookUrl was missing.");
+            }
         }
     }
 }

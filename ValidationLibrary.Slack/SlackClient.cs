@@ -18,8 +18,17 @@ namespace ValidationLibrary.Slack
 
         public SlackClient(SlackConfiguration config)
         {
-            _webhookUrl = new Uri(_config.WebHookUrl);
+            if (config == null)
+            {
+                throw new ArgumentNullException(nameof(config), "config is missing");
+            }
+            if (config.WebHookUrl == null)
+            {
+                throw new ArgumentNullException(nameof(config.WebHookUrl), "config.WebHookUrl is missing");
+            }
+
             _config = config;
+            _webhookUrl = new Uri(_config.WebHookUrl);
         }
     
         public async Task<HttpResponseMessage> SendMessageAsync(ValidationReport[] report,
