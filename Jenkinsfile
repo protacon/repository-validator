@@ -12,8 +12,10 @@ podTemplate(label: pod.label,
     def appName = 'ptcs-github-validator'
     def gitHubOrganization = 'protacon'
 
-    def zipName = "publish.zip"
-    def publishFolder = "publish"
+    def functionsProject = 'ValidationLibrary.AzureFunctions'
+    def zipName = 'publish.zip'
+    def publishFolder = 'publish'
+    
 
     node(pod.label) {
         stage('Checkout') {
@@ -22,14 +24,14 @@ podTemplate(label: pod.label,
         container('dotnet') {
             stage('Build') {
                 sh """
-                    dotnet publish -c Release -o $publishFolder ValidationLibrary.AzureFunctions
+                    dotnet publish -c Release -o $publishFolder $functionsProject
                 """
             }
         }
         container('powershell') {
             stage('Package') {
                 sh """
-                    pwsh Deployment/Zip.ps1
+                    pwsh Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder
                 """
             }
         }

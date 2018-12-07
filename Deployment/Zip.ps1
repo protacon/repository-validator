@@ -5,13 +5,20 @@
  #.DESCRIPTION
  # Packs ValidationLibrary.AzureFunctions to Zip
  #
+ #.PARAMETER Destination
+ # Target destination
+ #
+ #.PARAMETER PublishFolder
+ # Folder that is packaged
+ #
  #.EXAMPLE
- # .\Zip.ps1
+ # .\Zip.ps1 -PublishFolder "target-folder" -Destination "test.zip"
  ##############################################################################
+ param(
+    [Parameter(Mandatory=$true)][string]$Destination,
+    [Parameter(Mandatory=$true)][string]$PublishFolder)
 
 $ErrorActionPreference = "Stop"
-$publishFolder = "publish"
-$destination = "publish.zip"
 if(Test-path $destination) {Remove-item $destination}
 Add-Type -assembly "system.io.compression.filesystem"
-[io.compression.zipfile]::CreateFromDirectory("ValidationLibrary.AzureFunctions/$publishFolder", $destination)
+[io.compression.zipfile]::CreateFromDirectory($PublishFolder, $Destination)
