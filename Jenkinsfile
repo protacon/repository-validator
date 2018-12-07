@@ -45,9 +45,10 @@ podTemplate(label: pod.label,
                     """
                 }
             }
-            withCredentials(
+            withCredentials([
                 string(credentialsId: 'hjni_github_token', variable: 'GH_TOKEN'),
-                string(credentialsId: 'hjni_slack_webhook', variable: 'SLACK_WEBHOOK')){
+                string(credentialsId: 'hjni_slack_webhook', variable: 'SLACK_WEBHOOK')
+            ]){
                 stage('Create environment') {
                     sh """
                         az group deployment create -g $resourceGroup --template-file Deployment/azuredeploy.json --parameters appName=$appName --parameters gitHubToken=$GH_TOKEN --parameters gitHubOrganization=$gitHubOrganization --parameters slackWebhookUrl=$SLACK_WEBHOOK
