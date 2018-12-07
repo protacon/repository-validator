@@ -33,7 +33,7 @@ podTemplate(label: pod.label,
             }
         }
         container('az-cli') {
-            withCredentials([usernameColonPassword(credentialsId: 'hjni_azure_sp_id', variable: 'SERVICEPRINCIPAL')]){
+            withCredentials([string(credentialsId: 'hjni_azure_sp_id', variable: 'SERVICEPRINCIPAL')]){
                 stage('Credentials test'){
                     sh """
                         echo $SERVICEPRINCIPAL
