@@ -19,6 +19,6 @@
     [Parameter(Mandatory=$true)][string]$PublishFolder)
 
 $ErrorActionPreference = "Stop"
-if(Test-path $destination) {Remove-item $destination}
+if(Test-path $Destination) {Remove-item $Destination}
 Add-Type -assembly "system.io.compression.filesystem"
 [io.compression.zipfile]::CreateFromDirectory($PublishFolder, $Destination)
