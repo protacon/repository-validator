@@ -57,7 +57,7 @@ podTemplate(label: pod.label,
             }
             stage('Publish') {
                 sh """
-                    az webapp deployment source config-zip -n $appName -g $resourceGroup --src $destination
+                    az webapp deployment source config-zip -n $appName -g $resourceGroup --src $zipName
                 """
             }
         }
