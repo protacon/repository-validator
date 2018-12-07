@@ -15,7 +15,6 @@ podTemplate(label: pod.label,
     def functionsProject = 'ValidationLibrary.AzureFunctions'
     def zipName = 'publish.zip'
     def publishFolder = 'publish'
-    
 
     node(pod.label) {
         stage('Checkout') {
@@ -59,7 +58,7 @@ podTemplate(label: pod.label,
             }
             stage('Publish') {
                 sh """
-                    ls -l --block-size=M
+                    ls -l
                     az webapp deployment source config-zip -n $appName -g $resourceGroup --src $zipName
                 """
             }
