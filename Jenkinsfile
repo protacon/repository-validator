@@ -3,8 +3,7 @@ library 'jenkins-ptcs-library@docker-depencies'
 podTemplate(label: pod.label,
   containers: pod.templates + [
     containerTemplate(name: 'dotnet', image: 'microsoft/dotnet:2.1-sdk', ttyEnabled: true, command: '/bin/sh -c', args: 'cat'),
-    containerTemplate(name: 'powershell', image: 'mcr.microsoft.com/powershell:6.1.0-ubuntu-18.04', ttyEnabled: true, command: '/bin/sh -c', args: 'cat'),
-    containerTemplate(name: 'az-cli', image: 'microsoft/azure-cli:2.0.50', ttyEnabled: true, command: '/bin/sh -c', args: 'cat')
+    containerTemplate(name: 'powershell', image: 'azuresdk/azure-powershell-core:master', ttyEnabled: true, command: '/bin/sh -c', args: 'cat'))
   ]
 ) {
     def branch = (env.BRANCH_NAME)
@@ -29,20 +28,19 @@ podTemplate(label: pod.label,
         }
         container('powershell') {
             stage('Package') {
-                sh """
-                    pwsh Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder
+                powershell """
+                    ./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder
                 """
             }
-        }
-        container('az-cli') {
             withCredentials([
                 string(credentialsId: 'hjni_azure_sp_id', variable: 'SP_APPLICATION'),
                 string(credentialsId: 'hjni_azure_sp_key', variable: 'SP_KEY'),
                 string(credentialsId: 'hjni_azure_sp_tenant', variable: 'SP_TENANT'),
                 ]){
                 stage('Login'){
-                    sh """
-                        az login --service-principal --username $SP_APPLICATION --password $SP_KEY --tenant $SP_TENANT
+                    powershell """
+                        $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $SP_APPLICATION, $SP_KEY
+                        Connect-AzureRmAccount -ServicePrincipal -Credential $credential -TenantId $SP_TENANT
                     """
                 }
             }
@@ -51,14 +49,21 @@ podTemplate(label: pod.label,
                 string(credentialsId: 'hjni_slack_webhook', variable: 'SLACK_WEBHOOK')
             ]){
                 stage('Create environment') {
-                    sh """
-                        az group deployment create -g $resourceGroup --template-file Deployment/azuredeploy.json --parameters appName=$appName --parameters gitHubToken=$GH_TOKEN --parameters gitHubOrganization=$gitHubOrganization --parameters slackWebhookUrl=$SLACK_WEBHOOK
+                    powershell """
+                        New-AzureRmResourceGroupDeployment `
+                            -Name github-validator `
+                            -TemplateFile Deployment/azuredeploy.json `
+                            -ResourceGroupName $resourceGroup `
+                            -appName $appName `
+                            -gitHubToken $GH_TOKEN `
+                            -gitHubOrganization $gitHubOrganization `
+                            -slackWebhookUrl $SLACK_WEBHOOK
                     """
                 }
             }
             stage('Publish') {
-                sh """
-                    az webapp deployment source config-zip -n $appName -g $resourceGroup --src $zipName
+                powershell """
+                    ./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup  -WebAppName $appName -ZipFilePath $zipName
                 """
             }
         }
