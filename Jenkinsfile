@@ -14,7 +14,7 @@ podTemplate(label: pod.label,
     def zipName = "publish.zip"
     def publishFolder = "publish"
 
-    def testCred = credentials('hjni_azure_sp_id')
+    //def testCred = credentials('hjni_azure_sp_id')
 
     node(pod.label) {
         stage('Checkout') {
@@ -36,6 +36,13 @@ podTemplate(label: pod.label,
             }
         }
         container('az-cli') {
+            withCredentials([usernameColonPassword(credentialsId: 'hjni_azure_sp_id', variable: 'SERVICEPRINCIPAL')]){
+                stage('Credentials test'){
+                    sh """
+                        echo $SERVICEPRINCIPAL
+                    """
+                }
+            }
             stage('Create environment') {
                 sh """
                     az group deployment create -g "$resourceGroup" --template-file Deployment/azuredeploy.json --parameters appName=$appName
