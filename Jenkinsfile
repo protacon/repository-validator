@@ -33,10 +33,14 @@ podTemplate(label: pod.label,
             }
         }
         container('az-cli') {
-            withCredentials([string(credentialsId: 'hjni_azure_sp_id', variable: 'SERVICEPRINCIPAL')]){
-                stage('Credentials test'){
+            withCredentials([
+                string(credentialsId: 'hjni_azure_sp_id', variable: 'SP_APPLICATION'),
+                string(credentialsId: 'hjni_azure_sp_key', variable: 'SP_KEY'),
+                string(credentialsId: 'hjni_azure_sp_tenant', variable: 'SP_TENANT')
+                ]){
+                stage('Login'){
                     sh """
-                        echo $SERVICEPRINCIPAL
+                        az login --service-principal --username $SP_APPLICATION --password $SP_KEY --tenant $SP_TENANT
                     """
                 }
             }
