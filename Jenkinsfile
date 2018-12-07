@@ -10,6 +10,7 @@ podTemplate(label: pod.label,
     def branch = (env.BRANCH_NAME)
     def resourceGroup = 'ptcs-github-validator'
     def appName = 'ptcs-github-validator'
+    def gitHubOrganization = 'protacon'
 
     def zipName = "publish.zip"
     def publishFolder = "publish"
@@ -36,7 +37,7 @@ podTemplate(label: pod.label,
             withCredentials([
                 string(credentialsId: 'hjni_azure_sp_id', variable: 'SP_APPLICATION'),
                 string(credentialsId: 'hjni_azure_sp_key', variable: 'SP_KEY'),
-                string(credentialsId: 'hjni_azure_sp_tenant', variable: 'SP_TENANT')
+                string(credentialsId: 'hjni_azure_sp_tenant', variable: 'SP_TENANT'),
                 ]){
                 stage('Login'){
                     sh """
@@ -44,10 +45,14 @@ podTemplate(label: pod.label,
                     """
                 }
             }
-            stage('Create environment') {
-                sh """
-                    az group deployment create -g "$resourceGroup" --template-file Deployment/azuredeploy.json --parameters appName=$appName
-                """
+            withCredentials(
+                string(credentialsId: 'hjni_github_token', variable: 'GH_TOKEN'),
+                string(credentialsId: 'hjni_slack_webhook', variable: 'SLACK_WEBHOOK')){
+                stage('Create environment') {
+                    sh """
+                        az group deployment create -g $resourceGroup --template-file Deployment/azuredeploy.json --parameters appName=$appName --parameters gitHubToken=$GH_TOKEN --parameters gitHubOrganization=$gitHubOrganization --parameters slackWebhookUrl=$SLACK_WEBHOOK
+                    """
+                }
             }
             stage('Publish') {
                 sh """
