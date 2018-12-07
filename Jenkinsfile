@@ -59,7 +59,7 @@ podTemplate(label: pod.label,
             }
             stage('Publish') {
                 sh """
-                    ls
+                    ls -l --block-size=M
                     az webapp deployment source config-zip -n $appName -g $resourceGroup --src $zipName
                 """
             }
