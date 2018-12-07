@@ -14,8 +14,6 @@ podTemplate(label: pod.label,
     def zipName = "publish.zip"
     def publishFolder = "publish"
 
-    //def testCred = credentials('hjni_azure_sp_id')
-
     node(pod.label) {
         stage('Checkout') {
             checkout_with_tags()
@@ -23,7 +21,6 @@ podTemplate(label: pod.label,
         container('dotnet') {
             stage('Build') {
                 sh """
-                    echo $testCred
                     dotnet publish -c Release -o $publishFolder ValidationLibrary.AzureFunctions
                 """
             }
