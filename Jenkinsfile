@@ -39,8 +39,7 @@ podTemplate(label: pod.label,
                 ]){
                 stage('Login'){
                     sh """
-                        $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $SP_APPLICATION, $SP_KEY
-                        Connect-AzureRmAccount -ServicePrincipal -Credential $credential -TenantId $SP_TENANT
+                        pwsh -command "&./Deployment/Login.ps1 -ApplicationId $SP_APPLICATION -ApplicationKey $SP_KEY -TenantId $SP_TENANT"
                     """
                 }
             }
@@ -50,20 +49,13 @@ podTemplate(label: pod.label,
             ]){
                 stage('Create environment') {
                     sh """
-                        New-AzureRmResourceGroupDeployment `
-                            -Name github-validator `
-                            -TemplateFile Deployment/azuredeploy.json `
-                            -ResourceGroupName $resourceGroup `
-                            -appName $appName `
-                            -gitHubToken $GH_TOKEN `
-                            -gitHubOrganization $gitHubOrganization `
-                            -slackWebhookUrl $SLACK_WEBHOOK
+                        pwsh -command "New-AzureRmResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken $GH_TOKEN -gitHubOrganization $gitHubOrganization -slackWebhookUrl $SLACK_WEBHOOK"
                     """
                 }
             }
             stage('Publish') {
                 sh """
-                    ./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup  -WebAppName $appName -ZipFilePath $zipName
+                    pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup  -WebAppName $appName -ZipFilePath $zipName"
                 """
             }
         }
