@@ -18,6 +18,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+Import-Module -Name AzureRM
+
 $securePassword = ConvertTo-SecureString -String $ApplicationKey -AsPlainText -Force
 $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ApplicationId, $securePassword
 Add-AzureRmAccount -ServicePrincipal -ApplicationId $ApplicationId -Credential $credential -TenantId $TenantId
