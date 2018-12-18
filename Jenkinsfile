@@ -38,7 +38,7 @@ podTemplate(label: pod.label,
                 string(credentialsId: 'hjni_azure_sp_tenant', variable: 'SP_TENANT'),
                 ]){
                 stage('Login'){
-                    pwsh """
+                    powershell """
                         $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $SP_APPLICATION, $SP_KEY
                         Connect-AzureRmAccount -ServicePrincipal -Credential $credential -TenantId $SP_TENANT
                     """
