@@ -3,7 +3,7 @@ library 'jenkins-ptcs-library@docker-depencies'
 podTemplate(label: pod.label,
   containers: pod.templates + [
     containerTemplate(name: 'dotnet', image: 'microsoft/dotnet:2.1-sdk', ttyEnabled: true, command: '/bin/sh -c', args: 'cat'),
-    containerTemplate(name: 'powershell', image: 'azuresdk/azure-powershell-core:master', ttyEnabled: true, command: '/bin/pwsh -Command', args: 'cat')
+    containerTemplate(name: 'powershell', image: 'azuresdk/azure-powershell-core:master', ttyEnabled: true, command: '/bin/sh -c', args: 'cat')
   ]
 ) {
     def branch = (env.BRANCH_NAME)
@@ -28,8 +28,8 @@ podTemplate(label: pod.label,
         }
         container('powershell') {
             stage('Package') {
-                powershell """
-                    ./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder
+                sh """
+                    pwsh -command "&./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder"
                 """
             }
             withCredentials([
@@ -38,7 +38,7 @@ podTemplate(label: pod.label,
                 string(credentialsId: 'hjni_azure_sp_tenant', variable: 'SP_TENANT'),
                 ]){
                 stage('Login'){
-                    powershell """
+                    sh """
                         $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $SP_APPLICATION, $SP_KEY
                         Connect-AzureRmAccount -ServicePrincipal -Credential $credential -TenantId $SP_TENANT
                     """
@@ -49,7 +49,7 @@ podTemplate(label: pod.label,
                 string(credentialsId: 'hjni_slack_webhook', variable: 'SLACK_WEBHOOK')
             ]){
                 stage('Create environment') {
-                    powershell """
+                    sh """
                         New-AzureRmResourceGroupDeployment `
                             -Name github-validator `
                             -TemplateFile Deployment/azuredeploy.json `
@@ -62,7 +62,7 @@ podTemplate(label: pod.label,
                 }
             }
             stage('Publish') {
-                powershell """
+                sh """
                     ./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup  -WebAppName $appName -ZipFilePath $zipName
                 """
             }
