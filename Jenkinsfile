@@ -28,7 +28,7 @@ podTemplate(label: pod.label,
         }
         container('powershell') {
             stage('Package') {
-                powershell """
+                pwsh """
                     ./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder
                 """
             }
@@ -38,7 +38,7 @@ podTemplate(label: pod.label,
                 string(credentialsId: 'hjni_azure_sp_tenant', variable: 'SP_TENANT'),
                 ]){
                 stage('Login'){
-                    powershell """
+                    pwsh """
                         $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $SP_APPLICATION, $SP_KEY
                         Connect-AzureRmAccount -ServicePrincipal -Credential $credential -TenantId $SP_TENANT
                     """
@@ -49,7 +49,7 @@ podTemplate(label: pod.label,
                 string(credentialsId: 'hjni_slack_webhook', variable: 'SLACK_WEBHOOK')
             ]){
                 stage('Create environment') {
-                    powershell """
+                    pwsh """
                         New-AzureRmResourceGroupDeployment `
                             -Name github-validator `
                             -TemplateFile Deployment/azuredeploy.json `
@@ -62,7 +62,7 @@ podTemplate(label: pod.label,
                 }
             }
             stage('Publish') {
-                powershell """
+                pwsh """
                     ./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup  -WebAppName $appName -ZipFilePath $zipName
                 """
             }
