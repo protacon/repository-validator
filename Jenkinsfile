@@ -3,7 +3,7 @@ library 'jenkins-ptcs-library@docker-depencies'
 podTemplate(label: pod.label,
   containers: pod.templates + [
     containerTemplate(name: 'dotnet', image: 'microsoft/dotnet:2.1-sdk', ttyEnabled: true, command: '/bin/sh -c', args: 'cat'),
-    containerTemplate(name: 'powershell', image: 'azuresdk/azure-powershell-core:master', ttyEnabled: true, command: '/bin/sh -c', args: 'cat')
+    containerTemplate(name: 'powershell', image: 'azuresdk/azure-powershell-core:master', ttyEnabled: true, command: '/bin/pwsh -command', args: '')
   ]
 ) {
     def branch = (env.BRANCH_NAME)
@@ -28,6 +28,9 @@ podTemplate(label: pod.label,
         }
         container('powershell') {
             stage('Package') {
+                powershell """
+                    Get-Module -ListAvailable
+                """
                 sh """
                     pwsh -command "&./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder"
                 """
