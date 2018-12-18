@@ -18,5 +18,6 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ApplicationId, $ApplicationKey
+$securePassword = ConvertTo-SecureString -String $ApplicationKey -AsPlainText -Force
+$credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ApplicationId, $securePassword
 Connect-AzureRmAccount -ServicePrincipal -Credential $credential -TenantId $TenantId
