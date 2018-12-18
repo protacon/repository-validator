@@ -28,7 +28,7 @@ podTemplate(label: pod.label,
         }
         container('powershell') {
             stage('Package') {
-                pwsh """
+                powershell """
                     ./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder
                 """
             }
@@ -49,7 +49,7 @@ podTemplate(label: pod.label,
                 string(credentialsId: 'hjni_slack_webhook', variable: 'SLACK_WEBHOOK')
             ]){
                 stage('Create environment') {
-                    pwsh """
+                    powershell """
                         New-AzureRmResourceGroupDeployment `
                             -Name github-validator `
                             -TemplateFile Deployment/azuredeploy.json `
@@ -62,7 +62,7 @@ podTemplate(label: pod.label,
                 }
             }
             stage('Publish') {
-                pwsh """
+                powershell """
                     ./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup  -WebAppName $appName -ZipFilePath $zipName
                 """
             }
