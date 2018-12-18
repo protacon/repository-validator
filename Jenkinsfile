@@ -3,7 +3,7 @@ library 'jenkins-ptcs-library@docker-depencies'
 podTemplate(label: pod.label,
   containers: pod.templates + [
     containerTemplate(name: 'dotnet', image: 'microsoft/dotnet:2.1-sdk', ttyEnabled: true, command: '/bin/sh -c', args: 'cat'),
-    containerTemplate(name: 'powershell', image: 'azuresdk/azure-powershell-core:master', ttyEnabled: true, command: '/bin/pwsh', args: '')
+    containerTemplate(name: 'powershell', image: 'azuresdk/azure-powershell-core:master', ttyEnabled: true, command: '/bin/pwsh', args: 'Write-Host')
   ]
 ) {
     def branch = (env.BRANCH_NAME)
