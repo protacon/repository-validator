@@ -29,11 +29,7 @@ podTemplate(label: pod.label,
         container('powershell') {
             stage('Package') {
                 sh """
-                    pwsh -command "Enable-AzureRmAlias; Get-Command *AzureRm*"
-                    pwsh -command "Get-Module -ListAvailable"
-                """
-                sh """
-                    pwsh -command "Enable-AzureRmAlias; &./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder"
+                    pwsh -command "&./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder"
                 """
             }
             withCredentials([
@@ -43,7 +39,7 @@ podTemplate(label: pod.label,
                 ]){
                 stage('Login'){
                     sh """
-                        pwsh -command "&./Deployment/Login.ps1 -ApplicationId $SP_APPLICATION -ApplicationKey $SP_KEY -TenantId $SP_TENANT"
+                        pwsh -command "Enable-AzureRmAlias; &./Deployment/Login.ps1 -ApplicationId $SP_APPLICATION -ApplicationKey $SP_KEY -TenantId $SP_TENANT"
                     """
                 }
             }
@@ -53,13 +49,13 @@ podTemplate(label: pod.label,
             ]){
                 stage('Create environment') {
                     sh """
-                        pwsh -command "New-AzureRmResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken $GH_TOKEN -gitHubOrganization $gitHubOrganization -slackWebhookUrl $SLACK_WEBHOOK"
+                        pwsh -command "Enable-AzureRmAlias; New-AzureRmResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken $GH_TOKEN -gitHubOrganization $gitHubOrganization -slackWebhookUrl $SLACK_WEBHOOK"
                     """
                 }
             }
             stage('Publish') {
                 sh """
-                    pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup  -WebAppName $appName -ZipFilePath $zipName"
+                    pwsh -command "Enable-AzureRmAlias; &./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup  -WebAppName $appName -ZipFilePath $zipName"
                 """
             }
         }
