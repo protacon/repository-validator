@@ -1,6 +1,6 @@
 library 'jenkins-ptcs-library@docker-depencies'
 
-def isFeatureBranch(branchName) {return branchName =~ /^feature\/.*$/}
+def isMaster(branchName) {return branchName == "master"}
 
 podTemplate(label: pod.label,
   containers: pod.templates + [
@@ -29,7 +29,7 @@ podTemplate(label: pod.label,
                 """
             }
         }
-        if (!isFeatureBranch(branch)){
+        if (isMaster(branch)){
             container('powershell') {
                 stage('Package') {
                     sh """
