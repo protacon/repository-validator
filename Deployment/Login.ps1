@@ -21,5 +21,5 @@ $ErrorActionPreference = "Stop"
 
 Enable-AzureRmAlias
 $securePassword = ConvertTo-SecureString -String $ApplicationKey -AsPlainText -Force
-#$credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ApplicationId, $securePassword
+$credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ApplicationId, $securePassword
 #Add-AzureRmAccount -ServicePrincipal -ApplicationId $ApplicationId -Credential $credential -TenantId $TenantId
