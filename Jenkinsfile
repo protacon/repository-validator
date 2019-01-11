@@ -39,7 +39,7 @@ podTemplate(label: pod.label,
                 ]){
                 stage('Login'){
                     sh """
-                        pwsh -command "Enable-AzureRmAlias; &./Deployment/Login.ps1 -ApplicationId test -ApplicationKey test -TenantId test"
+                        pwsh -command "Enable-AzureRmAlias; ./Deployment/Login.ps1 -ApplicationId $SP_APPLICATION -ApplicationKey $SP_KEY -TenantId $SP_TENANT"
                     """
                 }
             }

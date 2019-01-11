@@ -14,7 +14,8 @@
 param(
     [Parameter(Mandatory=$true)][string]$ApplicationId,
     [Parameter(Mandatory=$true)][string]$ApplicationKey,
-	[Parameter(Mandatory=$true)][string]$TenantId)
+    [Parameter(Mandatory=$true)][string]$TenantId
+)
 
 $ErrorActionPreference = "Stop"
 
