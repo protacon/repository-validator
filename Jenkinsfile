@@ -29,12 +29,11 @@ podTemplate(label: pod.label,
         container('powershell') {
             stage('Package') {
                 sh """
-                    pwsh -command "Enable-AzureRmAlias"
-                    pwsh -command "Get-Command *AzureRm*"
+                    pwsh -command "Enable-AzureRmAlias; Get-Command *AzureRm*"
                     pwsh -command "Get-Module -ListAvailable"
                 """
                 sh """
-                    pwsh -command "&./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder"
+                    pwsh -command "Enable-AzureRmAlias; &./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder"
                 """
             }
             withCredentials([
