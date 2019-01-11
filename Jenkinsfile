@@ -28,8 +28,8 @@ podTemplate(label: pod.label,
         }
         container('powershell') {
             stage('Package') {
-                powershell """
-                    Get-Module -ListAvailable
+                sh """
+                    pwsh -command "Get-Module -ListAvailable"
                 """
                 sh """
                     pwsh -command "&./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder"
