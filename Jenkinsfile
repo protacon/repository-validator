@@ -39,7 +39,7 @@ podTemplate(label: pod.label,
                 ]){
                 stage('Login'){
                     sh """
-                        pwsh -command "./Deployment/Login.ps1 -ApplicationId \"$SP_APPLICATION\" -ApplicationKey \"$SP_KEY\" -TenantId \"$SP_TENANT\""
+                        pwsh -command "./Deployment/Login.ps1 -ApplicationId '$SP_APPLICATION' -ApplicationKey '$SP_KEY' -TenantId '$SP_TENANT'"
                     """
                 }
             }
