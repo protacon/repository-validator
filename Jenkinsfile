@@ -6,6 +6,8 @@ podTemplate(label: pod.label,
     containerTemplate(name: 'powershell', image: 'azuresdk/azure-powershell-core:master', ttyEnabled: true, command: '/bin/sh -c', args: 'cat')
   ]
 ) {
+    def isFeatureBranch(branchName) {return branchName =~ /^feature\/.*$/}
+
     def branch = (env.BRANCH_NAME)
     def resourceGroup = 'hjni-Rg'
     def appName = 'ptcs-github-validator'
@@ -26,37 +28,39 @@ podTemplate(label: pod.label,
                 """
             }
         }
-        container('powershell') {
-            stage('Package') {
-                sh """
-                    pwsh -command "&./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder"
-                """
-            }
-            withCredentials([
-                string(credentialsId: 'hjni_azure_sp_id', variable: 'SP_APPLICATION'),
-                string(credentialsId: 'hjni_azure_sp_key', variable: 'SP_KEY'),
-                string(credentialsId: 'hjni_azure_sp_tenant', variable: 'SP_TENANT'),
+        if (!isFeatureBranch(branch)){
+            container('powershell') {
+                stage('Package') {
+                    sh """
+                        pwsh -command "&./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder"
+                    """
+                }
+                withCredentials([
+                    string(credentialsId: 'hjni_azure_sp_id', variable: 'SP_APPLICATION'),
+                    string(credentialsId: 'hjni_azure_sp_key', variable: 'SP_KEY'),
+                    string(credentialsId: 'hjni_azure_sp_tenant', variable: 'SP_TENANT'),
+                    ]){
+                    stage('Login'){
+                        sh """
+                            pwsh -command "Enable-AzureRmAlias; ./Deployment/Login.ps1 -ApplicationId '$SP_APPLICATION' -ApplicationKey '$SP_KEY' -TenantId '$SP_TENANT'"
+                        """
+                    }
+                }
+                withCredentials([
+                    string(credentialsId: 'hjni_github_token', variable: 'GH_TOKEN'),
+                    string(credentialsId: 'hjni_slack_webhook', variable: 'SLACK_WEBHOOK')
                 ]){
-                stage('Login'){
+                    stage('Create environment') {
+                        sh """
+                            pwsh -command "Enable-AzureRmAlias; New-AzureRmResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken $GH_TOKEN -gitHubOrganization $gitHubOrganization -slackWebhookUrl $SLACK_WEBHOOK"
+                        """
+                    }
+                }
+                stage('Publish') {
                     sh """
-                        pwsh -command "Enable-AzureRmAlias; ./Deployment/Login.ps1 -ApplicationId '$SP_APPLICATION' -ApplicationKey '$SP_KEY' -TenantId '$SP_TENANT'"
+                        pwsh -command "Enable-AzureRmAlias; &./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup  -WebAppName $appName -ZipFilePath $zipName"
                     """
                 }
-            }
-            withCredentials([
-                string(credentialsId: 'hjni_github_token', variable: 'GH_TOKEN'),
-                string(credentialsId: 'hjni_slack_webhook', variable: 'SLACK_WEBHOOK')
-            ]){
-                stage('Create environment') {
-                    sh """
-                        pwsh -command "Enable-AzureRmAlias; New-AzureRmResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken $GH_TOKEN -gitHubOrganization $gitHubOrganization -slackWebhookUrl $SLACK_WEBHOOK"
-                    """
-                }
-            }
-            stage('Publish') {
-                sh """
-                    pwsh -command "Enable-AzureRmAlias; &./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup  -WebAppName $appName -ZipFilePath $zipName"
-                """
             }
         }
     }
