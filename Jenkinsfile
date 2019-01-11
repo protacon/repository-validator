@@ -29,6 +29,7 @@ podTemplate(label: pod.label,
         container('powershell') {
             stage('Package') {
                 sh """
+                    pwsh -command "Get-Command *AzureRm*"
                     pwsh -command "Get-Module -ListAvailable"
                 """
                 sh """
