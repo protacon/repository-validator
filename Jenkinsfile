@@ -7,7 +7,7 @@ podTemplate(label: pod.label,
   ]
 ) {
     def branch = (env.BRANCH_NAME)
-    def resourceGroup = 'ptcs-github-validator'
+    def resourceGroup = 'hjni-Rg'
     def appName = 'ptcs-github-validator'
     def gitHubOrganization = 'protacon'
 
@@ -39,7 +39,7 @@ podTemplate(label: pod.label,
                 ]){
                 stage('Login'){
                     sh """
-                        pwsh -command "./Deployment/Login.ps1 -ApplicationId '$SP_APPLICATION' -ApplicationKey '$SP_KEY' -TenantId '$SP_TENANT'"
+                        pwsh -command "Enable-AzureRmAlias; ./Deployment/Login.ps1 -ApplicationId '$SP_APPLICATION' -ApplicationKey '$SP_KEY' -TenantId '$SP_TENANT'"
                     """
                 }
             }
