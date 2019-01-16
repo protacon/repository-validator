@@ -31,16 +31,13 @@ namespace ValidationLibrary.Slack
             _webhookUrl = new Uri(_config.WebHookUrl);
         }
     
-        public async Task<HttpResponseMessage> SendMessageAsync(ValidationReport[] report,
-            string channel = null, string username = null)
+        public async Task<HttpResponseMessage> SendMessageAsync(params ValidationReport[] report)
         {
             var problemRepositories = report.Where(repo => repo.Results.Any(result => !result.IsValid)).Select(Format).Take(_config.ReportLimit);
 
             var payload = new
             {
-                attachments = problemRepositories,
-                channel,
-                username
+                attachments = problemRepositories
             };
             var serializedPayload = JsonConvert.SerializeObject(payload);
             var response = await _httpClient.PostAsync(_webhookUrl,
