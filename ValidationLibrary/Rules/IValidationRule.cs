@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Octokit;
 
 namespace ValidationLibrary.Rules
 {
     public interface IValidationRule
     {
-        ValidationResult IsValid(Repository repository);
+        Task<ValidationResult> IsValid(GitHubClient client, Repository repository);
     }
 }

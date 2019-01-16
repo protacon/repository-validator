@@ -1,4 +1,6 @@
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Octokit;
 using ValidationLibrary.Rules;
 
@@ -8,16 +10,17 @@ namespace ValidationLibrary
     {
         private IValidationRule[] _rules = new IValidationRule[]
         {
-            new HasDescriptionRule()
+            new HasDescriptionRule(), new HasReadmeRule()
         };
 
-        public ValidationReport Validate(Repository repository)
+        public async Task<ValidationReport> Validate(GitHubClient client, Repository gitHubRepository)
         {
-            var validationResults = _rules.Select(rule => rule.IsValid(repository));
+            Thread.Sleep(5000);
+            var validationResults = await Task.WhenAll(_rules.Select(async rule => await rule.IsValid(client, gitHubRepository)));
             return new ValidationReport
             {
-                RepositoryName = repository.FullName,
-                RepositoryUrl = repository.HtmlUrl,
+                RepositoryName = gitHubRepository.FullName,
+                RepositoryUrl = gitHubRepository.HtmlUrl,
                 Results = validationResults.ToArray()
             };
         }

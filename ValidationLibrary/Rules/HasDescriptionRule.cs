@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Octokit;
 
 namespace ValidationLibrary.Rules
@@ -8,14 +9,14 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasDescriptionRule : IValidationRule
     {
-        public ValidationResult IsValid(Repository repository)
+        public Task<ValidationResult> IsValid(GitHubClient client, Repository gitHubRepository)
         {
-            var isValid = !string.IsNullOrWhiteSpace(repository.Description);
-            return new ValidationResult
+            var isValid = !string.IsNullOrWhiteSpace(gitHubRepository.Description);
+            return Task.FromResult(new ValidationResult
             {
                 RuleName = nameof(HasDescriptionRule),
                 IsValid = isValid
-            };
+            });
         }
     }
 }
