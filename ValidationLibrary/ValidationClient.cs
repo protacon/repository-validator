@@ -34,7 +34,7 @@ namespace ValidationLibrary
             var client = CreateClient();
             var repository = await client.Repository.Get(organization, repositoryName);
             var result = await validator.Validate(client, repository);
-            return results;
+            return result;
         }
 
         private GitHubClient CreateClient()
