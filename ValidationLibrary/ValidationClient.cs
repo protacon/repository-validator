@@ -27,6 +27,16 @@ namespace ValidationLibrary
             return results.ToArray();
         }
 
+        public async Task<ValidationReport> ValidateRepository(string organization, string repositoryName)
+        {
+            var validator = new RepositoryValidator();
+
+            var client = CreateClient();
+            var repository = await client.Repository.Get(organization, repositoryName);
+            var result = await validator.Validate(client, repository);
+            return result;
+        }
+
         private GitHubClient CreateClient()
         {
             var client = new GitHubClient(new ProductHeaderValue(ProductHeader));
