@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Octokit;
@@ -11,7 +12,6 @@ namespace ValidationLibrary
     {
         private const string ProductHeader = "PTCS-Repository-Validator";
         private readonly GitHubConfiguration _configuration;
-
         public ValidationClient(GitHubConfiguration configuration)
         {
             _configuration = configuration;
@@ -23,7 +23,8 @@ namespace ValidationLibrary
 
             var client = CreateClient();
             var allRepos = await client.Repository.GetAllForOrg(_configuration.Organization);
-            return allRepos.Select(repo => validator.Validate(repo)).ToArray();
+            var results = await Task.WhenAll(allRepos.Select(repo => validator.Validate(client, repo)));
+            return results.ToArray();
         }
 
         private GitHubClient CreateClient()
