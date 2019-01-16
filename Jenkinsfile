@@ -1,4 +1,4 @@
-library 'jenkins-ptcs-library@docker-depencies'
+library 'jenkins-ptcs-library@0.3.0'
 
 def isMaster(branchName) {return branchName == "master"}
 
@@ -20,7 +20,7 @@ podTemplate(label: pod.label,
 
     node(pod.label) {
         stage('Checkout') {
-            checkout_with_tags()
+            checkout scm
         }
         container('dotnet') {
             stage('Build') {
