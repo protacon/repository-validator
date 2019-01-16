@@ -22,10 +22,6 @@ namespace ValidationLibrary
             var validator = new RepositoryValidator();
 
             var client = CreateClient();
-            
-            //var r = await client.Repository.Get("protacon", "repository-validator");
-            //var z = await client.Repository.Get("protacon", "barfoo-testicles");
-            //var allRepos = new []{r, z};
             var allRepos = await client.Repository.GetAllForOrg(_configuration.Organization);
             var results = await Task.WhenAll(allRepos.Select(repo => validator.Validate(client, repo)));
             return results.ToArray();

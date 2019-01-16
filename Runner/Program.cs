@@ -32,7 +32,7 @@ namespace Runner
             var client = new ValidationClient(githubConfig);
             var repositories = client.ValidateOrganization().Result;
             ReportToConsole(repositories);
-            //ReportToSlack(slackConfig, repositories).Wait();
+            ReportToSlack(slackConfig, repositories).Wait();
             Console.WriteLine("Duration {0}", (DateTime.UtcNow - start).TotalSeconds);
         }
 

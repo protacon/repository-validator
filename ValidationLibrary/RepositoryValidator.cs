@@ -15,6 +15,7 @@ namespace ValidationLibrary
 
         public async Task<ValidationReport> Validate(GitHubClient client, Repository gitHubRepository)
         {
+            // This is simple workaround for GitHub Throttle
             Thread.Sleep(5000);
             var validationResults = await Task.WhenAll(_rules.Select(async rule => await rule.IsValid(client, gitHubRepository)));
             return new ValidationReport
