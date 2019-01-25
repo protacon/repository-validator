@@ -26,7 +26,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Get publishing profile for the web app
-$xml = [xml](Get-AzureRmWebAppPublishingProfile -Name $WebAppName `
+$xml = [xml](Get-AzWebAppPublishingProfile -Name $WebAppName `
 	-ResourceGroupName $ResourceGroup `
 	-OutputFile null)
 

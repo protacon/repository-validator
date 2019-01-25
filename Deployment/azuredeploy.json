@@ -16,7 +16,7 @@
             }
         },
         "gitHubToken": {
-            "type": "string",
+            "type": "securestring",
             "metadata": {
                 "description": "GitHub token that is used to access repositories"
             }
@@ -28,10 +28,20 @@
             }
         },
         "slackWebhookUrl": {
-            "type": "string",
+            "type": "securestring",
             "metadata": {
                 "description": "Slack messages are sent to this url"
             }
+        },
+        "environment": {
+            "type": "string",
+            "metadata": {
+                "description": "Environment type (Development, Production)"
+            },
+            "allowedValues": [
+                "Development",
+                "Production"
+            ]
         }
     },
     "variables": {
@@ -50,6 +60,10 @@
             "kind": "Storage",
             "sku": {
                 "name": "Standard_LRS"
+            },
+            "tags": {
+                "displayName": "STorage for function app",
+                "environment": "[parameters('environment')]"
             }
         },
         {
@@ -61,6 +75,10 @@
                 "name": "[variables('hostingPlanName')]",
                 "computeMode": "Dynamic",
                 "sku": "Dynamic"
+            },
+            "tags": {
+                "displayName": "Server for function app",
+                "environment": "[parameters('environment')]"
             }
         },
         {
@@ -73,6 +91,10 @@
                 "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
             ],
+            "tags": {
+                "displayName": "Function app",
+                "environment": "[parameters('environment')]"
+            },
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
                 "siteConfig": {
@@ -119,26 +141,26 @@
                         {
                             "name": "Slack:WebHookUrl",
                             "value": "[parameters('slackWebhookUrl')]"
-                        },
-                        {
-                            "name": "Slack:ReportLimit",
-                            "value": "20"
                         }
                     ]
                 }
             }
         },
         {
-            "apiVersion": "2018-05-01-preview",
+            "comments": "Application insights",
+            "apiVersion": "2015-05-01",
             "name": "[variables('applicationInsightsName')]",
-            "type": "microsoft.insights/components",
+            "type": "Microsoft.Insights/components",
             "location": "[parameters('location')]",
             "tags": {
-                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', variables('applicationInsightsName'))]": "Resource"
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', variables('applicationInsightsName'))]": "Resource",
+                "displayName": "Application insights",
+                "environment": "[parameters('environment')]"
             },
             "properties": {
                 "ApplicationId": "[variables('applicationInsightsName')]",
-                "Request_Source": "IbizaWebAppExtensionCreate"
+                "Request_Source": "IbizaWebAppExtensionCreate",
+                "Application_Type": "web"
             }
         }
     ]

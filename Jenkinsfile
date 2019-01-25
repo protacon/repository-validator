@@ -43,7 +43,7 @@ podTemplate(label: pod.label,
                     ]){
                     stage('Login'){
                         sh """
-                            pwsh -command "Enable-AzureRmAlias; ./Deployment/Login.ps1 -ApplicationId '$SP_APPLICATION' -ApplicationKey '$SP_KEY' -TenantId '$SP_TENANT'"
+                            pwsh -command "./Deployment/Login.ps1 -ApplicationId '$SP_APPLICATION' -ApplicationKey '$SP_KEY' -TenantId '$SP_TENANT'"
                         """
                     }
                 }
@@ -53,13 +53,13 @@ podTemplate(label: pod.label,
                 ]){
                     stage('Create environment') {
                         sh """
-                            pwsh -command "Enable-AzureRmAlias; New-AzureRmResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken $GH_TOKEN -gitHubOrganization $gitHubOrganization -slackWebhookUrl $SLACK_WEBHOOK"
+                            pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken $GH_TOKEN -gitHubOrganization $gitHubOrganization -slackWebhookUrl $SLACK_WEBHOOK -environment Development"
                         """
                     }
                 }
                 stage('Publish') {
                     sh """
-                        pwsh -command "Enable-AzureRmAlias; &./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup  -WebAppName $appName -ZipFilePath $zipName"
+                        pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup  -WebAppName $appName -ZipFilePath $zipName"
                     """
                 }
             }
