@@ -82,11 +82,11 @@
             }
         },
         {
-            "apiVersion": "2015-08-01",
+            "apiVersion": "2018-02-01",
             "type": "Microsoft.Web/sites",
+            "kind": "functionapp",
             "name": "[variables('functionAppName')]",
             "location": "[parameters('location')]",
-            "kind": "functionapp",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
