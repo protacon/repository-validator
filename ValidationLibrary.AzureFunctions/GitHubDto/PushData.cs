@@ -6,8 +6,5 @@ namespace ValidationLibrary.AzureFunctions.GitHubDto
     {
         [JsonProperty(PropertyName = "repository")]
         public Repository Repository { get; set; }
-
-        [JsonProperty(PropertyName = "organization")]
-        public Organization Organization { get; set; }
     }
 }
