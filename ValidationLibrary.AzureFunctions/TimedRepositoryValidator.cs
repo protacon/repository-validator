@@ -20,7 +20,7 @@ namespace ValidationLibrary.AzureFunctions
 
             var content = await req.Content.ReadAsAsync<PushData>();
 
-            log.LogInformation("{0} {1}", content.Organization, content.Repository);
+            log.LogInformation("Repository {0}/{1}", content.Repository?.Owner?.Login, content.Repository.Name);
 
             log.LogDebug("Loading configuration.");
             IConfiguration config = new ConfigurationBuilder()
@@ -38,7 +38,7 @@ namespace ValidationLibrary.AzureFunctions
             log.LogDebug("Doing validation.");
             
             var client = new ValidationClient(githubConfig);
-            var repository = await client.ValidateRepository(content.Organization.Name, content.Repository.Name);
+            var repository = await client.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name);
 
             log.LogDebug("Sending report.");
             await Report(slackConfig, repository);
