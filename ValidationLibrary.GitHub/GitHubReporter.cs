@@ -18,36 +18,55 @@ namespace ValidationLibrary.GitHub
         {
             foreach(var report in reports)
             {
-                var openIssues = new RepositoryIssueRequest
+                var allIssues = new RepositoryIssueRequest
                 {
-                    State = ItemStateFilter.Open
+                    State = ItemStateFilter.All
                 };
-
-                var issues = await _client.Issue.GetAllForRepository(report.Owner, report.RepositoryName, openIssues);
+                var issues = await _client.Issue.GetAllForRepository(report.Owner, report.RepositoryName, allIssues);
                 foreach(var validationResult in report.Results)
                 {
-                    var issueTitle = CreateIssueTitle(validationResult);
-                    var existingIssue = issues.FirstOrDefault(issue => issue.Title == issueTitle);
-                    if (existingIssue == null && !validationResult.IsValid)
+                    var existingIssue = issues.FirstOrDefault(issue => issue.Title == CreateIssueTitle(validationResult));
+                    if (validationResult.IsValid)
                     {
-                        await _client.Issue.Create(report.Owner, report.RepositoryName, CreateIssue(validationResult));
+                        await CloseIfNeeded(report, validationResult, existingIssue);
                     }
-                    if (existingIssue != null && validationResult.IsValid)
-                    {
-                        var update = new IssueUpdate()
-                        {
-                            State = ItemState.Closed
-                        };
-                        await _client.Issue.Update(report.Owner, report.RepositoryName, existingIssue.Number, update);
+                    else {
+                        await CreateOrOpenIssue(report, validationResult, existingIssue);
                     }
                 }
             }
-            
+        }
+
+        private async Task CloseIfNeeded(ValidationReport report, ValidationResult result, Issue existingIssue)
+        {
+            if (existingIssue != null && existingIssue.State == ItemState.Open)
+            {
+                await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, existingIssue.Number, "Issue fixed. Closing issue.");
+                var update = new IssueUpdate(){State = ItemState.Closed};
+                await _client.Issue.Update(report.Owner, report.RepositoryName, existingIssue.Number, update);
+            }
+        }
+
+        private async Task CreateOrOpenIssue(ValidationReport report, ValidationResult result, Issue existingIssue)
+        {
+            if (existingIssue == null)
+            {
+                await _client.Issue.Create(report.Owner, report.RepositoryName, CreateIssue(result));
+            }
+            else if (existingIssue.State == ItemState.Closed)
+            {
+                await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, existingIssue.Number, "Issue resurfaced. Reopening issue.");
+                var update = new IssueUpdate(){ State = ItemState.Open };
+                await _client.Issue.Update(report.Owner, report.RepositoryName, existingIssue.Number, update);
+            }
         }
 
         private static NewIssue CreateIssue(ValidationResult validationResult)
         {
-            return new NewIssue(CreateIssueTitle(validationResult));
+            return new NewIssue(CreateIssueTitle(validationResult))
+            {
+                Body = validationResult.HowToFix
+            };
         }
 
         private static string CreateIssueTitle(ValidationResult validationResult)

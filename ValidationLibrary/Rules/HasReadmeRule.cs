@@ -20,6 +20,7 @@ namespace ValidationLibrary.Rules
                 return new ValidationResult
                 {
                     RuleName = nameof(HasReadmeRule),
+                    HowToFix = "Add Readme.md file to repository root with content describing this repository.",
                     IsValid = readme.Content != null
                 };
             } 
@@ -27,7 +28,8 @@ namespace ValidationLibrary.Rules
             {
                 return new ValidationResult
                 {
-                    RuleName = nameof(HasReadmeRule),
+                    RuleName = "Missing Readme.md",
+                    HowToFix = "Add Readme.md file to repository root.",
                     IsValid = false
                 };
             }
