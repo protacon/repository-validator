@@ -30,9 +30,10 @@ namespace Runner
             var slackConfig = new SlackConfiguration();
             config.GetSection("Slack").Bind(slackConfig);
 
-            var client = new ValidationClient(githubConfig);
+            var ghClient = CreateClient(githubConfig);
+            var client = new ValidationClient(ghClient);
             var repository = client.ValidateRepository(githubConfig.Organization, "validation-test-repository").Result;
-            ReportToGitHub(CreateClient(githubConfig), repository).Wait();
+            ReportToGitHub(ghClient, repository).Wait();
             ReportToConsole(repository);
             ReportToSlack(slackConfig, repository).Wait();
             Console.WriteLine("Duration {0}", (DateTime.UtcNow - start).TotalSeconds);

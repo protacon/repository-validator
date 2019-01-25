@@ -6,13 +6,17 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Octokit;
 using ValidationLibrary.AzureFunctions.GitHubDto;
+using ValidationLibrary.GitHub;
 using ValidationLibrary.Slack;
 
 namespace ValidationLibrary.AzureFunctions
 {
     public static class RepositoryValidator
     {
+        private const string ProductHeader = "PTCS-Repository-Validator";
+
         [FunctionName("RepositoryValidator")]
         public static async Task Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req, ILogger log, ExecutionContext context)
         {
@@ -37,16 +41,24 @@ namespace ValidationLibrary.AzureFunctions
 
             log.LogDebug("Doing validation.");
             
-            var client = new ValidationClient(githubConfig);
+            var ghClient = CreateClient(githubConfig);
+            var client = new ValidationClient(ghClient);
             var repository = await client.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name);
 
             log.LogDebug("Sending report.");
-            await Report(slackConfig, repository);
+            await ReportToGitHub(ghClient, repository);
+            await ReportToSlack(slackConfig, repository);
 
             log.LogInformation("Validation finished");
         }
 
-        private static async Task Report(SlackConfiguration config, ValidationReport report)
+        private static async Task ReportToGitHub(GitHubClient client, params ValidationReport[] reports)
+        {
+            var reporter = new GitHubReporter(client);
+            await reporter.Report(reports);
+        }
+
+        private static async Task ReportToSlack(SlackConfiguration config, ValidationReport report)
         {
             var slackClient = new SlackClient(config);
             var response = await slackClient.SendMessageAsync(report);
@@ -68,6 +80,14 @@ namespace ValidationLibrary.AzureFunctions
             {
                 throw new ArgumentNullException(nameof(slackConfiguration.WebHookUrl), "WebHookUrl was missing.");
             }
+        }
+
+        private static GitHubClient CreateClient(GitHubConfiguration gitHubConfiguration)
+        {
+            var client = new GitHubClient(new ProductHeaderValue(ProductHeader));
+            var tokenAuth = new Credentials(gitHubConfiguration.Token);
+            client.Credentials = tokenAuth;
+            return client;
         }
     }
 }
