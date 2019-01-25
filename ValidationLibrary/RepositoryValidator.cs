@@ -20,7 +20,8 @@ namespace ValidationLibrary
             var validationResults = await Task.WhenAll(_rules.Select(async rule => await rule.IsValid(client, gitHubRepository)));
             return new ValidationReport
             {
-                RepositoryName = gitHubRepository.FullName,
+                Owner = gitHubRepository.Owner.Login,
+                RepositoryName = gitHubRepository.Name,
                 RepositoryUrl = gitHubRepository.HtmlUrl,
                 Results = validationResults.ToArray()
             };

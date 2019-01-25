@@ -10,20 +10,18 @@ namespace ValidationLibrary
     /// </summary>
     public class ValidationClient
     {
-        private const string ProductHeader = "PTCS-Repository-Validator";
-        private readonly GitHubConfiguration _configuration;
-        public ValidationClient(GitHubConfiguration configuration)
+        private readonly GitHubClient _client;
+        public ValidationClient(GitHubClient client)
         {
-            _configuration = configuration;
+            _client = client;
         }
 
-        public async Task<ValidationReport[]> ValidateOrganization()
+        public async Task<ValidationReport[]> ValidateOrganization(string organization)
         {
             var validator = new RepositoryValidator();
 
-            var client = CreateClient();
-            var allRepos = await client.Repository.GetAllForOrg(_configuration.Organization);
-            var results = await Task.WhenAll(allRepos.Select(repo => validator.Validate(client, repo)));
+            var allRepos = await _client.Repository.GetAllForOrg(organization);
+            var results = await Task.WhenAll(allRepos.Select(repo => validator.Validate(_client, repo)));
             return results.ToArray();
         }
 
@@ -31,18 +29,9 @@ namespace ValidationLibrary
         {
             var validator = new RepositoryValidator();
 
-            var client = CreateClient();
-            var repository = await client.Repository.Get(organization, repositoryName);
-            var result = await validator.Validate(client, repository);
+            var repository = await _client.Repository.Get(organization, repositoryName);
+            var result = await validator.Validate(_client, repository);
             return result;
-        }
-
-        private GitHubClient CreateClient()
-        {
-            var client = new GitHubClient(new ProductHeaderValue(ProductHeader));
-            var tokenAuth = new Credentials(_configuration.Token);
-            client.Credentials = tokenAuth;
-            return client;
         }
     }
 }

@@ -14,7 +14,8 @@ namespace ValidationLibrary.Rules
             var isValid = !string.IsNullOrWhiteSpace(gitHubRepository.Description);
             return Task.FromResult(new ValidationResult
             {
-                RuleName = nameof(HasDescriptionRule),
+                RuleName = "Missing description",
+                HowToFix = "Add description for this repository.",
                 IsValid = isValid
             });
         }
