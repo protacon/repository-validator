@@ -11,9 +11,9 @@ using ValidationLibrary.Slack;
 
 namespace ValidationLibrary.AzureFunctions
 {
-    public static class TimedRepositoryValidator
+    public static class RepositoryValidator
     {
-        [FunctionName("TimedRepositoryValidator")]
+        [FunctionName("RepositoryValidator")]
         public static async Task Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req, ILogger log, ExecutionContext context)
         {
             log.LogDebug("Repository validation hook launched");
