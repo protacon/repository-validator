@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ValidationLibrary\ValidationLibrary.csproj" />
     <ProjectReference Include="..\ValidationLibrary.Slack\ValidationLibrary.Slack.csproj" />
+    <ProjectReference Include="..\ValidationLibrary.GitHub\ValidationLibrary.GitHub.csproj" />
   </ItemGroup>
 
 </Project>

@@ -7,6 +7,7 @@ namespace ValidationLibrary
     /// </summary>
     public class ValidationReport
     {
+        public string Owner { get; set; }
         public string RepositoryName { get; set; }
         public string RepositoryUrl { get; set; }
         public ValidationResult[] Results { get; set; }

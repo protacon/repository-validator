@@ -52,7 +52,7 @@ namespace ValidationLibrary.Slack
             var message = string.Join("\n", errors);
 
             return new {
-                title = report.RepositoryName,
+                title = $"{report.Owner}/{report.RepositoryName}",
                 title_link = report.RepositoryUrl,
                 text = message,
                 mrkdwn_in = new []{"text"}
