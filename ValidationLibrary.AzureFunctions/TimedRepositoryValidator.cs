@@ -20,7 +20,7 @@ namespace ValidationLibrary.AzureFunctions
 
             var content = await req.Content.ReadAsAsync<PushData>();
 
-            log.LogInformation("{0} {1}", content.Organization, content.Repository);
+            log.LogInformation("Repository{0}/{1}", content.Organization?.Name, content.Repository.Name);
 
             log.LogDebug("Loading configuration.");
             IConfiguration config = new ConfigurationBuilder()
