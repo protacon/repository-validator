@@ -29,7 +29,7 @@ podTemplate(label: pod.label,
                 """
             }
         }
-        //if (isMaster(branch)){
+        if (isMaster(branch)){
             container('powershell') {
                 stage('Package') {
                     sh """
@@ -63,6 +63,6 @@ podTemplate(label: pod.label,
                     """
                 }
             }
-        //}
+        }
     }
   }
