@@ -12,6 +12,8 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasReadmeRule : IValidationRule
     {
+        private const string RuleName = "Missing Readme.md";
+
         public async Task<ValidationResult> IsValid(GitHubClient client, Repository gitHubRepository)
         {
             try
@@ -19,7 +21,7 @@ namespace ValidationLibrary.Rules
                 var readme = await client.Repository.Content.GetReadme("protacon", gitHubRepository.Name);
                 return new ValidationResult
                 {
-                    RuleName = nameof(HasReadmeRule),
+                    RuleName = RuleName,
                     HowToFix = "Add Readme.md file to repository root with content describing this repository.",
                     IsValid = readme.Content != null
                 };
@@ -28,7 +30,7 @@ namespace ValidationLibrary.Rules
             {
                 return new ValidationResult
                 {
-                    RuleName = "Missing Readme.md",
+                    RuleName = RuleName,
                     HowToFix = "Add Readme.md file to repository root.",
                     IsValid = false
                 };
