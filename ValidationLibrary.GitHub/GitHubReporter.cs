@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Octokit;
@@ -25,39 +26,48 @@ namespace ValidationLibrary.GitHub
                 var issues = await _client.Issue.GetAllForRepository(report.Owner, report.RepositoryName, allIssues);
                 foreach(var validationResult in report.Results)
                 {
-                    var existingIssue = issues.FirstOrDefault(issue => issue.Title == CreateIssueTitle(validationResult));
+                    var existingIssues = issues.Where(issue => issue.Title == CreateIssueTitle(validationResult));
                     if (validationResult.IsValid)
                     {
-                        await CloseIfNeeded(report, validationResult, existingIssue);
+                        await CloseIfNeeded(report, validationResult, existingIssues);
                     }
                     else {
-                        await CreateOrOpenIssue(report, validationResult, existingIssue);
+                        await CreateOrOpenIssue(report, validationResult, existingIssues);
                     }
                 }
             }
         }
 
-        private async Task CloseIfNeeded(ValidationReport report, ValidationResult result, Issue existingIssue)
+        private async Task CloseIfNeeded(ValidationReport report, ValidationResult result, IEnumerable<Issue> existingIssues)
         {
-            if (existingIssue != null && existingIssue.State == ItemState.Open)
+            foreach(var existingIssue in existingIssues)
             {
-                await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, existingIssue.Number, "Issue fixed. Closing issue.");
-                var update = new IssueUpdate(){State = ItemState.Closed};
-                await _client.Issue.Update(report.Owner, report.RepositoryName, existingIssue.Number, update);
+                if (existingIssue.State == ItemState.Open)
+                {
+                    await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, existingIssue.Number, "Issue fixed. Closing issue.");
+                    var update = new IssueUpdate(){State = ItemState.Closed};
+                    await _client.Issue.Update(report.Owner, report.RepositoryName, existingIssue.Number, update);
+                }
             }
         }
 
-        private async Task CreateOrOpenIssue(ValidationReport report, ValidationResult result, Issue existingIssue)
+        private async Task CreateOrOpenIssue(ValidationReport report, ValidationResult result, IEnumerable<Issue> existingIssues)
         {
-            if (existingIssue == null)
+            if (!existingIssues.Any())
             {
                 await _client.Issue.Create(report.Owner, report.RepositoryName, CreateIssue(result));
-            }
-            else if (existingIssue.State == ItemState.Closed)
+            } else
             {
-                await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, existingIssue.Number, "Issue resurfaced. Reopening issue.");
+                var openIssue = existingIssues.FirstOrDefault(issue => issue.State == ItemState.Open);
+                if (openIssue == null)
+                {
+                    // There is already one open issue for this thing, not opening another.
+                    return;
+                }
+                var closedIssue = existingIssues.FirstOrDefault(issue => issue.State == ItemState.Closed);
+                await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, closedIssue.Number, "Issue resurfaced. Reopening issue.");
                 var update = new IssueUpdate(){ State = ItemState.Open };
-                await _client.Issue.Update(report.Owner, report.RepositoryName, existingIssue.Number, update);
+                await _client.Issue.Update(report.Owner, report.RepositoryName, closedIssue.Number, update);
             }
         }
 
