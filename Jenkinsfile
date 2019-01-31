@@ -28,6 +28,11 @@ podTemplate(label: pod.label,
                     dotnet publish -c Release -o $publishFolder $functionsProject
                 """
             }
+            stage('Test') {
+                sh """
+                    dotnet test
+                """
+            }
         }
         if (isMaster(branch)){
             container('powershell') {
