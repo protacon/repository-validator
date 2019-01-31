@@ -62,7 +62,7 @@
                 "name": "Standard_LRS"
             },
             "tags": {
-                "displayName": "STorage for function app",
+                "displayName": "Storage for function app",
                 "environment": "[parameters('environment')]"
             }
         },

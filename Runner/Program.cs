@@ -37,7 +37,7 @@ namespace Runner
             config.GetSection("Slack").Bind(slackConfig);
 
             var ghClient = CreateClient(githubConfig);
-            var client = new ValidationClient(ghClient);
+            var client = new ValidationClient(logger, ghClient);
             var repository = client.ValidateRepository(githubConfig.Organization, "validation-test-repository").Result;
             ReportToGitHub(ghClient, logger, repository).Wait();
             ReportToConsole(logger, repository);

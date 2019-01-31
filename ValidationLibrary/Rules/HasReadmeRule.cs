@@ -4,6 +4,7 @@ using System.Linq;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace ValidationLibrary.Rules
 {
@@ -12,13 +13,22 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasReadmeRule : IValidationRule
     {
-        private const string RuleName = "Missing Readme.md";
+        public string RuleName =>  "Missing Readme.md";
 
+        private readonly ILogger _logger;
+
+        public HasReadmeRule(ILogger logger)
+        {
+            _logger = logger;
+        }
+        
         public async Task<ValidationResult> IsValid(GitHubClient client, Repository gitHubRepository)
         {
+            _logger.LogTrace("Rule {0} / {1}, Validating repository {2}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
             try
             {
                 var readme = await client.Repository.Content.GetReadme("protacon", gitHubRepository.Name);
+                _logger.LogDebug("Rule {0} / {1}, Validating repository {2}. Readme has content: {0}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, readme.Content != null);
                 return new ValidationResult
                 {
                     RuleName = RuleName,
@@ -28,6 +38,7 @@ namespace ValidationLibrary.Rules
             } 
             catch (Octokit.NotFoundException)
             {
+                _logger.LogDebug("No Readme found, validation false.");
                 return new ValidationResult
                 {
                     RuleName = RuleName,

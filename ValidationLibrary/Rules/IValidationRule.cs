@@ -9,6 +9,8 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public interface IValidationRule
     {
+        string RuleName { get; }
+
         Task<ValidationResult> IsValid(GitHubClient client, Repository repository);
     }
 }
