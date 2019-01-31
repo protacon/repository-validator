@@ -10,7 +10,7 @@ namespace ValidationLibrary
     {
         private IValidationRule[] _rules = new IValidationRule[]
         {
-            new HasDescriptionRule()//, new HasReadmeRule()
+            new HasDescriptionRule(), new HasReadmeRule()
         };
 
         public async Task<ValidationReport> Validate(GitHubClient client, Repository gitHubRepository)

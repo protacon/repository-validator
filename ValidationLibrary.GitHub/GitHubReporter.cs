@@ -83,6 +83,7 @@ namespace ValidationLibrary.GitHub
                 }
                 var closedIssue = existingIssues.FirstOrDefault(issue => issue.State == ItemState.Closed);
                 await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, closedIssue.Number, "Issue resurfaced. Reopening issue.");
+                
                 var update = new IssueUpdate(){ State = ItemState.Open };
                 await _client.Issue.Update(report.Owner, report.RepositoryName, closedIssue.Number, update);
                 _logger.LogInformation("Reopened issue #{0} for {1}/{2}", closedIssue.Number, report.Owner, report.RepositoryName);
