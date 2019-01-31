@@ -46,15 +46,15 @@ namespace ValidationLibrary.AzureFunctions
             var repository = await client.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name);
 
             log.LogDebug("Sending report.");
-            await ReportToGitHub(ghClient, repository);
+            await ReportToGitHub(log, ghClient, repository);
             await ReportToSlack(slackConfig, repository);
 
             log.LogInformation("Validation finished");
         }
 
-        private static async Task ReportToGitHub(GitHubClient client, params ValidationReport[] reports)
+        private static async Task ReportToGitHub(ILogger logger, GitHubClient client, params ValidationReport[] reports)
         {
-            var reporter = new GitHubReporter(client);
+            var reporter = new GitHubReporter(logger, client);
             await reporter.Report(reports);
         }
 
