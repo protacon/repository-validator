@@ -150,7 +150,7 @@ namespace ValidationLibrary.GitHub.Tests
 
         private static string CreateIssueTitle(string ruleName)
         {
-            return $"{Prefix}: {ruleName}";
+            return $"{Prefix} {ruleName}";
         }
 
         private Issue CreateIssue(string title, ItemState state)
