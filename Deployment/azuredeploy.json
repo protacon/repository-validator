@@ -149,10 +149,6 @@
                             "value": "[parameters('slackWebhookUrl')]"
                         },
                         {
-                            "name": "Slack:WebHookUrl",
-                            "value": "[parameters('slackWebhookUrl')]"
-                        },
-                        {
                             "name": "GitHubReporting:GenericNotice",
                             "value": "[parameters('genericNotice')]"
                         },
