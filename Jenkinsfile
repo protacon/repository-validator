@@ -59,7 +59,7 @@ podTemplate(label: pod.label,
                 ]){
                     stage('Create environment') {
                         sh """
-                            pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -slackWebhookUrl (ConvertTo-SecureString -String $SLACK_WEBHOOK -AsPlainText -Force) -genericNotice (Get-Content -Path $noticeFileName) -environment Development"
+                            pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -slackWebhookUrl (ConvertTo-SecureString -String $SLACK_WEBHOOK -AsPlainText -Force) -genericNotice (Get-Content -Path $noticeFileName | Out-String) -environment Development"
                         """
                     }
                 }
