@@ -34,9 +34,6 @@ namespace ValidationLibrary.AzureFunctions
             var githubConfig = new GitHubConfiguration();
             config.GetSection("GitHub").Bind(githubConfig);
 
-            var gitHubReportConfig = new GitHubReportConfig();
-            config.GetSection("GitHubReporting").Bind(gitHubReportConfig);
-
             var slackConfig = new SlackConfiguration();
             config.GetSection("Slack").Bind(slackConfig);
 
@@ -49,15 +46,25 @@ namespace ValidationLibrary.AzureFunctions
             var repository = await client.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name);
 
             log.LogDebug("Sending report.");
-            await ReportToGitHub(log, ghClient, gitHubReportConfig, repository);
+            await ReportToGitHub(log, ghClient, repository);
             await ReportToSlack(slackConfig, repository);
 
             log.LogInformation("Validation finished");
         }
 
-        private static async Task ReportToGitHub(ILogger logger, GitHubClient client, GitHubReportConfig config, params ValidationReport[] reports)
+        private static async Task ReportToGitHub(ILogger logger, GitHubClient client,  params ValidationReport[] reports)
         {
-            var reporter = new GitHubReporter(logger, client, config);
+            var gitHubReportConfig = new GitHubReportConfig();
+            gitHubReportConfig.GenericNotice = 
+            "These issues are created, closed and reopened by [repository validator](https://github.com/protacon/repository-validator) when commits are pushed to repository. " + Environment.NewLine +
+            Environment.NewLine +
+            "If there are problems, please add an issue to [repository validator](https://github.com/protacon/repository-validator)" + Environment.NewLine +
+            Environment.NewLine +
+            "DO NOT change the name of this issue. Names are used to identify the issues created by automation." + Environment.NewLine;
+
+            gitHubReportConfig.Prefix = "[Automatic validation]";
+
+            var reporter = new GitHubReporter(logger, client, gitHubReportConfig);
             await reporter.Report(reports);
         }
 

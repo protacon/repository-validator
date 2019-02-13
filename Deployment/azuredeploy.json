@@ -33,12 +33,6 @@
                 "description": "Slack messages are sent to this url"
             }
         },
-        "genericNotice": {
-            "type": "string",
-            "metadata": {
-                "description": "This notice is added to every issue created by GitHub reporter."
-            }
-        },
         "environment": {
             "type": "string",
             "metadata": {
@@ -147,14 +141,6 @@
                         {
                             "name": "Slack:WebHookUrl",
                             "value": "[parameters('slackWebhookUrl')]"
-                        },
-                        {
-                            "name": "GitHubReporting:GenericNotice",
-                            "value": "[parameters('genericNotice')]"
-                        },
-                        {
-                            "name": "GitHubReporting:Prefix",
-                            "value": "[[Automatic validation]]"
                         }
                     ]
                 }

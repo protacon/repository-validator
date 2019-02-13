@@ -14,7 +14,6 @@ podTemplate(label: pod.label,
     def appName = 'ptcs-github-validator'
     def gitHubOrganization = 'protacon'
 
-    def noticeFileName = '"Notice.md"'
     def functionsProject = 'ValidationLibrary.AzureFunctions'
     def zipName = 'publish.zip'
     def publishFolder = 'publish'
@@ -59,7 +58,7 @@ podTemplate(label: pod.label,
                 ]){
                     stage('Create environment') {
                         sh """
-                            pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -slackWebhookUrl (ConvertTo-SecureString -String $SLACK_WEBHOOK -AsPlainText -Force) -genericNotice ([Io.File]::ReadAllText((Resolve-Path $noticeFileName).ProviderPath)) -environment Development"
+                            pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -slackWebhookUrl (ConvertTo-SecureString -String $SLACK_WEBHOOK -AsPlainText -Force) -environment Development"
                         """
                     }
                 }
