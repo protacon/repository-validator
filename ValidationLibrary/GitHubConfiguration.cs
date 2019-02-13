@@ -8,7 +8,7 @@ namespace ValidationLibrary
         public string Token { get; set; }
 
         /// <summary>
-        /// Name of the organizaiton that is validated
+        /// Name of the organization that is validated
         /// </summary>
         public string Organization { get; set; }
     }

@@ -12,6 +12,14 @@ namespace ValidationLibrary.GitHub.Tests
     [TestFixture]
     public class GitHubReporterTests
     {
+        private const string Prefix = "[Mock testing prefix]";
+
+        private GitHubReportConfig _config = new GitHubReportConfig 
+        {
+            Prefix = Prefix,
+            GenericNotice = "Notice of most generic quality"
+        };
+
         private GitHubReporter _reporter;
         private IGitHubClient _mockClient;
         private IIssuesClient _mockIssuesClient;
@@ -24,7 +32,7 @@ namespace ValidationLibrary.GitHub.Tests
             _mockIssuesClient = Substitute.For<IIssuesClient>();
             _mockClient.Issue.Returns(_mockIssuesClient);
 
-            _reporter = new GitHubReporter(logger, _mockClient);
+            _reporter = new GitHubReporter(logger, _mockClient, _config);
         }
 
         [Test]
@@ -54,7 +62,7 @@ namespace ValidationLibrary.GitHub.Tests
             await _reporter.Report(report);
 
 
-            await _mockIssuesClient.Received().Create(report.Owner, report.RepositoryName, Arg.Is<NewIssue>(i => i.Title.Contains("Rule")));
+            await _mockIssuesClient.Received().Create(report.Owner, report.RepositoryName, Arg.Is<NewIssue>(i => i.Title.Contains("Rule") && i.Body.EndsWith(_config.GenericNotice + Environment.NewLine)));
         }
 
         [Test]
@@ -142,7 +150,7 @@ namespace ValidationLibrary.GitHub.Tests
 
         private static string CreateIssueTitle(string ruleName)
         {
-            return $"Automatic repository Validation: {ruleName}";
+            return $"{Prefix} {ruleName}";
         }
 
         private Issue CreateIssue(string title, ItemState state)
