@@ -20,6 +20,13 @@ namespace Runner
 
         public static void Main(string[] args)
         {
+            var content = File.ReadAllText("Notice.md");
+            var gitHubReporterConfig = new GitHubReportConfig 
+            {
+                Prefix = "[Automatic validation]",
+                GenericNotice = content
+            };
+                
             var start = DateTime.UtcNow;
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             IConfiguration config = new ConfigurationBuilder()
@@ -39,7 +46,7 @@ namespace Runner
             var ghClient = CreateClient(githubConfig);
             var client = new ValidationClient(logger, ghClient);
             var repository = client.ValidateRepository(githubConfig.Organization, "validation-test-repository").Result;
-            ReportToGitHub(ghClient, logger, repository).Wait();
+            ReportToGitHub(ghClient, gitHubReporterConfig, logger, repository).Wait();
             ReportToConsole(logger, repository);
             ReportToSlack(slackConfig, logger, repository).Wait();
             logger.LogInformation("Duration {0}", (DateTime.UtcNow - start).TotalSeconds);
@@ -58,9 +65,9 @@ namespace Runner
             }
         }
 
-        private static async Task ReportToGitHub(GitHubClient client, ILogger logger, params ValidationReport[] reports)
+        private static async Task ReportToGitHub(GitHubClient client, GitHubReportConfig config, ILogger logger, params ValidationReport[] reports)
         {
-            var reporter = new GitHubReporter(logger, client);
+            var reporter = new GitHubReporter(logger, client, config);
             await reporter.Report(reports);
         }
 

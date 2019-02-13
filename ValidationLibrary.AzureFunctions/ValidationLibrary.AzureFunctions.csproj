@@ -16,3 +16,5 @@
     <ProjectReference Include="..\ValidationLibrary.GitHub\ValidationLibrary.GitHub.csproj" />
   </ItemGroup>
 </Project>
+
+"[Automatic validation]"

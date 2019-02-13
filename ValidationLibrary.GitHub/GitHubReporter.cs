@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Octokit;
@@ -11,11 +12,13 @@ namespace ValidationLibrary.GitHub
     {
         private ILogger _logger;
         private readonly IGitHubClient _client;
+        private readonly GitHubReportConfig _config;
 
-        public GitHubReporter(ILogger logger, IGitHubClient client)
+        public GitHubReporter(ILogger logger, IGitHubClient client, GitHubReportConfig config)
         {
             _logger = logger;
             _client = client;
+            _config = config;
         }
 
         public async Task Report(params ValidationReport[] reports)
@@ -56,7 +59,7 @@ namespace ValidationLibrary.GitHub
                 if (existingIssue.State == ItemState.Open)
                 {
                     _logger.LogTrace("Found open issue #{0}", existingIssue.Number);
-                    await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, existingIssue.Number, "Issue fixed. Closing issue.");
+                    await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, existingIssue.Number, $"{_config.Prefix}: Issue fixed. Closing issue.");
                     var update = new IssueUpdate(){State = ItemState.Closed};
                     await _client.Issue.Update(report.Owner, report.RepositoryName, existingIssue.Number, update);
                     _logger.LogInformation("Closed issue #{0} for {1}/{2}", existingIssue.Number, report.Owner, report.RepositoryName);
@@ -82,7 +85,7 @@ namespace ValidationLibrary.GitHub
                     return;
                 }
                 var closedIssue = existingIssues.FirstOrDefault(issue => issue.State == ItemState.Closed);
-                await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, closedIssue.Number, "Issue resurfaced. Reopening issue.");
+                await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, closedIssue.Number, $"{_config.Prefix}: Issue resurfaced. Reopening issue.");
                 
                 var update = new IssueUpdate(){ State = ItemState.Open };
                 await _client.Issue.Update(report.Owner, report.RepositoryName, closedIssue.Number, update);
@@ -90,17 +93,29 @@ namespace ValidationLibrary.GitHub
             }
         }
 
-        private static NewIssue CreateIssue(ValidationResult validationResult)
+        private NewIssue CreateIssue(ValidationResult validationResult)
         {
+            var builder = new StringBuilder();
+            if (!string.IsNullOrWhiteSpace(validationResult.HowToFix))
+            {
+                builder.AppendLine("# How to fix");
+                builder.AppendLine(validationResult.HowToFix);
+            }
+            if (!string.IsNullOrWhiteSpace(_config.GenericNotice))
+            {
+                builder.AppendLine("# About validation");
+                builder.AppendLine(_config.GenericNotice);
+            }
+
             return new NewIssue(CreateIssueTitle(validationResult))
             {
-                Body = validationResult.HowToFix
+                Body = builder.ToString()
             };
         }
 
-        private static string CreateIssueTitle(ValidationResult validationResult)
+        private string CreateIssueTitle(ValidationResult validationResult)
         {
-            return $"Automatic repository Validation: {validationResult.RuleName}";
+            return $"{_config.Prefix} {validationResult.RuleName}";
         }
     }
 }

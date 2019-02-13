@@ -30,9 +30,12 @@ namespace ValidationLibrary.AzureFunctions
             IConfiguration config = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .Build();
-            
+
             var githubConfig = new GitHubConfiguration();
             config.GetSection("GitHub").Bind(githubConfig);
+
+            var gitHubReportConfig = new GitHubReportConfig();
+            config.GetSection("GitHubReporting").Bind(gitHubReportConfig);
 
             var slackConfig = new SlackConfiguration();
             config.GetSection("Slack").Bind(slackConfig);
@@ -46,15 +49,15 @@ namespace ValidationLibrary.AzureFunctions
             var repository = await client.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name);
 
             log.LogDebug("Sending report.");
-            await ReportToGitHub(log, ghClient, repository);
+            await ReportToGitHub(log, ghClient, gitHubReportConfig, repository);
             await ReportToSlack(slackConfig, repository);
 
             log.LogInformation("Validation finished");
         }
 
-        private static async Task ReportToGitHub(ILogger logger, GitHubClient client, params ValidationReport[] reports)
+        private static async Task ReportToGitHub(ILogger logger, GitHubClient client, GitHubReportConfig config, params ValidationReport[] reports)
         {
-            var reporter = new GitHubReporter(logger, client);
+            var reporter = new GitHubReporter(logger, client, config);
             await reporter.Report(reports);
         }
 
