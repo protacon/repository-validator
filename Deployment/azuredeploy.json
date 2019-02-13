@@ -158,7 +158,7 @@
                         },
                         {
                             "name": "GitHubReporting:Prefix",
-                            "value": "[Automatic validation]"
+                            "value": "[[Automatic validation]]"
                         }
                     ]
                 }
