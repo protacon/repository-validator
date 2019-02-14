@@ -2,14 +2,11 @@
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Build Status](https://jenkins.protacon.cloud/buildStatus/icon?job=www.github.com/repository-validator/master)](https://jenkins.protacon.cloud/blue/organizations/jenkins/www.github.com%2Frepository-validator/activity)
 
-NOTE: This is still WIP.
-
 Checks that organization repositories conforms to policies defined by organization
 
 For example, repositories should have
   * Descriptions
   * README.MD-files
-  * Licenses 
 
 ## Build
 This project requires [dotnet core 2.1](https://www.microsoft.com/net/download)
@@ -20,9 +17,12 @@ dotnet build
 ## Usage
 
 In development (while in solution folder)
+
 ```
 dotnet run --project Runner
 ```
+
+Running folder also needs Notice.md -file. It is added in the end of issues created by Runner.
 
 ### Configuration
 
@@ -42,7 +42,7 @@ and use `setx ASPNETCORE_ENVIRONMENT "Development"` to set environment
 Project ValidationLibrary.AzureFunctions can be deployed to Azure as Azure Function.
 This function periodically validates repositories and reports to configured channel
 
-These deployment examples uses pwoershell, but this can also be done otherwise.
+These deployment examples uses powershell, but this can also be done otherwise.
 
 NOTE: PowerShell needs to have an authenticated sessions. This can be done with `Connect-AzureRmAccount`.
 
@@ -52,19 +52,20 @@ Deployment\azuredeploy.json contains definition of environment. It can be deploy
 
 Azure PowerShell module
 ```
-New-AzureRmResourceGroupDeployment `
+New-AzResourceGroupDeployment `
     -Name deployment-name `
     -TemplateFile Deployment/azuredeploy.json `
     -ResourceGroupName my-resource-group `
     -appName my-app-name `
     -gitHubToken "your github token here" `
     -gitHubOrganization "your github organization here" `
-    -slackWebhookUrl "your slack webhook url here"
+    -slackWebhookUrl "your slack webhook url here" `
+    -environment "Development"
 ```
 
 az cli
 ```
-az group deployment create -g "github-test" --template-file Deployment/azuredeploy.json --parameters appName=hjni-test
+az group deployment create -g "github-test" --template-file Deployment/azuredeploy.json --parameters appName=hjni-test --parameters gitHubToken=<tokenhere> --parameters gitHubOrganization=protacon --parameters slackWebhookUrl=<slackwebhook>
 ```
 
 ### Deploying site
