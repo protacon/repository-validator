@@ -20,11 +20,15 @@ namespace Runner
 
         public static void Main(string[] args)
         {
-            var content = File.ReadAllText("Notice.md");
             var gitHubReporterConfig = new GitHubReportConfig 
             {
                 Prefix = "[Automatic validation]",
-                GenericNotice = content
+                GenericNotice = 
+                    "These issues are created, closed and reopened by [repository validator](https://github.com/protacon/repository-validator) when commits are pushed to repository. " + Environment.NewLine +
+                    Environment.NewLine +
+                    "If there are problems, please add an issue to [repository validator](https://github.com/protacon/repository-validator)" + Environment.NewLine +
+                    Environment.NewLine +
+                    "DO NOT change the name of this issue. Names are used to identify the issues created by automation." + Environment.NewLine
             };
                 
             var start = DateTime.UtcNow;
@@ -40,15 +44,19 @@ namespace Runner
             var githubConfig = new GitHubConfiguration();
             config.GetSection("GitHub").Bind(githubConfig);
 
-            var slackConfig = new SlackConfiguration();
-            config.GetSection("Slack").Bind(slackConfig);
-
             var ghClient = CreateClient(githubConfig);
             var client = new ValidationClient(logger, ghClient);
-            var repository = client.ValidateRepository(githubConfig.Organization, "validation-test-repository").Result;
+            var repository = client.ValidateRepository(githubConfig.Organization, "repository-validator").Result;
             ReportToGitHub(ghClient, gitHubReporterConfig, logger, repository).Wait();
             ReportToConsole(logger, repository);
-            ReportToSlack(slackConfig, logger, repository).Wait();
+
+            var slackSection = config.GetSection("Slack");
+            if (slackSection.Exists())
+            {
+                var slackConfig = new SlackConfiguration();
+                slackSection.Bind(slackConfig);
+                ReportToSlack(slackConfig, logger, repository).Wait();
+            }
             logger.LogInformation("Duration {0}", (DateTime.UtcNow - start).TotalSeconds);
             di.Dispose();
         }

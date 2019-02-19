@@ -23,8 +23,9 @@ namespace ValidationLibrary.AzureFunctions
             log.LogDebug("Repository validation hook launched");
 
             var content = await req.Content.ReadAsAsync<PushData>();
+            ValidateInput(content);
 
-            log.LogInformation("Repository {0}/{1}", content.Repository?.Owner?.Login, content.Repository.Name);
+            log.LogInformation("Repository {0}/{1}", content.Repository?.Owner?.Login, content.Repository?.Name);
 
             log.LogDebug("Loading configuration.");
             IConfiguration config = new ConfigurationBuilder()
@@ -34,9 +35,14 @@ namespace ValidationLibrary.AzureFunctions
             var githubConfig = new GitHubConfiguration();
             config.GetSection("GitHub").Bind(githubConfig);
 
-            var slackConfig = new SlackConfiguration();
-            config.GetSection("Slack").Bind(slackConfig);
-
+            SlackConfiguration slackConfig = null;
+            var sec = config.GetSection("Slack");
+            if (sec.Exists())
+            {
+                slackConfig = new SlackConfiguration();
+                sec.Bind(slackConfig);
+            }
+            
             ValidateConfig(githubConfig, slackConfig);
 
             log.LogDebug("Doing validation.");
@@ -47,9 +53,30 @@ namespace ValidationLibrary.AzureFunctions
 
             log.LogDebug("Sending report.");
             await ReportToGitHub(log, ghClient, repository);
-            await ReportToSlack(slackConfig, repository);
+            if (slackConfig != null)
+            {
+                await ReportToSlack(slackConfig, repository);
+            }
 
             log.LogInformation("Validation finished");
+        }
+
+        private static void ValidateInput(PushData content)
+        {
+            if (content.Repository == null)
+            {
+                throw new ArgumentException("No repository defined in content. Unable to validate repository");
+            }
+
+            if (content.Repository.Owner == null)
+            {
+                throw new ArgumentException("No repository owner defined. Unable to validate repository");
+            }
+
+            if (content.Repository.Name == null)
+            {
+                throw new ArgumentException("No repository name defined. Unable to validate repository");
+            }
         }
 
         private static async Task ReportToGitHub(ILogger logger, GitHubClient client,  params ValidationReport[] reports)
@@ -86,7 +113,7 @@ namespace ValidationLibrary.AzureFunctions
                 throw new ArgumentNullException(nameof(gitHubConfiguration.Token), "Token was missing.");
             }
 
-            if (slackConfiguration.WebHookUrl == null)
+            if (slackConfiguration != null && slackConfiguration.WebHookUrl == null)
             {
                 throw new ArgumentNullException(nameof(slackConfiguration.WebHookUrl), "WebHookUrl was missing.");
             }
