@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Octokit;
 using ValidationLibrary.AzureFunctions.GitHubDto;
 using ValidationLibrary.GitHub;
-using ValidationLibrary.Slack;
 
 namespace ValidationLibrary.AzureFunctions
 {
@@ -34,16 +33,8 @@ namespace ValidationLibrary.AzureFunctions
 
             var githubConfig = new GitHubConfiguration();
             config.GetSection("GitHub").Bind(githubConfig);
-
-            SlackConfiguration slackConfig = null;
-            var sec = config.GetSection("Slack");
-            if (sec.Exists())
-            {
-                slackConfig = new SlackConfiguration();
-                sec.Bind(slackConfig);
-            }
             
-            ValidateConfig(githubConfig, slackConfig);
+            ValidateConfig(githubConfig);
 
             log.LogDebug("Doing validation.");
             
@@ -90,7 +81,7 @@ namespace ValidationLibrary.AzureFunctions
             await reporter.Report(reports);
         }
 
-        private static void ValidateConfig(GitHubConfiguration gitHubConfiguration, SlackConfiguration slackConfiguration)
+        private static void ValidateConfig(GitHubConfiguration gitHubConfiguration)
         {
             if (gitHubConfiguration.Organization == null)
             {
@@ -100,11 +91,6 @@ namespace ValidationLibrary.AzureFunctions
             if (gitHubConfiguration.Token == null)
             {
                 throw new ArgumentNullException(nameof(gitHubConfiguration.Token), "Token was missing.");
-            }
-
-            if (slackConfiguration != null && slackConfiguration.WebHookUrl == null)
-            {
-                throw new ArgumentNullException(nameof(slackConfiguration.WebHookUrl), "WebHookUrl was missing.");
             }
         }
 
