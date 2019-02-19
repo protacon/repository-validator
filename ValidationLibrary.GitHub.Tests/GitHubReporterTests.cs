@@ -23,6 +23,7 @@ namespace ValidationLibrary.GitHub.Tests
         private GitHubReporter _reporter;
         private IGitHubClient _mockClient;
         private IIssuesClient _mockIssuesClient;
+        private IUsersClient _mockUsersClient;
 
         [SetUp]
         public void Setup()
@@ -31,6 +32,11 @@ namespace ValidationLibrary.GitHub.Tests
             _mockClient = Substitute.For<IGitHubClient>();
             _mockIssuesClient = Substitute.For<IIssuesClient>();
             _mockClient.Issue.Returns(_mockIssuesClient);
+            _mockUsersClient = Substitute.For<IUsersClient>();
+            _mockClient.User.Returns(_mockUsersClient);
+
+            var user = new User(null, null, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, 0, null, 0, 0, false, null, 0, 0, null, "LOGIN", null, null, 0, null, 0, 0, 0, null, new RepositoryPermissions(), false, null, null);
+            _mockUsersClient.Current().Returns(Task.FromResult(user));
 
             _reporter = new GitHubReporter(logger, _mockClient, _config);
         }
