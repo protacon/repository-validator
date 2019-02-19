@@ -24,13 +24,16 @@ namespace ValidationLibrary.GitHub
         public async Task Report(params ValidationReport[] reports)
         {
             _logger.LogTrace("Reporting {0} reports to github", reports.Count());
+            var current = await _client.User.Current();
             foreach(var report in reports)
             {
                 _logger.LogTrace("Reporting for {0}/{1}, url: {2}", report.Owner, report.RepositoryName, report.RepositoryUrl);
                 var allIssues = new RepositoryIssueRequest
                 {
-                    State = ItemStateFilter.All
+                    State = ItemStateFilter.All,
+                    Creator = current.Login,
                 };
+                
                 var issues = await _client.Issue.GetAllForRepository(report.Owner, report.RepositoryName, allIssues);
                 _logger.LogTrace("Found {0} total issues.", issues.Count);
                 foreach(var validationResult in report.Results)
@@ -71,7 +74,7 @@ namespace ValidationLibrary.GitHub
         {
             if (!existingIssues.Any())
             {
-                _logger.LogInformation("No issues found, creating new issue.");
+                _logger.LogInformation("No issues found, creating new issue for {0}/{1}.", report.Owner, report.RepositoryName);
                 await _client.Issue.Create(report.Owner, report.RepositoryName, CreateIssue(result));
             }
             else
