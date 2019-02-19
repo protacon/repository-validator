@@ -53,11 +53,6 @@ namespace ValidationLibrary.AzureFunctions
 
             log.LogDebug("Sending report.");
             await ReportToGitHub(log, ghClient, repository);
-            if (slackConfig != null)
-            {
-                await ReportToSlack(slackConfig, repository);
-            }
-
             log.LogInformation("Validation finished");
         }
 
@@ -93,12 +88,6 @@ namespace ValidationLibrary.AzureFunctions
 
             var reporter = new GitHubReporter(logger, client, gitHubReportConfig);
             await reporter.Report(reports);
-        }
-
-        private static async Task ReportToSlack(SlackConfiguration config, ValidationReport report)
-        {
-            var slackClient = new SlackClient(config);
-            var response = await slackClient.SendMessageAsync(report);
         }
 
         private static void ValidateConfig(GitHubConfiguration gitHubConfiguration, SlackConfiguration slackConfiguration)

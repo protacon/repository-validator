@@ -27,12 +27,6 @@
                 "description": "GitHub organization that is to be validated"
             }
         },
-        "slackWebhookUrl": {
-            "type": "securestring",
-            "metadata": {
-                "description": "Slack messages are sent to this url"
-            }
-        },
         "environment": {
             "type": "string",
             "metadata": {
@@ -137,10 +131,6 @@
                         {
                             "name": "GitHub:Organization",
                             "value": "[parameters('gitHubOrganization')]"
-                        },
-                        {
-                            "name": "Slack:WebHookUrl",
-                            "value": "[parameters('slackWebhookUrl')]"
                         }
                     ]
                 }
