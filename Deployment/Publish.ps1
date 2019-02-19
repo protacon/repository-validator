@@ -33,6 +33,10 @@ dotnet publish -c Release -o $publishFolder ".\ValidationLibrary.AzureFunctions"
 $destination = "publish.zip"
 if(Test-path $destination) {Remove-item $destination}
 Add-Type -assembly "system.io.compression.filesystem"
-[io.compression.zipfile]::CreateFromDirectory(".\ValidationLibrary.AzureFunctions\$publishFolder", $destination)
+
+$fullSourcePath = (Resolve-Path ".\ValidationLibrary.AzureFunctions\$publishFolder").Path
+$fullTargetPath = (Resolve-Path ".\").Path
+$fullZipTarget = "$fullTargetPath\$destination"
+[io.compression.zipfile]::CreateFromDirectory($fullSourcePath, $fullZipTarget)
 
 az webapp deployment source config-zip -n $WebAppName -g $ResourceGroup --src $destination

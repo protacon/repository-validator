@@ -53,12 +53,11 @@ podTemplate(label: pod.label,
                     }
                 }
                 withCredentials([
-                    string(credentialsId: 'hjni_github_token', variable: 'GH_TOKEN'),
-                    string(credentialsId: 'hjni_slack_webhook', variable: 'SLACK_WEBHOOK')
+                    string(credentialsId: 'hjni_github_token', variable: 'GH_TOKEN')
                 ]){
                     stage('Create environment') {
                         sh """
-                            pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -slackWebhookUrl (ConvertTo-SecureString -String $SLACK_WEBHOOK -AsPlainText -Force) -environment Development"
+                            pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -environment Development"
                         """
                     }
                 }
