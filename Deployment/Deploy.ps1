@@ -25,6 +25,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+Write-Host 'Fetching publishing profiles...'
 # Get publishing profile for the web app
 $xml = [xml](Get-AzWebAppPublishingProfile -Name $WebAppName `
 	-ResourceGroupName $ResourceGroup `

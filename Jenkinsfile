@@ -63,7 +63,7 @@ podTemplate(label: pod.label,
                 }
                 stage('Publish') {
                     sh """
-                        pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup  -WebAppName $appName -ZipFilePath $zipName"
+                        pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup -WebAppName $appName -ZipFilePath $zipName"
                     """
                 }
             }
