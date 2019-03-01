@@ -25,7 +25,7 @@ podTemplate(label: pod.label,
         container('dotnet') {
             stage('Build') {
                 sh """
-                    dotnet publish -c Release -o $publishFolder $functionsProject
+                    dotnet publish -c Release -o $publishFolder $functionsProject --version-suffix  ${env.BUILD_NUMBER}"
                 """
             }
             stage('Test') {
