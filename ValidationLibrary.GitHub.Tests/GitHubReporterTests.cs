@@ -24,6 +24,7 @@ namespace ValidationLibrary.GitHub.Tests
         private IGitHubClient _mockClient;
         private IIssuesClient _mockIssuesClient;
         private IUsersClient _mockUsersClient;
+        private IRepositoriesClient _mockRepositoryClient;
 
         [SetUp]
         public void Setup()
@@ -34,9 +35,13 @@ namespace ValidationLibrary.GitHub.Tests
             _mockClient.Issue.Returns(_mockIssuesClient);
             _mockUsersClient = Substitute.For<IUsersClient>();
             _mockClient.User.Returns(_mockUsersClient);
+            _mockRepositoryClient = Substitute.For<IRepositoriesClient>();
+            _mockClient.Repository.Returns(_mockRepositoryClient);
 
             var user = new User(null, null, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, 0, null, 0, 0, false, null, 0, 0, null, "LOGIN", null, null, 0, null, 0, 0, 0, null, new RepositoryPermissions(), false, null, null);
             _mockUsersClient.Current().Returns(Task.FromResult(user));
+
+            _mockRepositoryClient.Get(Arg.Any<string>(), Arg.Any<string>()).Returns((args) => Task.FromResult(CreateRepository((string)args[0], (string)args[1], true)));
 
             _reporter = new GitHubReporter(logger, _mockClient, _config);
         }
@@ -46,6 +51,28 @@ namespace ValidationLibrary.GitHub.Tests
         {
             _mockClient = null;
             await _reporter.Report(new ValidationReport[0]);
+        }
+
+        [Test]
+        public async Task Report_SkipsIfIssuesAreNotEnabled()
+        {
+            var report = new ValidationReport
+            {
+                Owner = "owner",
+                RepositoryName = "repo",
+                Results = new ValidationResult[]
+                {
+                    new ValidationResult
+                    {
+                        IsValid = false,
+                        RuleName = "Rule"
+                    }
+                }
+            };
+
+            _mockRepositoryClient.Get(Arg.Any<string>(), Arg.Any<string>()).Returns((args) => Task.FromResult(CreateRepository((string)args[0], (string)args[1], false)));
+            await _reporter.Report(report);
+            await _mockIssuesClient.DidNotReceive().Create(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<NewIssue>());
         }
 
         [Test]
@@ -162,6 +189,11 @@ namespace ValidationLibrary.GitHub.Tests
         private Issue CreateIssue(string title, ItemState state)
         {
             return new Issue(null, null, null, null, 1, state, title, null, null, null, null, null, null, null, 0, null, null, DateTime.UtcNow, null, 0, null, false, null, null);
+        }
+
+        private Repository CreateRepository(string owner, string name, bool hasIssues)
+        {
+            return new Repository(null, null, null, null, null, null, null, 0, null, null, name, $"{owner}/{name}", null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, hasIssues, false, false, false, 0, 0, null, null, null, false);
         }
     }
 }
