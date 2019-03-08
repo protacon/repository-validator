@@ -25,8 +25,16 @@ namespace ValidationLibrary.GitHub
         {
             _logger.LogTrace("Reporting {0} reports to github", reports.Count());
             var current = await _client.User.Current();
+
             foreach(var report in reports)
             {
+                var repository = await _client.Repository.Get(report.Owner, report.RepositoryName);
+                if (!repository.HasIssues)
+                {
+                    _logger.LogInformation("Repository {0}/{1} has issues disabled. Skipping reporting.", report.Owner, report.RepositoryName);
+                    continue;
+                }
+
                 _logger.LogTrace("Reporting for {0}/{1}, url: {2}", report.Owner, report.RepositoryName, report.RepositoryUrl);
                 var allIssues = new RepositoryIssueRequest
                 {
