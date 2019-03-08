@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Hosting;
@@ -24,6 +25,9 @@ namespace ValidationLibrary.AzureFunctions
         public void Initialize(ITelemetry telemetry)
         {
             telemetry.Context.Component.Version = version;
+            var trace = telemetry as TraceTelemetry;
+            if (trace == null) return;
+            trace.Properties.Add("Testing", "Testing");
         }
     }
 
