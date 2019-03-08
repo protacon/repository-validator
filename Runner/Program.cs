@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Octokit;
 using ValidationLibrary;
+using ValidationLibrary.Csv;
 using ValidationLibrary.GitHub;
 using ValidationLibrary.Rules;
 using ValidationLibrary.Slack;
@@ -47,7 +48,8 @@ namespace Runner
             var ghClient = CreateClient(githubConfig);
             var client = new ValidationClient(logger, ghClient);
             var repository = client.ValidateRepository(githubConfig.Organization, "repository-validator").Result;
-            ReportToGitHub(ghClient, gitHubReporterConfig, logger, repository).Wait();
+            ReportToCsv(di.GetService<ILogger<CsvReporter>>(), config.GetValue<string>("Csv:DestinationFile"), repository);
+            ReportToGitHub(ghClient, gitHubReporterConfig, di.GetService<ILogger<GitHubReporter>>(), repository).Wait();
             ReportToConsole(logger, repository);
 
             var slackSection = config.GetSection("Slack");
@@ -68,15 +70,22 @@ namespace Runner
                 logger.LogInformation($"{report.Owner}/{report.RepositoryName}");
                 foreach (var error in report.Results)
                 {
-                    logger.LogInformation("{0} {1}", error.RuleName, error.IsValid);
+                    logger.LogInformation("Rule: '{0}' Is valid: {1}", error.RuleName, error.IsValid);
                 }
             }
         }
 
-        private static async Task ReportToGitHub(GitHubClient client, GitHubReportConfig config, ILogger logger, params ValidationReport[] reports)
+        private static async Task ReportToGitHub(GitHubClient client, GitHubReportConfig config, ILogger<GitHubReporter> logger, params ValidationReport[] reports)
         {
             var reporter = new GitHubReporter(logger, client, config);
             await reporter.Report(reports);
+        }
+
+        private static void ReportToCsv(ILogger<CsvReporter> logger, string fileName, params ValidationReport[] reports)
+        {
+            var file = new FileInfo(fileName);
+            var reporter = new CsvReporter(logger, file);
+            reporter.Report(reports);
         }
 
         private static async Task ReportToSlack(SlackConfiguration config, ILogger logger, params ValidationReport[] reports)

@@ -1,0 +1,3 @@
+Owner;Name;RepositoryUrl;RuleName;IsValid;HowToFix
+protacon;repository-validator;https://github.com/protacon/repository-validator;Missing description;True;Add description for this repository.
+protacon;repository-validator;https://github.com/protacon/repository-validator;Missing Readme.md;True;Add Readme.md file to repository root with content describing this repository.
