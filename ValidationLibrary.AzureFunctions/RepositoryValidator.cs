@@ -20,7 +20,6 @@ namespace ValidationLibrary.AzureFunctions
         public static async Task Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req, ILogger log, ExecutionContext context)
         {
             log.LogDebug("Repository validation hook launched");
-
             var content = await req.Content.ReadAsAsync<PushData>();
             ValidateInput(content);
 
@@ -49,6 +48,11 @@ namespace ValidationLibrary.AzureFunctions
 
         private static void ValidateInput(PushData content)
         {
+            if (content == null)
+            {
+                throw new ArgumentNullException("Content was null. Unable to retrieve parameters.");
+            }
+
             if (content.Repository == null)
             {
                 throw new ArgumentException("No repository defined in content. Unable to validate repository");

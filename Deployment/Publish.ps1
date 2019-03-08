@@ -19,7 +19,8 @@
  ##############################################################################
 param(
     [Parameter(Mandatory=$true)][string]$ResourceGroup,
-    [Parameter(Mandatory=$true)][string]$WebAppName)
+    [Parameter(Mandatory=$true)][string]$WebAppName,
+    [Parameter()][string]$VersionSuffx = "DEV")
 
 $ErrorActionPreference = "Stop"
 	
@@ -28,7 +29,7 @@ $publishFolder = "publish"
 # delete any previous publish
 if(Test-path $publishFolder) {Remove-Item -Recurse -Force $publishFolder}
 
-dotnet publish -c Release -o $publishFolder ".\ValidationLibrary.AzureFunctions"
+dotnet publish -c Release -o $publishFolder ".\ValidationLibrary.AzureFunctions" --version-suffix $VersionSuffx
 
 $destination = "publish.zip"
 if(Test-path $destination) {Remove-item $destination}

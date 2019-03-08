@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Reflection;
 using Microsoft.ApplicationInsights.Channel;
@@ -13,21 +14,18 @@ namespace ValidationLibrary.AzureFunctions
 {
     internal class CustomTelemetryInitializer : ITelemetryInitializer
     {
-        private string version;
+        private readonly string _version;
 
         public CustomTelemetryInitializer()
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
             FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
-            version = fileVersionInfo.ProductVersion;
+            _version = fileVersionInfo.ProductVersion;
         }
-        
+
         public void Initialize(ITelemetry telemetry)
         {
-            telemetry.Context.Component.Version = version;
-            var trace = telemetry as TraceTelemetry;
-            if (trace == null) return;
-            trace.Properties.Add("Testing", "Testing");
+            telemetry.Context.Component.Version = _version;
         }
     }
 
