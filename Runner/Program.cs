@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Binder;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Octokit;
 using ValidationLibrary;
+using ValidationLibrary.Csv;
 using ValidationLibrary.GitHub;
 using ValidationLibrary.Rules;
 using ValidationLibrary.Slack;
@@ -17,7 +19,6 @@ namespace Runner
 {
     public class Program
     {
-
         public static void Main(string[] args)
         {
             var gitHubReporterConfig = new GitHubReportConfig 
@@ -35,7 +36,7 @@ namespace Runner
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-                .AddJsonFile($"appsettings.Development.json", optional: true)
+                .AddJsonFile("appsettings.Development.json", optional: true)
                 .Build();
 
             var di = BuildDependencyInjection(config);
@@ -46,16 +47,24 @@ namespace Runner
 
             var ghClient = CreateClient(githubConfig);
             var client = new ValidationClient(logger, ghClient);
-            var repository = client.ValidateRepository(githubConfig.Organization, "repository-validator").Result;
-            ReportToGitHub(ghClient, gitHubReporterConfig, logger, repository).Wait();
-            ReportToConsole(logger, repository);
+            /*
+            var allRepositories = ghClient.Repository.GetAllForOrg(githubConfig.Organization).Result;
+            var results = allRepositories.Select(repo => {
+                Thread.Sleep(TimeSpan.FromSeconds(4));
+                return client.ValidateRepository(githubConfig.Organization, repo.Name).Result;
+            }).ToArray();
+            */
+            var results = client.ValidateRepository(githubConfig.Organization, "repository-validator").Result;
+            ReportToCsv(di.GetService<ILogger<CsvReporter>>(), config.GetValue<string>("Csv:DestinationFile"), results);
+            ReportToGitHub(ghClient, gitHubReporterConfig, di.GetService<ILogger<GitHubReporter>>(), results).Wait();
+            ReportToConsole(logger, results);
 
             var slackSection = config.GetSection("Slack");
             if (slackSection.Exists())
             {
                 var slackConfig = new SlackConfiguration();
                 slackSection.Bind(slackConfig);
-                ReportToSlack(slackConfig, logger, repository).Wait();
+                ReportToSlack(slackConfig, logger, results).Wait();
             }
             logger.LogInformation("Duration {0}", (DateTime.UtcNow - start).TotalSeconds);
             di.Dispose();
@@ -68,15 +77,22 @@ namespace Runner
                 logger.LogInformation($"{report.Owner}/{report.RepositoryName}");
                 foreach (var error in report.Results)
                 {
-                    logger.LogInformation("{0} {1}", error.RuleName, error.IsValid);
+                    logger.LogInformation("Rule: '{0}' Is valid: {1}", error.RuleName, error.IsValid);
                 }
             }
         }
 
-        private static async Task ReportToGitHub(GitHubClient client, GitHubReportConfig config, ILogger logger, params ValidationReport[] reports)
+        private static async Task ReportToGitHub(GitHubClient client, GitHubReportConfig config, ILogger<GitHubReporter> logger, params ValidationReport[] reports)
         {
             var reporter = new GitHubReporter(logger, client, config);
             await reporter.Report(reports);
+        }
+
+        private static void ReportToCsv(ILogger<CsvReporter> logger, string fileName, params ValidationReport[] reports)
+        {
+            var file = new FileInfo(fileName);
+            var reporter = new CsvReporter(logger, file);
+            reporter.Report(reports);
         }
 
         private static async Task ReportToSlack(SlackConfiguration config, ILogger logger, params ValidationReport[] reports)
