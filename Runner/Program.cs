@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Binder;
@@ -18,7 +19,6 @@ namespace Runner
 {
     public class Program
     {
-
         public static void Main(string[] args)
         {
             var gitHubReporterConfig = new GitHubReportConfig 
@@ -36,7 +36,7 @@ namespace Runner
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-                .AddJsonFile($"appsettings.Development.json", optional: true)
+                .AddJsonFile("appsettings.Development.json", optional: true)
                 .Build();
 
             var di = BuildDependencyInjection(config);
@@ -47,17 +47,24 @@ namespace Runner
 
             var ghClient = CreateClient(githubConfig);
             var client = new ValidationClient(logger, ghClient);
-            var repository = client.ValidateRepository(githubConfig.Organization, "repository-validator").Result;
-            ReportToCsv(di.GetService<ILogger<CsvReporter>>(), config.GetValue<string>("Csv:DestinationFile"), repository);
-            ReportToGitHub(ghClient, gitHubReporterConfig, di.GetService<ILogger<GitHubReporter>>(), repository).Wait();
-            ReportToConsole(logger, repository);
+            /*
+            var allRepositories = ghClient.Repository.GetAllForOrg(githubConfig.Organization).Result;
+            var results = allRepositories.Select(repo => {
+                Thread.Sleep(TimeSpan.FromSeconds(4));
+                return client.ValidateRepository(githubConfig.Organization, repo.Name).Result;
+            }).ToArray();
+            */
+            var results = client.ValidateRepository(githubConfig.Organization, "repository-validator").Result;
+            ReportToCsv(di.GetService<ILogger<CsvReporter>>(), config.GetValue<string>("Csv:DestinationFile"), results);
+            ReportToGitHub(ghClient, gitHubReporterConfig, di.GetService<ILogger<GitHubReporter>>(), results).Wait();
+            ReportToConsole(logger, results);
 
             var slackSection = config.GetSection("Slack");
             if (slackSection.Exists())
             {
                 var slackConfig = new SlackConfiguration();
                 slackSection.Bind(slackConfig);
-                ReportToSlack(slackConfig, logger, repository).Wait();
+                ReportToSlack(slackConfig, logger, results).Wait();
             }
             logger.LogInformation("Duration {0}", (DateTime.UtcNow - start).TotalSeconds);
             di.Dispose();
