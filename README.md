@@ -9,25 +9,61 @@ For example, repositories should have
   * README.MD-files
 
 ## Build
-This project requires [dotnet core 2.1](https://www.microsoft.com/net/download)
+This project requires [dotnet core 2.0](https://www.microsoft.com/net/download)
 ```
 dotnet build
 ```
 
+## Testing
+```
+dotnet test
+```
+
 ## Usage
 
-In development (while in solution folder)
+There are 2 main ways to use this project
+  * Console program
+    * Scanning all repositories and writing results to CSV file
+    ```
+    dotnet run --project Runner -- scan-all --CsvFile results.csv
+    ```
+    * Scanning single repository and reporting to GitHub issues
+    ```
+    dotnet run -- scan-selected --GitHubReporting -r repository-validator
+    ```
+    * Scanning single repository and reporting to console (validation logic testing)
+    ```
+    dotnet run -- scan-selected -r repository-validator
+    ```
+  * Azure functions (GitHub WebHook for pushes)
+    * Scan selected repository and report to GitHub issues and application insights
 
+For usage instructions:
 ```
-dotnet run --project Runner
+dotnet run --project Runner -- --help
 ```
-
-Running folder also needs Notice.md -file. It is added in the end of issues created by Runner.
 
 ### Configuration
 
-Configuration parameters are read from appsettings.json-file. 
+Configuration parameters are read from appsettings.json-file for both, ValidationLibrary.AzureFunctions and Runner.
+
+For Runner
 ```
+{
+    "GitHub": {
+        "Token": "token generated in github",
+        "Organization": "organization name"
+    },
+    "Slack": {
+        "WebHookUrl": "slack web hook url here",
+        "ReportLimit": 20
+    },
+    "Logging": {
+        "LogLevel": {
+            "Default": "Trace"
+        }
+    }
+}
 {
     "Token": "token generated in github",
     "Organization": "organization name"
@@ -37,6 +73,11 @@ Configuration parameters are read from appsettings.json-file.
 When developing, create appsettings.Development.json and
 replace configuration values with personal values
 and use `setx ASPNETCORE_ENVIRONMENT "Development"` to set environment
+
+For Azure functions, configurations are read from Web site config.
+See `Deployment/azuredeploy.json` and `Deployment`-section for configuration.
+
+For local development and testing of Azure functions, see [function local development documentation](https://docs.microsoft.com/en-us/azure/azure-functions/functions-develop-local)
 
 ## Deployment
 Project ValidationLibrary.AzureFunctions can be deployed to Azure as Azure Function.

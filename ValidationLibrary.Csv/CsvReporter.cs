@@ -24,6 +24,7 @@ namespace ValidationLibrary.Csv
             var flatten = from report in reports
                           from result in report.Results
                           select new ReportLine {
+                            Timestamp = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
                             Owner = report.Owner,
                             Name = report.RepositoryName,
                             RepositoryUrl = report.RepositoryUrl,
@@ -32,7 +33,7 @@ namespace ValidationLibrary.Csv
                             HowToFix = result.HowToFix
                           };
 
-            using (var writer = new StreamWriter(_destinationFile.FullName))
+            using (var writer = new StreamWriter(_destinationFile.FullName, true))
             using (var csv = new CsvWriter(writer))
             {    
                 csv.WriteRecords(flatten.ToList());
@@ -41,6 +42,7 @@ namespace ValidationLibrary.Csv
 
         private class ReportLine 
         {
+            public string Timestamp { get; set; }
             public string Owner { get; set; }
             public string Name { get; set; }
             public string RepositoryUrl { get; set; }
