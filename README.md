@@ -23,9 +23,9 @@ dotnet test
 
 There are 2 main ways to use this project
   * Console program
-    * Scanning all repositories and writing results to CSV file `dotnet run --project Runner -- scan-all --CsvFile results.csv`
-    * Scanning single repository and reporting to GitHub issues `dotnet run -- scan-selected --GitHubReporting -r repository-validator`
-    * Scanning single repository and reporting to console (validation logic testing) `dotnet run -- scan-selected -r repository-validator`
+    * Scanning all repositories and writing results to CSV file ```dotnet run --project Runner -- scan-all --CsvFile results.csv```
+    * Scanning single repository and reporting to GitHub issues ```dotnet run -- scan-selected --GitHubReporting -r repository-validator```
+    * Scanning single repository and reporting to console (validation logic testing) ```dotnet run -- scan-selected -r repository-validator```
   * Azure functions (GitHub WebHook for pushes)
     * Scan selected repository and report to GitHub issues and application insights
 
