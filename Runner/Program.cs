@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CommandLine;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Binder;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,56 +21,76 @@ namespace Runner
 {
     public class Program
     {
+        private static readonly GitHubReportConfig GitHubReporterConfig = new GitHubReportConfig
+        {
+            Prefix = "[Automatic validation]",
+            GenericNotice =
+                "These issues are created, closed and reopened by [repository validator](https://github.com/protacon/repository-validator) when commits are pushed to repository. " + Environment.NewLine +
+                Environment.NewLine +
+                "If there are problems, please add an issue to [repository validator](https://github.com/protacon/repository-validator)" + Environment.NewLine +
+                Environment.NewLine +
+                "DO NOT change the name of this issue. Names are used to identify the issues created by automation." + Environment.NewLine
+        };
+
         public static void Main(string[] args)
         {
-            var gitHubReporterConfig = new GitHubReportConfig 
-            {
-                Prefix = "[Automatic validation]",
-                GenericNotice = 
-                    "These issues are created, closed and reopened by [repository validator](https://github.com/protacon/repository-validator) when commits are pushed to repository. " + Environment.NewLine +
-                    Environment.NewLine +
-                    "If there are problems, please add an issue to [repository validator](https://github.com/protacon/repository-validator)" + Environment.NewLine +
-                    Environment.NewLine +
-                    "DO NOT change the name of this issue. Names are used to identify the issues created by automation." + Environment.NewLine
-            };
-                
-            var start = DateTime.UtcNow;
-            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
                 .AddJsonFile("appsettings.Development.json", optional: true)
                 .Build();
 
-            var di = BuildDependencyInjection(config);
-            var logger = di.GetService<ILogger<Program>>();
-
-            var githubConfig = new GitHubConfiguration();
-            config.GetSection("GitHub").Bind(githubConfig);
-
-            var ghClient = CreateClient(githubConfig);
-            var client = new ValidationClient(logger, ghClient);
-            /*
-            var allRepositories = ghClient.Repository.GetAllForOrg(githubConfig.Organization).Result;
-            var results = allRepositories.Select(repo => {
-                Thread.Sleep(TimeSpan.FromSeconds(4));
-                return client.ValidateRepository(githubConfig.Organization, repo.Name).Result;
-            }).ToArray();
-            */
-            var results = client.ValidateRepository(githubConfig.Organization, "repository-validator").Result;
-            ReportToCsv(di.GetService<ILogger<CsvReporter>>(), config.GetValue<string>("Csv:DestinationFile"), results);
-            ReportToGitHub(ghClient, gitHubReporterConfig, di.GetService<ILogger<GitHubReporter>>(), results).Wait();
-            ReportToConsole(logger, results);
-
-            var slackSection = config.GetSection("Slack");
-            if (slackSection.Exists())
+            using (var di = BuildDependencyInjection(config))
             {
-                var slackConfig = new SlackConfiguration();
-                slackSection.Bind(slackConfig);
-                ReportToSlack(slackConfig, logger, results).Wait();
+                var logger = di.GetService<ILogger<Program>>();
+                var githubConfig = new GitHubConfiguration();
+                config.GetSection("GitHub").Bind(githubConfig);
+
+                var ghClient = CreateClient(githubConfig);
+                var client = new ValidationClient(logger, ghClient);
+
+                Action<IEnumerable<string>, Options> scanner = (IEnumerable<string> repositories, Options options) => 
+                {
+                    var start = DateTime.UtcNow;
+                    var results = repositories.Select(repo => {
+                        Thread.Sleep(TimeSpan.FromSeconds(4));
+                        return client.ValidateRepository(githubConfig.Organization, repo).Result;
+                    }).ToArray();
+
+                    ReportToConsole(logger, results);
+
+                    if (!string.IsNullOrWhiteSpace(options.CsvFile))
+                    {
+                        ReportToCsv(di.GetService<ILogger<CsvReporter>>(), options.CsvFile, results);
+                    }
+                    if (options.ReportToGithub)
+                    {
+                        ReportToGitHub(ghClient, GitHubReporterConfig, di.GetService<ILogger<GitHubReporter>>(), results).Wait();
+                    }
+                    if (options.ReportToSlack)
+                    {
+                        var slackSection = config.GetSection("Slack");
+                        if (slackSection.Exists())
+                        {
+                            var slackConfig = new SlackConfiguration();
+                            slackSection.Bind(slackConfig);
+                            ReportToSlack(slackConfig, logger, results).Wait();
+                        }
+                    }
+                    logger.LogInformation("Duration {0}", (DateTime.UtcNow - start).TotalSeconds);
+                };
+
+                Parser.Default.ParseArguments<ScanSelectedOptions, ScanAllOptions>(args)
+                .WithParsed<ScanSelectedOptions>(options =>
+                {
+                    scanner(options.Repositories, options);
+                })
+                .WithParsed<ScanAllOptions>(options => {
+                    var allRepositories = ghClient.Repository.GetAllForOrg(githubConfig.Organization).Result;
+                    scanner(allRepositories.Select(r => r.Name).ToArray(), options);
+                });
             }
-            logger.LogInformation("Duration {0}", (DateTime.UtcNow - start).TotalSeconds);
-            di.Dispose();
         }
+
 
         private static void ReportToConsole(ILogger logger, params ValidationReport[] reports)
         {
@@ -114,7 +136,8 @@ namespace Runner
         private static ServiceProvider BuildDependencyInjection(IConfiguration config)
         {
             return new ServiceCollection()
-                .AddLogging(loggingBuilder => {
+                .AddLogging(loggingBuilder =>
+                {
                     loggingBuilder.AddConfiguration(config.GetSection("Logging"));
                     loggingBuilder.AddConsole();
                 })
