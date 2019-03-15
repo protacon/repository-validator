@@ -28,12 +28,12 @@ namespace ValidationLibrary.Rules
             try
             {
                 var readme = await client.Repository.Content.GetReadme("protacon", gitHubRepository.Name);
-                _logger.LogDebug("Rule {0} / {1}, Validating repository {2}. Readme has content: {0}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, readme.Content != null);
+                _logger.LogDebug("Rule {0} / {1}, Validating repository {2}. Readme has content: {0}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, !string.IsNullOrWhiteSpace(readme.Content));
                 return new ValidationResult
                 {
                     RuleName = RuleName,
                     HowToFix = "Add Readme.md file to repository root with content describing this repository.",
-                    IsValid = readme.Content != null
+                    IsValid = !string.IsNullOrWhiteSpace(readme.Content)
                 };
             } 
             catch (Octokit.NotFoundException)
