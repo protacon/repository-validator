@@ -25,40 +25,52 @@ namespace ValidationLibrary.GitHub
         {
             _logger.LogTrace("Reporting {0} reports to github", reports.Count());
             var current = await _client.User.Current();
-
             foreach(var report in reports)
             {
                 var repository = await _client.Repository.Get(report.Owner, report.RepositoryName);
-                if (!repository.HasIssues)
+                using(_logger.BeginScope(ScopeParameters(report)))
                 {
-                    _logger.LogInformation("Repository {0}/{1} has issues disabled. Skipping reporting.", report.Owner, report.RepositoryName);
-                    continue;
-                }
-
-                _logger.LogTrace("Reporting for {0}/{1}, url: {2}", report.Owner, report.RepositoryName, report.RepositoryUrl);
-                var allIssues = new RepositoryIssueRequest
-                {
-                    State = ItemStateFilter.All,
-                    Creator = current.Login,
-                };
-                
-                var issues = await _client.Issue.GetAllForRepository(report.Owner, report.RepositoryName, allIssues);
-                _logger.LogTrace("Found {0} total issues.", issues.Count);
-                foreach(var validationResult in report.Results)
-                {
-                    _logger.LogTrace("Reporting rule {0}, IsValid: {1}", validationResult.RuleName, validationResult.IsValid);
-                    var title = CreateIssueTitle(validationResult);
-                    var existingIssues = issues.Where(issue => issue.Title == title);
-                    _logger.LogTrace("Found {0} existing issues with title {1}", existingIssues.Count(), title);
-                    if (validationResult.IsValid)
+                    if (!repository.HasIssues)
                     {
-                        await CloseIfNeeded(report, validationResult, existingIssues);
+                        _logger.LogInformation("Repository {0}/{1} has issues disabled. Skipping reporting.", report.Owner, report.RepositoryName);
+                        continue;
                     }
-                    else {
-                        await CreateOrOpenIssue(report, validationResult, existingIssues);
+
+                    _logger.LogTrace("Reporting for {0}/{1}, url: {2}", report.Owner, report.RepositoryName, report.RepositoryUrl);
+                    var allIssues = new RepositoryIssueRequest
+                    {
+                        State = ItemStateFilter.All,
+                        Creator = current.Login,
+                    };
+                    
+                    var issues = await _client.Issue.GetAllForRepository(report.Owner, report.RepositoryName, allIssues);
+                    _logger.LogTrace("Found {0} total issues.", issues.Count);
+                    foreach(var validationResult in report.Results)
+                    {
+                        _logger.LogTrace("Reporting rule {0}, IsValid: {1}", validationResult.RuleName, validationResult.IsValid);
+                        var title = CreateIssueTitle(validationResult);
+                        var existingIssues = issues.Where(issue => issue.Title == title);
+                        _logger.LogTrace("Found {0} existing issues with title {1}", existingIssues.Count(), title);
+                        if (validationResult.IsValid)
+                        {
+                            await CloseIfNeeded(report, validationResult, existingIssues);
+                        }
+                        else {
+                            await CreateOrOpenIssue(report, validationResult, existingIssues);
+                        }
                     }
                 }
             }
+        }
+
+        private static Dictionary<string, object> ScopeParameters(ValidationReport report)
+        {
+            return new Dictionary<string, object>
+            { 
+                { nameof(report.Owner), report.Owner },
+                { nameof(report.RepositoryName), report.RepositoryName },
+                { nameof(report.RepositoryUrl), report.RepositoryUrl } 
+            };
         }
 
         private async Task CloseIfNeeded(ValidationReport report, ValidationResult result, IEnumerable<Issue> existingIssues)

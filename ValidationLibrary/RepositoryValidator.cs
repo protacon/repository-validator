@@ -25,7 +25,7 @@ namespace ValidationLibrary
 
         public async Task<ValidationReport> Validate(GitHubClient client, Repository gitHubRepository)
         {
-            _logger.LogTrace("Validatin repository {0}", gitHubRepository.FullName);
+            _logger.LogTrace("Validating repository {0}", gitHubRepository.FullName);
             var validationResults = await Task.WhenAll(_rules.Select(async rule => await rule.IsValid(client, gitHubRepository)));
             return new ValidationReport
             {
