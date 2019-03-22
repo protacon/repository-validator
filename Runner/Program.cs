@@ -47,6 +47,7 @@ namespace Runner
 
                 var ghClient = CreateClient(githubConfig);
                 var client = new ValidationClient(logger, ghClient);
+                client.Init().Wait();
 
                 Action<IEnumerable<string>, Options> scanner = (IEnumerable<string> repositories, Options options) => 
                 {
@@ -90,7 +91,6 @@ namespace Runner
                 });
             }
         }
-
 
         private static void ReportToConsole(ILogger logger, params ValidationReport[] reports)
         {

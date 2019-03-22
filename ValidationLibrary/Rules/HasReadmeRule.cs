@@ -22,13 +22,18 @@ namespace ValidationLibrary.Rules
             _logger = logger;
         }
         
-        public async Task<ValidationResult> IsValid(GitHubClient client, Repository gitHubRepository)
+        public Task Init(IGitHubClient ghClient)
+        {
+            return Task.FromResult(0);
+        }
+
+        public async Task<ValidationResult> IsValid(IGitHubClient client, Repository gitHubRepository)
         {
             _logger.LogTrace("Rule {0} / {1}, Validating repository {2}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
             try
             {
                 var readme = await client.Repository.Content.GetReadme("protacon", gitHubRepository.Name);
-                _logger.LogDebug("Rule {0} / {1}, Validating repository {2}. Readme has content: {0}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, !string.IsNullOrWhiteSpace(readme.Content));
+                _logger.LogDebug("Rule {0} / {1}, Validating repository {2}. Readme has content: {3}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, !string.IsNullOrWhiteSpace(readme.Content));
                 return new ValidationResult
                 {
                     RuleName = RuleName,

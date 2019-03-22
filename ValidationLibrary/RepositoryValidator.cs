@@ -17,10 +17,27 @@ namespace ValidationLibrary
         {
             _rules = new IValidationRule[]
             {
-                new HasDescriptionRule(logger), new HasReadmeRule(logger)
+                new HasDescriptionRule(logger),
+                new HasReadmeRule(logger),
+                new HasNewestPtcsJenkinsLibRule(logger)
             };
+
             logger.LogInformation("Initializing {0} with rules: {1}", nameof(RepositoryValidator), string.Join(", ", _rules.Select(rule => rule.RuleName)));;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Performs necessary initiation for all rules
+        /// </summary>
+        /// <param name="client">Github client</param>
+        /// <returns>Task</returns>
+        public async Task Init(GitHubClient client)
+        {
+            _logger.LogInformation("Initializing repository validator");
+            foreach (var rule in _rules)
+            {
+                await rule.Init(client);
+            }
         }
 
         public async Task<ValidationReport> Validate(GitHubClient client, Repository gitHubRepository)
