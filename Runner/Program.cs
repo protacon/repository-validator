@@ -53,7 +53,7 @@ namespace Runner
                 {
                     var start = DateTime.UtcNow;
                     var results = repositories.Select(repo => {
-                        Thread.Sleep(TimeSpan.FromSeconds(4));
+                        Thread.Sleep(TimeSpan.FromSeconds(3));
                         return client.ValidateRepository(githubConfig.Organization, repo).Result;
                     }).ToArray();
 
