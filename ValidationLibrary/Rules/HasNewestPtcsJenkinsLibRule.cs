@@ -54,7 +54,7 @@ namespace ValidationLibrary.Rules
             var jenkinsContent = matchingJenkinsFiles.FirstOrDefault();
             if (jenkinsContent == null)
             {
-                // THhis is unlikely to happen.
+                // This is unlikely to happen.
                 _logger.LogDebug("Rule {0} / {1}, {2} was removed after checking from repository root. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
                 return OkResult();
             }
