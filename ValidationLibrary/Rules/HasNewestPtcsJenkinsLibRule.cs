@@ -9,11 +9,12 @@ using ValidationLibrary.Utils;
 namespace ValidationLibrary.Rules
 {
     /// <summary>
-    /// THis rule validates that Jenkinsfile has newest jenkins-ptcs-library defined if it exists
+    /// Rule validates that Jenkinsfile has newest jenkins-ptcs-library is used if jenkins-ptcs-library is used at all.
+    /// jenkins-ptcs-library is an internal company library that offers utilities for CI pipelines.
     /// </summary>
     public class HasNewestPtcsJenkinsLibRule : IValidationRule
     {
-        private const string JenkinsFileName = "Jenkinsfile";
+        private const string JenkinsFileName = "JENKINSFILE";
 
         public string RuleName => "Old jenkins-ptcs-library";
 
@@ -37,16 +38,26 @@ namespace ValidationLibrary.Rules
         public async Task<ValidationResult> IsValid(IGitHubClient client, Repository repository)
         {
             _logger.LogTrace("Rule {0} / {1}, Validating repository {2}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.FullName);
-            var rootContents = await client.Repository.Content.GetAllContents(repository.Owner.Login, repository.Name);
 
+            // NOTE: rootContents doesn't contain actual contents, content is only fetched when we fetch the single file later.
+            var rootContents = await client.Repository.Content.GetAllContents(repository.Owner.Login, repository.Name);
             var jenkinsFile = rootContents.FirstOrDefault(content => content.Name.Equals(JenkinsFileName, StringComparison.InvariantCultureIgnoreCase));
             if (jenkinsFile == null)
             {
                 _logger.LogDebug("Rule {0} / {1}, No {2} found in root. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
                 return OkResult();
             }
-            var jenkinsContent = await client.Repository.Content.GetAllContents(repository.Owner.Login, repository.Name, jenkinsFile.Name);
-            MatchCollection matches = _regex.Matches(jenkinsContent[0].Content);
+
+            var matchingJenkinsFiles = await client.Repository.Content.GetAllContents(repository.Owner.Login, repository.Name, jenkinsFile.Name);
+            var jenkinsContent = matchingJenkinsFiles.FirstOrDefault();
+            if (jenkinsContent == null)
+            {
+                // THhis is unlikely to happen.
+                _logger.LogDebug("Rule {0} / {1}, {2} was removed after checking from repository root. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
+                return OkResult();
+            }
+
+            MatchCollection matches = _regex.Matches(jenkinsContent.Content);
             var match = matches.OfType<Match>().FirstOrDefault();
             if (match == null)
             {
