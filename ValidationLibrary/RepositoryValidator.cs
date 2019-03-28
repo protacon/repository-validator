@@ -1,7 +1,9 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Octokit;
 using ValidationLibrary.Rules;
 
@@ -9,6 +11,8 @@ namespace ValidationLibrary
 {
     public class RepositoryValidator
     {
+        private const string ConfigFileName = "repository-validator.json";
+
         private readonly ILogger _logger;
 
         private readonly IValidationRule[] _rules;
@@ -30,7 +34,6 @@ namespace ValidationLibrary
         /// Performs necessary initiation for all rules
         /// </summary>
         /// <param name="client">Github client</param>
-        /// <returns>Task</returns>
         public async Task Init(GitHubClient client)
         {
             _logger.LogInformation("Initializing repository validator");
@@ -43,7 +46,17 @@ namespace ValidationLibrary
         public async Task<ValidationReport> Validate(GitHubClient client, Repository gitHubRepository)
         {
             _logger.LogTrace("Validating repository {0}", gitHubRepository.FullName);
-            var validationResults = await Task.WhenAll(_rules.Select(async rule => await rule.IsValid(client, gitHubRepository)));
+            var config = await GetConfig(client, gitHubRepository);
+
+            var filteredRules = _rules.Where(rule => 
+            {
+                var name = rule.GetType().Name;
+                var isIgnored = config.IgnoredRules.Contains(name);
+                _logger.LogTrace("Rule {0} ignore status: {1}", name, isIgnored);
+                return !isIgnored;
+            });
+
+            var validationResults = await Task.WhenAll(filteredRules.Select(async rule => await rule.IsValid(client, gitHubRepository)));
             return new ValidationReport
             {
                 Owner = gitHubRepository.Owner.Login,
@@ -51,6 +64,21 @@ namespace ValidationLibrary
                 RepositoryUrl = gitHubRepository.HtmlUrl,
                 Results = validationResults.ToArray()
             };
+        }
+
+        private async Task<ValidationConfiguration> GetConfig(GitHubClient client, Repository gitHubRepository)
+        {
+            try {
+                _logger.LogTrace("Retrieving config for {0}", gitHubRepository.FullName);
+                var contents = await client.Repository.Content.GetAllContents(gitHubRepository.Owner.Login, gitHubRepository.Name, ConfigFileName);
+                var jsonContent = contents.FirstOrDefault().Content;
+                var config = JsonConvert.DeserializeObject<ValidationConfiguration>(jsonContent);
+                _logger.LogDebug("Configuration found for {0}. Ignored rules: {1}", gitHubRepository.FullName, string.Join(",", config.IgnoredRules));
+                return config;
+            } catch (Octokit.NotFoundException) {
+                _logger.LogDebug("No {0} found in {1}. Using default config.", ConfigFileName, gitHubRepository.FullName);
+                return new ValidationConfiguration();
+            }
         }
     }
 }
