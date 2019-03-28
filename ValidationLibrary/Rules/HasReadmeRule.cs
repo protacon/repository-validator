@@ -32,7 +32,7 @@ namespace ValidationLibrary.Rules
             _logger.LogTrace("Rule {0} / {1}, Validating repository {2}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
             try
             {
-                var readme = await client.Repository.Content.GetReadme("protacon", gitHubRepository.Name);
+                var readme = await client.Repository.Content.GetReadme(gitHubRepository.Owner.Login, gitHubRepository.Name);
                 _logger.LogDebug("Rule {0} / {1}, Validating repository {2}. Readme has content: {3}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, !string.IsNullOrWhiteSpace(readme.Content));
                 return new ValidationResult
                 {
