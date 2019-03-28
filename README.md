@@ -64,10 +64,6 @@ For Runner
         }
     }
 }
-{
-    "Token": "token generated in github",
-    "Organization": "organization name"
-}
 ```
 
 When developing, create appsettings.Development.json and
