@@ -47,12 +47,13 @@ namespace Runner
 
                 var ghClient = CreateClient(githubConfig);
                 var client = new ValidationClient(logger, ghClient);
+                client.Init().Wait();
 
                 Action<IEnumerable<string>, Options> scanner = (IEnumerable<string> repositories, Options options) => 
                 {
                     var start = DateTime.UtcNow;
                     var results = repositories.Select(repo => {
-                        Thread.Sleep(TimeSpan.FromSeconds(4));
+                        Thread.Sleep(TimeSpan.FromSeconds(3));
                         return client.ValidateRepository(githubConfig.Organization, repo).Result;
                     }).ToArray();
 
@@ -90,7 +91,6 @@ namespace Runner
                 });
             }
         }
-
 
         private static void ReportToConsole(ILogger logger, params ValidationReport[] reports)
         {

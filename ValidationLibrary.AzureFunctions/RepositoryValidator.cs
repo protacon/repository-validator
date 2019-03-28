@@ -39,6 +39,7 @@ namespace ValidationLibrary.AzureFunctions
             
             var ghClient = CreateClient(githubConfig);
             var client = new ValidationClient(log, ghClient);
+            await client.Init();
             var repository = await client.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name);
 
             log.LogDebug("Sending report.");

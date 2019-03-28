@@ -11,6 +11,8 @@ namespace ValidationLibrary.Rules
     {
         string RuleName { get; }
 
-        Task<ValidationResult> IsValid(GitHubClient client, Repository repository);
+        Task Init(IGitHubClient ghClient);
+        
+        Task<ValidationResult> IsValid(IGitHubClient client, Repository repository);
     }
 }

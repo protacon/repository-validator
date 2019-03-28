@@ -20,6 +20,11 @@ namespace ValidationLibrary
             _validator = new RepositoryValidator(logger);
         }
 
+        public async Task Init()
+        {
+            await _validator.Init(_client);
+        }
+
         public async Task<ValidationReport> ValidateRepository(string organization, string repositoryName)
         {
             var repository = await _client.Repository.Get(organization, repositoryName);
