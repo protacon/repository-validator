@@ -43,7 +43,7 @@ For usage instructions:
 dotnet run --project Runner -- --help
 ```
 
-### Configuration
+### Configuration (this project)
 
 Configuration parameters are read from appsettings.json-file for both, ValidationLibrary.AzureFunctions and Runner.
 
@@ -74,6 +74,23 @@ For Azure functions, configurations are read from Web site config.
 See `Deployment/azuredeploy.json` and `Deployment`-section for configuration.
 
 For local development and testing of Azure functions, see [function local development documentation](https://docs.microsoft.com/en-us/azure/azure-functions/functions-develop-local)
+
+### Configuration (validated repositories)
+
+Each repository may contain `repository-validator.json` file which can be used to configure the way that repository is validated.
+Currently it can be used to ignore certain rules by adding the class name to `IgnoredRules` array.
+
+Example `repository-validator.json` file which ignores 3 rules.
+```
+{
+    "Version": "1",
+    "IgnoredRules": [
+        "HasDescriptionRule",
+        "HasNewestPtcsJenkinsLibRule",
+        "HasReadmeRule"
+    ]
+}
+```
 
 ## Deployment
 Project ValidationLibrary.AzureFunctions can be deployed to Azure as Azure Function.
