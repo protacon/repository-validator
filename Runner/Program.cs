@@ -64,6 +64,19 @@ namespace Runner
 
                     ReportToConsole(logger, results);
 
+                    if (options.AutoFix)
+                    {
+                        foreach(var result in results)
+                        {
+                            foreach(var x in result.Results)
+                            {
+                                if (!x.IsValid)
+                                {
+                                    x.Fix(ghClient, result.Repository).Wait();
+                                }
+                            }
+                        }
+                    }
                     if (!string.IsNullOrWhiteSpace(options.CsvFile))
                     {
                         ReportToCsv(di.GetService<ILogger<CsvReporter>>(), options.CsvFile, results);

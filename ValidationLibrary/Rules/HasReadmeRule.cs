@@ -39,7 +39,8 @@ namespace ValidationLibrary.Rules
                 {
                     RuleName = RuleName,
                     HowToFix = "Add Readme.md file to repository root with content describing this repository.",
-                    IsValid = !string.IsNullOrWhiteSpace(readme.Content)
+                    IsValid = !string.IsNullOrWhiteSpace(readme.Content),
+                    Fix = Fix
                 };
             } 
             catch (Octokit.NotFoundException)
@@ -49,9 +50,16 @@ namespace ValidationLibrary.Rules
                 {
                     RuleName = RuleName,
                     HowToFix = "Add Readme.md file to repository root.",
-                    IsValid = false
+                    IsValid = false,
+                    Fix = Fix
                 };
             }
+        }
+
+        public Task Fix(IGitHubClient client, Repository repository)
+        {
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}, No fix.", nameof(HasReadmeRule), RuleName);
+            return Task.FromResult(0);
         }
     }
 }

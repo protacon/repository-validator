@@ -34,8 +34,15 @@ namespace ValidationLibrary.Rules
             {
                 RuleName = RuleName,
                 HowToFix = "Add description for this repository.",
-                IsValid = isValid
+                IsValid = isValid,
+                Fix = Fix
             });
+        }
+
+        public Task Fix(IGitHubClient client, Repository repository)
+        {
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}, No fix.", nameof(HasDescriptionRule), RuleName);
+            return Task.FromResult(0);
         }
     }
 }

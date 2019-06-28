@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Octokit;
+using Octokit.Helpers;
 using ValidationLibrary.Utils;
 
 namespace ValidationLibrary.Rules
@@ -34,6 +35,45 @@ namespace ValidationLibrary.Rules
             var versionFetcher = new ReleaseVersionFetcher(ghClient, "protacon", "jenkins-ptcs-library");
             _expectedVersion = await versionFetcher.GetLatest();
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Newest version: {expectedVersion}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, _expectedVersion);
+        }
+
+        public async Task Fix(IGitHubClient client, Repository repository)
+        {
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
+            var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, "autofix/test");
+            var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, "heads/master");
+
+            var latest = await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha);
+            _logger.LogTrace("Latest commit with message {a}, {1}", latest.Message, latest.Ref);
+
+            var oldTree = await client.Git.Tree.Get(repository.Owner.Login, repository.Name, latest.Sha);
+            var newTree = new NewTree();
+            newTree.BaseTree = oldTree.Sha;
+
+            var blob = new NewBlob()
+            {
+                Content = "This is one of the best files",
+                Encoding = EncodingType.Utf8
+            };
+            var blobReference = await client.Git.Blob.Create(repository.Owner.Login, repository.Name, blob);
+            _logger.LogTrace("Created blob SHA {sha}", blobReference.Sha);
+
+            var treeItem = new NewTreeItem();
+            treeItem.Path = "Jenkinsfile";
+            treeItem.Mode = "100644";
+            treeItem.Type = TreeType.Blob;
+            treeItem.Sha = blobReference.Sha;
+            newTree.Tree.Add(treeItem);
+
+            var createdTree = await client.Git.Tree.Create(repository.Owner.Login, repository.Name, newTree);
+            var commit = new NewCommit("Testcommit", createdTree.Sha, new []{latest.Sha});
+            var commitResponse = await client.Git.Commit.Create(repository.Owner.Login, repository.Name, commit);
+
+            var refUpdate = new ReferenceUpdate(commitResponse.Sha);
+            await client.Git.Reference.Update(repository.Owner.Login, repository.Name, "heads/autofix/test", refUpdate);
+
+            var pullRequest = new NewPullRequest("title", branchReference.Ref, master.Ref);
+            await client.PullRequest.Create(repository.Owner.Login, repository.Name, pullRequest);
         }
 
         public async Task<ValidationResult> IsValid(IGitHubClient client, Repository repository)
@@ -76,7 +116,8 @@ namespace ValidationLibrary.Rules
             {
                 RuleName = RuleName,
                 HowToFix = "Update jenkins-ptcs-library to newest version.",
-                IsValid = group.Value == _expectedVersion
+                IsValid = group.Value == _expectedVersion,
+                Fix = Fix
             };
         }
 
@@ -104,7 +145,8 @@ namespace ValidationLibrary.Rules
             {
                 RuleName = RuleName,
                 HowToFix = "Update jenkins-ptcs-library to newest version.",
-                IsValid = true
+                IsValid = true,
+                Fix = Fix
             };
         }
     }

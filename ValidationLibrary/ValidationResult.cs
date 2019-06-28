@@ -1,3 +1,7 @@
+using System;
+using System.Threading.Tasks;
+using Octokit;
+
 namespace ValidationLibrary
 {
     /// <summary>
@@ -8,5 +12,7 @@ namespace ValidationLibrary
         public string RuleName { get; set; }
         public string HowToFix { get; set; }
         public bool IsValid { get; set; }
+
+        public Func<GitHubClient, Repository, Task> Fix { get; set; }
     }
 }
