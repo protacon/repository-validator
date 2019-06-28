@@ -33,12 +33,12 @@ namespace ValidationLibrary.Rules
         {
             var versionFetcher = new ReleaseVersionFetcher(ghClient, "protacon", "jenkins-ptcs-library");
             _expectedVersion = await versionFetcher.GetLatest();
-            _logger.LogInformation("Newest version: {0}", _expectedVersion);
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}, Newest version: {expectedVersion}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, _expectedVersion);
         }
 
         public async Task<ValidationResult> IsValid(IGitHubClient client, Repository repository)
         {
-            _logger.LogTrace("Rule {0} / {1}, Validating repository {2}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.FullName);
+            _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.FullName);
 
             // NOTE: rootContents doesn't contain actual contents, content is only fetched when we fetch the single file later.
             var rootContents = await GetContents(client, repository);
@@ -46,7 +46,7 @@ namespace ValidationLibrary.Rules
             var jenkinsFile = rootContents.FirstOrDefault(content => content.Name.Equals(JenkinsFileName, StringComparison.InvariantCultureIgnoreCase));
             if (jenkinsFile == null)
             {
-                _logger.LogDebug("Rule {0} / {1}, No {2} found in root. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
+                _logger.LogDebug("Rule {ruleClass} / {ruleName}, No {jenkinsFileName} found in root. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
                 return OkResult();
             }
 
@@ -55,7 +55,7 @@ namespace ValidationLibrary.Rules
             if (jenkinsContent == null)
             {
                 // This is unlikely to happen.
-                _logger.LogDebug("Rule {0} / {1}, {2} was removed after checking from repository root. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
+                _logger.LogDebug("Rule {ruleClass} / {ruleName}, {jenkinsFileName} was removed after checking from repository root. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
                 return OkResult();
             }
 
@@ -92,7 +92,7 @@ namespace ValidationLibrary.Rules
                  * Octokit.NotFoundException. This same thing would probably be throw if the whole repository
                  * was missing, but we don't care for that case (no point to validate if repository doesn't exist.)
                  */
-                _logger.LogWarning(exception, "Rule {0} / {1}, Repository {2} caused {3}. This may be a new repository, but if this persists, repository should be removed.",
+                _logger.LogWarning(exception, "Rule {ruleClass} / {ruleName}, Repository {repositoryName} caused {exceptionClass}. This may be a new repository, but if this persists, repository should be removed.",
                  nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.Name, nameof(Octokit.NotFoundException));
                 return new RepositoryContent[0];
             }

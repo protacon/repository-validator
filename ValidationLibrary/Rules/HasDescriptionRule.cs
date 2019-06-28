@@ -26,9 +26,9 @@ namespace ValidationLibrary.Rules
 
         public Task<ValidationResult> IsValid(IGitHubClient client, Repository gitHubRepository)
         {
-            _logger.LogTrace("Rule {0} / {1}, Validating repository {2}", nameof(HasDescriptionRule), RuleName, gitHubRepository.FullName);
+            _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasDescriptionRule), RuleName, gitHubRepository.FullName);
             var isValid = !string.IsNullOrWhiteSpace(gitHubRepository.Description);
-            _logger.LogDebug("Rule {0} / {1}, Validating repository {2}. Has description: {3}", nameof(HasDescriptionRule), RuleName, gitHubRepository.FullName, isValid);
+            _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Has description: {hasDescription}", nameof(HasDescriptionRule), RuleName, gitHubRepository.FullName, isValid);
             return Task.FromResult(new ValidationResult
             {
                 RuleName = RuleName,

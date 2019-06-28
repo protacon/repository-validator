@@ -29,11 +29,11 @@ namespace ValidationLibrary.Rules
 
         public async Task<ValidationResult> IsValid(IGitHubClient client, Repository gitHubRepository)
         {
-            _logger.LogTrace("Rule {0} / {1}, Validating repository {2}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
+            _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
             try
             {
                 var readme = await client.Repository.Content.GetReadme(gitHubRepository.Owner.Login, gitHubRepository.Name);
-                _logger.LogDebug("Rule {0} / {1}, Validating repository {2}. Readme has content: {3}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, !string.IsNullOrWhiteSpace(readme.Content));
+                _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, !string.IsNullOrWhiteSpace(readme.Content));
                 return new ValidationResult
                 {
                     RuleName = RuleName,
@@ -43,7 +43,7 @@ namespace ValidationLibrary.Rules
             } 
             catch (Octokit.NotFoundException)
             {
-                _logger.LogDebug("No Readme found, validation false.");
+                _logger.LogDebug("Rule {ruleClass} / {ruleName}, No Readme found, validation false.", nameof(HasReadmeRule), RuleName);
                 return new ValidationResult
                 {
                     RuleName = RuleName,

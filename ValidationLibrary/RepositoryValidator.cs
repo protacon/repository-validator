@@ -26,7 +26,7 @@ namespace ValidationLibrary
                 new HasNewestPtcsJenkinsLibRule(logger)
             };
 
-            logger.LogInformation("Initializing {0} with rules: {1}", nameof(RepositoryValidator), string.Join(", ", _rules.Select(rule => rule.RuleName)));;
+            logger.LogInformation("Creating {className} with rules: {rules}", nameof(RepositoryValidator), string.Join(", ", _rules.Select(rule => rule.RuleName)));;
             _logger = logger;
         }
 
@@ -36,7 +36,7 @@ namespace ValidationLibrary
         /// <param name="client">Github client</param>
         public async Task Init(GitHubClient client)
         {
-            _logger.LogInformation("Initializing repository validator");
+            _logger.LogInformation("Initializing {className}", nameof(RepositoryValidator));
             foreach (var rule in _rules)
             {
                 await rule.Init(client);
@@ -45,14 +45,14 @@ namespace ValidationLibrary
 
         public async Task<ValidationReport> Validate(GitHubClient client, Repository gitHubRepository)
         {
-            _logger.LogTrace("Validating repository {0}", gitHubRepository.FullName);
+            _logger.LogTrace("Validating repository {repositoryName}", gitHubRepository.FullName);
             var config = await GetConfig(client, gitHubRepository);
 
             var filteredRules = _rules.Where(rule => 
             {
                 var name = rule.GetType().Name;
                 var isIgnored = config.IgnoredRules.Contains(name);
-                _logger.LogTrace("Rule {0} ignore status: {1}", name, isIgnored);
+                _logger.LogTrace("Rule {ruleClass} ignore status: {isIgnored}", name, isIgnored);
                 return !isIgnored;
             });
 
@@ -69,14 +69,14 @@ namespace ValidationLibrary
         private async Task<ValidationConfiguration> GetConfig(GitHubClient client, Repository gitHubRepository)
         {
             try {
-                _logger.LogTrace("Retrieving config for {0}", gitHubRepository.FullName);
+                _logger.LogTrace("Retrieving config for {repositoryName}", gitHubRepository.FullName);
                 var contents = await client.Repository.Content.GetAllContents(gitHubRepository.Owner.Login, gitHubRepository.Name, ConfigFileName);
                 var jsonContent = contents.FirstOrDefault().Content;
                 var config = JsonConvert.DeserializeObject<ValidationConfiguration>(jsonContent);
-                _logger.LogDebug("Configuration found for {0}. Ignored rules: {1}", gitHubRepository.FullName, string.Join(",", config.IgnoredRules));
+                _logger.LogDebug("Configuration found for {repositoryName}. Ignored rules: {rules}", gitHubRepository.FullName, string.Join(",", config.IgnoredRules));
                 return config;
             } catch (Octokit.NotFoundException) {
-                _logger.LogDebug("No {0} found in {1}. Using default config.", ConfigFileName, gitHubRepository.FullName);
+                _logger.LogDebug("No {configFileName} found in {repositoryName}. Using default config.", ConfigFileName, gitHubRepository.FullName);
                 return new ValidationConfiguration();
             }
         }
