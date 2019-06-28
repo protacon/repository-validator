@@ -66,14 +66,11 @@ namespace Runner
 
                     if (options.AutoFix)
                     {
-                        foreach(var result in results)
+                        foreach(var repositoryResult in results)
                         {
-                            foreach(var x in result.Results)
+                            foreach(var ruleResult in repositoryResult.Results.Where(r => !r.IsValid))
                             {
-                                if (!x.IsValid)
-                                {
-                                    x.Fix(ghClient, result.Repository).Wait();
-                                }
+                                ruleResult.Fix(ghClient, repositoryResult.Repository).Wait();
                             }
                         }
                     }
