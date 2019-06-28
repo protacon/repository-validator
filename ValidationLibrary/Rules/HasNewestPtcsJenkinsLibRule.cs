@@ -52,6 +52,13 @@ namespace ValidationLibrary.Rules
             }
             var fixedContent = _regex.Replace(jenkinsContent.Content, $"'{LibraryName}@{_expectedVersion}'");
 
+            var branches = await client.Repository.Branch.GetAll(repository.Owner.Login, repository.Name);
+            if (branches.Any(branch => branch.Name == branchName))
+            {
+                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} already exists, skipping fix.",
+                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, branchName);
+                return;
+            }
             var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, branchName);
             var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, "heads/master");
 
