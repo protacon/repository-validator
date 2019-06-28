@@ -41,6 +41,7 @@ namespace ValidationLibrary.Rules
 
         public async Task Fix(IGitHubClient client, Repository repository)
         {
+            var branchName = $"feature/{LibraryName}-update";
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
 
             var jenkinsContent = await GetJenkinsFileContent(client, repository);
@@ -51,7 +52,7 @@ namespace ValidationLibrary.Rules
             }
             var fixedContent = _regex.Replace(jenkinsContent.Content, $"'{LibraryName}@{_expectedVersion}'");
 
-            var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, "autofix/test");
+            var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, branchName);
             var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, "heads/master");
 
             var latest = await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha);
@@ -77,15 +78,22 @@ namespace ValidationLibrary.Rules
             newTree.Tree.Add(treeItem);
 
             var createdTree = await client.Git.Tree.Create(repository.Owner.Login, repository.Name, newTree);
-            var commit = new NewCommit("Testcommit", createdTree.Sha, new []{latest.Sha});
+            var commit = new NewCommit($"Updated {LibraryName} to latest.", createdTree.Sha, new []{latest.Sha});
             var commitResponse = await client.Git.Commit.Create(repository.Owner.Login, repository.Name, commit);
 
             var refUpdate = new ReferenceUpdate(commitResponse.Sha);
-            await client.Git.Reference.Update(repository.Owner.Login, repository.Name, "heads/autofix/test", refUpdate);
+            await client.Git.Reference.Update(repository.Owner.Login, repository.Name, $"heads/{branchName}", refUpdate);
 
-            var pullRequest = new NewPullRequest("title", branchReference.Ref, master.Ref);
+            var pullRequest = new NewPullRequest($"[Automatic Validation] Updated {LibraryName} to latest.", branchReference.Ref, master.Ref);
+            pullRequest.Body = "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
+                                Environment.NewLine +
+                               "To prevent automatic validation, see documentation from [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
+                               Environment.NewLine +
+                               "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation." + Environment.NewLine;
             await client.PullRequest.Create(repository.Owner.Login, repository.Name, pullRequest);
         }
+
+        
 
         private async Task<RepositoryContent> GetJenkinsFileContent(IGitHubClient client, Repository repository)
         {
