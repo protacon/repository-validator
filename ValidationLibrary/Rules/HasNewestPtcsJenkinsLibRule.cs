@@ -40,11 +40,20 @@ namespace ValidationLibrary.Rules
         public async Task Fix(IGitHubClient client, Repository repository)
         {
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
+
+            var jenkinsContent = await GetJenkinsFileContent(client, repository);
+            if (jenkinsContent == null)
+            {
+                _logger.LogWarning("Rule {ruleClass} / {ruleName}, no jenkins file found, unable to fix.");
+                return;
+            }
+            var fixedContent = _regex.Replace(jenkinsContent.Content, $"'jenkins-ptcs-library@{_expectedVersion}'");
+
             var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, "autofix/test");
             var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, "heads/master");
 
             var latest = await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha);
-            _logger.LogTrace("Latest commit with message {a}, {1}", latest.Message, latest.Ref);
+            _logger.LogTrace("Latest commit with message {a}", latest.Message);
 
             var oldTree = await client.Git.Tree.Get(repository.Owner.Login, repository.Name, latest.Sha);
             var newTree = new NewTree();
@@ -52,7 +61,7 @@ namespace ValidationLibrary.Rules
 
             var blob = new NewBlob()
             {
-                Content = "This is one of the best files",
+                Content = fixedContent,
                 Encoding = EncodingType.Utf8
             };
             var blobReference = await client.Git.Blob.Create(repository.Owner.Login, repository.Name, blob);
@@ -76,26 +85,33 @@ namespace ValidationLibrary.Rules
             await client.PullRequest.Create(repository.Owner.Login, repository.Name, pullRequest);
         }
 
+        private async Task<RepositoryContent> GetJenkinsFileContent(IGitHubClient client, Repository repository)
+        {
+            _logger.LogTrace("Retrieving JenkinsFile for {repositoryName}", repository.FullName);
+
+            // NOTE: rootContents doesn't contain actual contents, content is only fetched when we fetch the single file later.
+            var rootContents = await GetContents(client, repository);
+
+            var jenkinsFile = rootContents.FirstOrDefault(content => content.Name.Equals(JenkinsFileName, StringComparison.InvariantCultureIgnoreCase));
+            if (jenkinsFile == null)
+            {
+                _logger.LogDebug("Rule {ruleClass} / {ruleName}, No {jenkinsFileName} found in root.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
+                return null;
+            }
+
+            var matchingJenkinsFiles = await client.Repository.Content.GetAllContents(repository.Owner.Login, repository.Name, jenkinsFile.Name);
+            return matchingJenkinsFiles.FirstOrDefault();
+        }
+
         public async Task<ValidationResult> IsValid(IGitHubClient client, Repository repository)
         {
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.FullName);
 
-            // NOTE: rootContents doesn't contain actual contents, content is only fetched when we fetch the single file later.
-            var rootContents = await GetContents(client, repository);
-            
-            var jenkinsFile = rootContents.FirstOrDefault(content => content.Name.Equals(JenkinsFileName, StringComparison.InvariantCultureIgnoreCase));
-            if (jenkinsFile == null)
-            {
-                _logger.LogDebug("Rule {ruleClass} / {ruleName}, No {jenkinsFileName} found in root. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
-                return OkResult();
-            }
-
-            var matchingJenkinsFiles = await client.Repository.Content.GetAllContents(repository.Owner.Login, repository.Name, jenkinsFile.Name);
-            var jenkinsContent = matchingJenkinsFiles.FirstOrDefault();
+            var jenkinsContent = await GetJenkinsFileContent(client, repository);
             if (jenkinsContent == null)
             {
                 // This is unlikely to happen.
-                _logger.LogDebug("Rule {ruleClass} / {ruleName}, {jenkinsFileName} was removed after checking from repository root. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
+                _logger.LogDebug("Rule {ruleClass} / {ruleName}, no {jenkinsFileName} found. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
                 return OkResult();
             }
 
