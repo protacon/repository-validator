@@ -18,9 +18,11 @@ namespace ValidationLibrary.Rules
     {
         private const string JenkinsFileName = "JENKINSFILE";
 
-        public string RuleName => "Old jenkins-ptcs-library";
+        private const string LibraryName = "jenkins-ptcs-library";
 
-        private readonly Regex _regex = new Regex(@"'jenkins-ptcs-library@(\d+.\d+.\d+.*)'", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        public string RuleName => $"Old {LibraryName}";
+
+        private readonly Regex _regex = new Regex($@"'{LibraryName}@(\d+.\d+.\d+.*)'", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private readonly ILogger _logger;
         private string _expectedVersion;
@@ -32,7 +34,7 @@ namespace ValidationLibrary.Rules
 
         public async Task Init(IGitHubClient ghClient)
         {
-            var versionFetcher = new ReleaseVersionFetcher(ghClient, "protacon", "jenkins-ptcs-library");
+            var versionFetcher = new ReleaseVersionFetcher(ghClient, "protacon", LibraryName);
             _expectedVersion = await versionFetcher.GetLatest();
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Newest version: {expectedVersion}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, _expectedVersion);
         }
@@ -47,7 +49,7 @@ namespace ValidationLibrary.Rules
                 _logger.LogWarning("Rule {ruleClass} / {ruleName}, no jenkins file found, unable to fix.");
                 return;
             }
-            var fixedContent = _regex.Replace(jenkinsContent.Content, $"'jenkins-ptcs-library@{_expectedVersion}'");
+            var fixedContent = _regex.Replace(jenkinsContent.Content, $"'{LibraryName}@{_expectedVersion}'");
 
             var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, "autofix/test");
             var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, "heads/master");
@@ -131,7 +133,7 @@ namespace ValidationLibrary.Rules
             return new ValidationResult
             {
                 RuleName = RuleName,
-                HowToFix = "Update jenkins-ptcs-library to newest version.",
+                HowToFix = $"Update {LibraryName} to newest version.",
                 IsValid = group.Value == _expectedVersion,
                 Fix = Fix
             };
@@ -160,7 +162,7 @@ namespace ValidationLibrary.Rules
             return new ValidationResult
             {
                 RuleName = RuleName,
-                HowToFix = "Update jenkins-ptcs-library to newest version.",
+                HowToFix = $"Update {LibraryName} to newest version.",
                 IsValid = true,
                 Fix = Fix
             };
