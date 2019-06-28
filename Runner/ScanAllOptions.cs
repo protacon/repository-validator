@@ -7,7 +7,7 @@ namespace Runner
     [Verb("scan-all", HelpText = "Scans all repositories for owner")]
     public class ScanAllOptions : Options
     {
-        public ScanAllOptions(bool reportToSlack, bool reportToGithub, string csvFile) : base(reportToSlack, reportToGithub, csvFile)
+        public ScanAllOptions(bool reportToSlack, bool reportToGithub, bool autoFix, string csvFile) : base(reportToSlack, reportToGithub, autoFix, csvFile)
         {
         }
 
@@ -23,10 +23,11 @@ namespace Runner
             {
                 return new List<Example>
                 {
-                    new Example("Scan all repositories and only report to console", ExampleSettings, new ScanAllOptions(false, false, null)),
-                    new Example("Scan all repositories and report to Slack", ExampleSettings, new ScanAllOptions(true, false, null)),
-                    new Example("Scan all repositories and report to GitHub", ExampleSettings, new ScanAllOptions(false, true, null)),
-                    new Example("Scan all repositories and report to GitHub and Slack", ExampleSettings, new ScanAllOptions(true, true, null)),
+                    new Example("Scan all repositories and only report to console", ExampleSettings, new ScanAllOptions(false, false, false, null)),
+                    new Example("Scan all repositories and report to Slack", ExampleSettings, new ScanAllOptions(true, false, false, null)),
+                    new Example("Scan all repositories and report to GitHub", ExampleSettings, new ScanAllOptions(false, true, false, null)),
+                    new Example("Scan all repositories and report to GitHub and Slack", ExampleSettings, new ScanAllOptions(true, true, false, null)),
+                    new Example("Scan all repositories and create pull requests", ExampleSettings, new ScanAllOptions(false, false, true, null))
                 };
             }
         }

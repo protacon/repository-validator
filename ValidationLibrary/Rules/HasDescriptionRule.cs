@@ -21,6 +21,7 @@ namespace ValidationLibrary.Rules
 
         public Task Init(IGitHubClient ghClient)
         {
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}, Initialized", nameof(HasDescriptionRule), RuleName);
             return Task.FromResult(0);
         }
 

@@ -44,6 +44,11 @@ namespace Runner
                 var logger = di.GetService<ILogger<Program>>();
                 var githubConfig = new GitHubConfiguration();
                 config.GetSection("GitHub").Bind(githubConfig);
+                if (string.IsNullOrWhiteSpace(githubConfig.Token))
+                {
+                    logger.LogCritical("GitHub token is missing. Add token to appsettings.json. Aborting...");
+                    return;
+                }
 
                 var ghClient = CreateClient(githubConfig);
                 var client = new ValidationClient(logger, ghClient);
@@ -77,7 +82,7 @@ namespace Runner
                             ReportToSlack(slackConfig, logger, results).Wait();
                         }
                     }
-                    logger.LogInformation("Duration {duration}", (DateTime.UtcNow - start).TotalSeconds);
+                    logger.LogInformation("Duration {0}", (DateTime.UtcNow - start).TotalSeconds);
                 };
 
                 Parser.Default.ParseArguments<ScanSelectedOptions, ScanAllOptions>(args)
@@ -99,7 +104,7 @@ namespace Runner
                 logger.LogInformation($"{report.Owner}/{report.RepositoryName}");
                 foreach (var error in report.Results)
                 {
-                    logger.LogInformation("Rule: '{ruleName}' Is valid: {isValid}", error.RuleName, error.IsValid);
+                    logger.LogInformation("Rule: '{0}' Is valid: {1}", error.RuleName, error.IsValid);
                 }
             }
         }
@@ -122,7 +127,7 @@ namespace Runner
             var slackClient = new SlackClient(config);
             var response = await slackClient.SendMessageAsync(reports);
             var isValid = response.IsSuccessStatusCode ? "valid" : "invalid";
-            logger.LogInformation("Received {isValid} response.", isValid);
+            logger.LogInformation($"Received {isValid} response.");
         }
 
         private static GitHubClient CreateClient(GitHubConfiguration configuration)
