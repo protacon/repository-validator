@@ -77,7 +77,7 @@ namespace Runner
                             ReportToSlack(slackConfig, logger, results).Wait();
                         }
                     }
-                    logger.LogInformation("Duration {0}", (DateTime.UtcNow - start).TotalSeconds);
+                    logger.LogInformation("Duration {duration}", (DateTime.UtcNow - start).TotalSeconds);
                 };
 
                 Parser.Default.ParseArguments<ScanSelectedOptions, ScanAllOptions>(args)
@@ -99,7 +99,7 @@ namespace Runner
                 logger.LogInformation($"{report.Owner}/{report.RepositoryName}");
                 foreach (var error in report.Results)
                 {
-                    logger.LogInformation("Rule: '{0}' Is valid: {1}", error.RuleName, error.IsValid);
+                    logger.LogInformation("Rule: '{ruleName}' Is valid: {isValid}", error.RuleName, error.IsValid);
                 }
             }
         }
@@ -122,7 +122,7 @@ namespace Runner
             var slackClient = new SlackClient(config);
             var response = await slackClient.SendMessageAsync(reports);
             var isValid = response.IsSuccessStatusCode ? "valid" : "invalid";
-            logger.LogInformation($"Received {isValid} response.");
+            logger.LogInformation("Received {isValid} response.", isValid);
         }
 
         private static GitHubClient CreateClient(GitHubConfiguration configuration)

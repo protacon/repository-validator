@@ -20,7 +20,7 @@ namespace ValidationLibrary.Csv
 
         public void Report(params ValidationReport[] reports)
         {
-            _logger.LogTrace("Reporting {0} reports to CSV {1}", reports.Count(), _destinationFile.FullName);
+            _logger.LogTrace("Reporting {count} reports to CSV {destinationFile}", reports.Count(), _destinationFile.FullName);
             var flatten = from report in reports
                           from result in report.Results
                           select new ReportLine {

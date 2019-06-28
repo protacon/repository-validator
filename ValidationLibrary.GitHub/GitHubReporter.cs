@@ -23,7 +23,7 @@ namespace ValidationLibrary.GitHub
 
         public async Task Report(params ValidationReport[] reports)
         {
-            _logger.LogTrace("Reporting {0} reports to github", reports.Count());
+            _logger.LogTrace("Reporting {count} reports to GitHub.", reports.Count());
             var current = await _client.User.Current();
             foreach(var report in reports)
             {
@@ -32,11 +32,11 @@ namespace ValidationLibrary.GitHub
                 {
                     if (!repository.HasIssues)
                     {
-                        _logger.LogInformation("Repository {0}/{1} has issues disabled. Skipping reporting.", report.Owner, report.RepositoryName);
+                        _logger.LogInformation("Repository {owner}/{repositoryName} has issues disabled. Skipping reporting.", report.Owner, report.RepositoryName);
                         continue;
                     }
 
-                    _logger.LogTrace("Reporting for {0}/{1}, url: {2}", report.Owner, report.RepositoryName, report.RepositoryUrl);
+                    _logger.LogTrace("Reporting for {owner}/{repositoryName}, url: {repositoryUrl}", report.Owner, report.RepositoryName, report.RepositoryUrl);
                     var allIssues = new RepositoryIssueRequest
                     {
                         State = ItemStateFilter.All,
@@ -44,13 +44,13 @@ namespace ValidationLibrary.GitHub
                     };
                     
                     var issues = await _client.Issue.GetAllForRepository(report.Owner, report.RepositoryName, allIssues);
-                    _logger.LogTrace("Found {0} total issues.", issues.Count);
+                    _logger.LogTrace("Found {count} total issues.", issues.Count);
                     foreach(var validationResult in report.Results)
                     {
-                        _logger.LogTrace("Reporting rule {0}, IsValid: {1}", validationResult.RuleName, validationResult.IsValid);
+                        _logger.LogTrace("Reporting rule {ruleName}, IsValid: {isValid}", validationResult.RuleName, validationResult.IsValid);
                         var title = CreateIssueTitle(validationResult);
                         var existingIssues = issues.Where(issue => issue.Title == title);
-                        _logger.LogTrace("Found {0} existing issues with title {1}", existingIssues.Count(), title);
+                        _logger.LogTrace("Found {count} existing issues with title {title}", existingIssues.Count(), title);
                         if (validationResult.IsValid)
                         {
                             await CloseIfNeeded(report, validationResult, existingIssues);
