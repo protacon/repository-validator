@@ -4,6 +4,9 @@ using Octokit;
 
 namespace ValidationLibrary.Rules
 {
+    /// <summary>
+    /// This rule checks that a public repository has a license.
+    /// </summary>
     public class HasLicenseRule : IValidationRule
     {
         public string RuleName => $"Missing License";
