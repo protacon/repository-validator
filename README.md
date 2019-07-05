@@ -89,7 +89,7 @@ This can be fetched with `Deployment/GetFunctionUri.ps1` or manually from Azure 
 Each repository may contain `repository-validator.json` file which can be used to configure the way that repository is validated.
 Currently it can be used to ignore certain rules by adding the class name to `IgnoredRules` array.
 
-Example `repository-validator.json` file which ignores 3 rules.
+Example `repository-validator.json` file which ignores 4 rules.
 ```
 {
     "Version": "1",
@@ -97,6 +97,7 @@ Example `repository-validator.json` file which ignores 3 rules.
         "HasDescriptionRule",
         "HasNewestPtcsJenkinsLibRule",
         "HasReadmeRule"
+        "HasLicenseRule"
     ]
 }
 ```
