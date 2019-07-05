@@ -9,10 +9,18 @@ namespace ValidationLibrary
     /// </summary>
     public class ValidationResult
     {
-        public string RuleName { get; set; }
-        public string HowToFix { get; set; }
-        public bool IsValid { get; set; }
+        public string RuleName { get; }
+        public string HowToFix { get; }
+        public bool IsValid { get; }
 
-        public Func<GitHubClient, Repository, Task> Fix { get; set; }
+        public Func<GitHubClient, Repository, Task> Fix { get; }
+
+        public ValidationResult(string ruleName, string howToFix, bool isValid, Func<GitHubClient, Repository, Task> fix)
+        {
+            RuleName = ruleName;
+            HowToFix = howToFix;
+            IsValid = isValid;
+            Fix = fix;
+        }
     }
 }

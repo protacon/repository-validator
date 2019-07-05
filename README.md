@@ -9,7 +9,7 @@ For example, repositories should have
   * README.MD-files
 
 ## Build
-This project requires [dotnet core 2.0](https://www.microsoft.com/net/download)
+This project requires [dotnet core 2.1](https://www.microsoft.com/net/download)
 ```
 dotnet build
 ```

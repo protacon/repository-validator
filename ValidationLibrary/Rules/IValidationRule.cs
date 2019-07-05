@@ -14,7 +14,5 @@ namespace ValidationLibrary.Rules
         Task Init(IGitHubClient ghClient);
         
         Task<ValidationResult> IsValid(IGitHubClient client, Repository repository);
-
-        Task Fix(IGitHubClient client, Repository repository);
     }
 }

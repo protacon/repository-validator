@@ -16,9 +16,10 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasNewestPtcsJenkinsLibRule : IValidationRule
     {
-        private const string JenkinsFileName = "JENKINSFILE";
+        private const string JenkinsFileName = "Jenkinsfile";
 
         private const string LibraryName = "jenkins-ptcs-library";
+        private const string FileMode = "100644";
 
         public string RuleName => $"Old {LibraryName}";
 
@@ -39,15 +40,23 @@ namespace ValidationLibrary.Rules
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Newest version: {expectedVersion}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, _expectedVersion);
         }
 
-        public async Task Fix(IGitHubClient client, Repository repository)
+        /// <summary>
+        /// This fix creates a pull request with updated Jenkinsfile
+        /// </summary>
+        /// <param name="client">Github client</param>
+        /// <param name="repository">Repository to be fixed</param>
+        /// <returns></returns>
+        private async Task Fix(IGitHubClient client, Repository repository)
         {
+            // This method should be refactored when we have a better general idea how we want to fix things
             var branchName = $"feature/{LibraryName}-update";
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
 
             var jenkinsContent = await GetJenkinsFileContent(client, repository);
             if (jenkinsContent == null)
             {
-                _logger.LogWarning("Rule {ruleClass} / {ruleName}, no jenkins file found, unable to fix.");
+                _logger.LogWarning("Rule {ruleClass} / {ruleName}, no {filename} found, unable to fix.",
+                    nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
                 return;
             }
             var fixedContent = _regex.Replace(jenkinsContent.Content, $"'{LibraryName}@{_expectedVersion}'");
@@ -69,23 +78,19 @@ namespace ValidationLibrary.Rules
             var newTree = new NewTree();
             newTree.BaseTree = oldTree.Sha;
 
-            var blob = new NewBlob()
-            {
-                Content = fixedContent,
-                Encoding = EncodingType.Utf8
-            };
-            var blobReference = await client.Git.Blob.Create(repository.Owner.Login, repository.Name, blob);
-            _logger.LogTrace("Created blob SHA {sha}", blobReference.Sha);
+            BlobReference blobReference = await CreateBlob(client, repository, fixedContent);
 
-            var treeItem = new NewTreeItem();
-            treeItem.Path = "Jenkinsfile";
-            treeItem.Mode = "100644";
-            treeItem.Type = TreeType.Blob;
-            treeItem.Sha = blobReference.Sha;
+            var treeItem = new NewTreeItem()
+            {
+                Path = JenkinsFileName,
+                Mode = FileMode,
+                Type = TreeType.Blob,
+                Sha = blobReference.Sha
+            };
             newTree.Tree.Add(treeItem);
 
             var createdTree = await client.Git.Tree.Create(repository.Owner.Login, repository.Name, newTree);
-            var commit = new NewCommit($"Updated {LibraryName} to latest.", createdTree.Sha, new []{latest.Sha});
+            var commit = new NewCommit($"Updated {LibraryName} to latest.", createdTree.Sha, new[] { latest.Sha });
             var commitResponse = await client.Git.Commit.Create(repository.Owner.Login, repository.Name, commit);
 
             var refUpdate = new ReferenceUpdate(commitResponse.Sha);
@@ -100,7 +105,18 @@ namespace ValidationLibrary.Rules
             await client.PullRequest.Create(repository.Owner.Login, repository.Name, pullRequest);
         }
 
-        
+        private async Task<BlobReference> CreateBlob(IGitHubClient client, Repository repository, string fixedContent)
+        {
+            var blob = new NewBlob()
+            {
+                Content = fixedContent,
+                Encoding = EncodingType.Utf8
+            };
+            var blobReference = await client.Git.Blob.Create(repository.Owner.Login, repository.Name, blob);
+            _logger.LogTrace("Created blob SHA {sha}", blobReference.Sha);
+            return blobReference;
+        }
+
 
         private async Task<RepositoryContent> GetJenkinsFileContent(IGitHubClient client, Repository repository)
         {
@@ -145,13 +161,7 @@ namespace ValidationLibrary.Rules
                 return OkResult();
             }
 
-            return new ValidationResult
-            {
-                RuleName = RuleName,
-                HowToFix = $"Update {LibraryName} to newest version.",
-                IsValid = group.Value == _expectedVersion,
-                Fix = Fix
-            };
+            return new ValidationResult(RuleName, $"Update {LibraryName} to newest version.", group.Value == _expectedVersion, Fix);
         }
 
         private async Task<IReadOnlyList<RepositoryContent>> GetContents(IGitHubClient client, Repository repository)
@@ -174,13 +184,12 @@ namespace ValidationLibrary.Rules
 
         private ValidationResult OkResult()
         {
-            return new ValidationResult
-            {
-                RuleName = RuleName,
-                HowToFix = $"Update {LibraryName} to newest version.",
-                IsValid = true,
-                Fix = Fix
-            };
+            return new ValidationResult(RuleName, $"Update {LibraryName} to newest version.", true, DoNothing);
+        }
+
+        private Task DoNothing(IGitHubClient client, Repository repository)
+        {
+            return Task.FromResult(0);
         }
     }
 }
