@@ -12,13 +12,17 @@ namespace Runner
         [Option('g', "GitHubReporting", HelpText = "If enabled, results are reported to GitHub issues")]
         public bool ReportToGithub { get; }
 
+        [Option('a', "AutoFix", HelpText = "If enabled, fixing pull request is automatically created.")]
+        public bool AutoFix { get; }
+
         [Option("CsvFile", HelpText = "If set, results are written to this CSV file. Old file is overridden")]
         public string CsvFile { get; }
 
-        public Options(bool reportToSlack, bool reportToGithub, string csvFile)
+        public Options(bool reportToSlack, bool reportToGithub, bool autoFix, string csvFile)
         {
             ReportToSlack = reportToSlack;
             ReportToGithub = reportToGithub;
+            AutoFix = autoFix;
             CsvFile = csvFile;
         }
     }

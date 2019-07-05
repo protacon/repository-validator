@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using Octokit;
 
 namespace ValidationLibrary
 {
@@ -10,6 +10,7 @@ namespace ValidationLibrary
         public string Owner { get; set; }
         public string RepositoryName { get; set; }
         public string RepositoryUrl { get; set; }
+        public Repository Repository { get; set; }
         public ValidationResult[] Results { get; set; }
     }
 }

@@ -6,15 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Binder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 using Octokit;
 using ValidationLibrary;
 using ValidationLibrary.Csv;
 using ValidationLibrary.GitHub;
-using ValidationLibrary.Rules;
 using ValidationLibrary.Slack;
 
 namespace Runner
@@ -44,6 +41,11 @@ namespace Runner
                 var logger = di.GetService<ILogger<Program>>();
                 var githubConfig = new GitHubConfiguration();
                 config.GetSection("GitHub").Bind(githubConfig);
+                if (string.IsNullOrWhiteSpace(githubConfig.Token))
+                {
+                    logger.LogCritical("GitHub token is missing. Add token to appsettings.json. Aborting...");
+                    return;
+                }
 
                 var ghClient = CreateClient(githubConfig);
                 var client = new ValidationClient(logger, ghClient);
@@ -59,6 +61,10 @@ namespace Runner
 
                     ReportToConsole(logger, results);
 
+                    if (options.AutoFix)
+                    {
+                        PerformAutofixes(ghClient, results);
+                    }
                     if (!string.IsNullOrWhiteSpace(options.CsvFile))
                     {
                         ReportToCsv(di.GetService<ILogger<CsvReporter>>(), options.CsvFile, results);
@@ -89,6 +95,17 @@ namespace Runner
                     var allRepositories = ghClient.Repository.GetAllForOrg(githubConfig.Organization).Result;
                     scanner(allRepositories.Select(r => r.Name).ToArray(), options);
                 });
+            }
+        }
+
+        private static void PerformAutofixes(GitHubClient ghClient, ValidationReport[] results)
+        {
+            foreach (var repositoryResult in results)
+            {
+                foreach (var ruleResult in repositoryResult.Results.Where(r => !r.IsValid))
+                {
+                    ruleResult.Fix(ghClient, repositoryResult.Repository).Wait();
+                }
             }
         }
 

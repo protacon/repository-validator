@@ -9,7 +9,8 @@ For example, repositories should have
   * README.MD-files
 
 ## Build
-This project requires [dotnet core 2.0](https://www.microsoft.com/net/download)
+This project requires [dotnet core](https://www.microsoft.com/net/download),
+see image used in Jenkinsfile for specific requirements.
 ```
 dotnet build
 ```
@@ -32,6 +33,10 @@ There are 2 main ways to use this project
     dotnet run -- scan-selected --GitHubReporting -r repository-validator
     ```
     * Scanning single repository and reporting to console (validation logic testing)
+    ```
+    dotnet run -- scan-selected -r repository-validator
+    ```
+    * Scanning single repository, reporting to console and creating pull requests when possible.
     ```
     dotnet run -- scan-selected -r repository-validator
     ```

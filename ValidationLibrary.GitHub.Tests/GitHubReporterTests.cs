@@ -62,11 +62,7 @@ namespace ValidationLibrary.GitHub.Tests
                 RepositoryName = "repo",
                 Results = new ValidationResult[]
                 {
-                    new ValidationResult
-                    {
-                        IsValid = false,
-                        RuleName = "Rule"
-                    }
+                    new ValidationResult("Rule", "how to fix", false, null)
                 }
             };
 
@@ -84,11 +80,7 @@ namespace ValidationLibrary.GitHub.Tests
                 RepositoryName = "repo",
                 Results = new ValidationResult[]
                 {
-                    new ValidationResult
-                    {
-                        IsValid = false,
-                        RuleName = "Rule"
-                    }
+                    new ValidationResult("Rule", "how to fix", false, null)
                 }
             };
 
@@ -107,11 +99,7 @@ namespace ValidationLibrary.GitHub.Tests
                 RepositoryName = "repo",
                 Results = new ValidationResult[]
                 {
-                    new ValidationResult
-                    {
-                        IsValid = false,
-                        RuleName = "Rule"
-                    }
+                    new ValidationResult("Rule", "how to fix", false, null)
                 }
             };
 
@@ -133,11 +121,7 @@ namespace ValidationLibrary.GitHub.Tests
                 RepositoryName = "repo",
                 Results = new ValidationResult[]
                 {
-                    new ValidationResult
-                    {
-                        IsValid = false,
-                        RuleName = "Rule"
-                    }
+                    new ValidationResult("Rule", "how to fix", false, null)
                 }
             };
 
@@ -159,11 +143,7 @@ namespace ValidationLibrary.GitHub.Tests
                 RepositoryName = "repo",
                 Results = new ValidationResult[]
                 {
-                    new ValidationResult
-                    {
-                        IsValid = true,
-                        RuleName = "Rule"
-                    }
+                    new ValidationResult("Rule", "how to fix", true, null)
                 }
             };
 

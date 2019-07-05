@@ -60,6 +60,7 @@ namespace ValidationLibrary
             return new ValidationReport
             {
                 Owner = gitHubRepository.Owner.Login,
+                Repository = gitHubRepository,
                 RepositoryName = gitHubRepository.Name,
                 RepositoryUrl = gitHubRepository.HtmlUrl,
                 Results = validationResults.ToArray()

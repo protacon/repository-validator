@@ -21,6 +21,7 @@ namespace ValidationLibrary.Rules
 
         public Task Init(IGitHubClient ghClient)
         {
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}, Initialized", nameof(HasDescriptionRule), RuleName);
             return Task.FromResult(0);
         }
 
@@ -29,12 +30,13 @@ namespace ValidationLibrary.Rules
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasDescriptionRule), RuleName, gitHubRepository.FullName);
             var isValid = !string.IsNullOrWhiteSpace(gitHubRepository.Description);
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Has description: {hasDescription}", nameof(HasDescriptionRule), RuleName, gitHubRepository.FullName, isValid);
-            return Task.FromResult(new ValidationResult
-            {
-                RuleName = RuleName,
-                HowToFix = "Add description for this repository.",
-                IsValid = isValid
-            });
+            return Task.FromResult(new ValidationResult(RuleName, "Add description for this repository.", isValid, DoNothing));
+        }
+
+        private Task DoNothing(IGitHubClient client, Repository repository)
+        {
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}, No fix.", nameof(HasDescriptionRule), RuleName);
+            return Task.FromResult(0);
         }
     }
 }
