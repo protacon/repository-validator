@@ -51,7 +51,7 @@ dotnet run --project Runner -- --help
 ### Configuration (this project)
 
 Configuration parameters are read from appsettings.json-file for both, ValidationLibrary.AzureFunctions and Runner.
-
+#### Console runner
 For Runner
 ```
 {
@@ -75,10 +75,14 @@ When developing, create appsettings.Development.json and
 replace configuration values with personal values
 and use `setx ASPNETCORE_ENVIRONMENT "Development"` to set environment
 
+#### Azure Functions
 For Azure functions, configurations are read from Web site config.
 See `Deployment/azuredeploy.json` and `Deployment`-section for configuration.
 
 For local development and testing of Azure functions, see [function local development documentation](https://docs.microsoft.com/en-us/azure/azure-functions/functions-develop-local)
+
+GitHub needs Azure Function's webhook url for `ValidationLibrary.AzureFunctions.RepositoryValidator.cs`.
+This can be fetched with `Deployment/GetFunctionUri.ps1` or manually from Azure Portal. This url can be configured organization wide or seperately for each repository. See GitHub documentation for instructions.
 
 ### Configuration (validated repositories)
 
