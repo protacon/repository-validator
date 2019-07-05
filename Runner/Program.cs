@@ -6,15 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Binder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 using Octokit;
 using ValidationLibrary;
 using ValidationLibrary.Csv;
 using ValidationLibrary.GitHub;
-using ValidationLibrary.Rules;
 using ValidationLibrary.Slack;
 
 namespace Runner
@@ -66,13 +63,7 @@ namespace Runner
 
                     if (options.AutoFix)
                     {
-                        foreach(var repositoryResult in results)
-                        {
-                            foreach(var ruleResult in repositoryResult.Results.Where(r => !r.IsValid))
-                            {
-                                ruleResult.Fix(ghClient, repositoryResult.Repository).Wait();
-                            }
-                        }
+                        PerformAutofixes(ghClient, results);
                     }
                     if (!string.IsNullOrWhiteSpace(options.CsvFile))
                     {
@@ -92,7 +83,7 @@ namespace Runner
                             ReportToSlack(slackConfig, logger, results).Wait();
                         }
                     }
-                    logger.LogInformation("Duration {0}", (DateTime.UtcNow - start).TotalSeconds);
+                    logger.LogInformation("Duration {duration}", (DateTime.UtcNow - start).TotalSeconds);
                 };
 
                 Parser.Default.ParseArguments<ScanSelectedOptions, ScanAllOptions>(args)
@@ -107,6 +98,17 @@ namespace Runner
             }
         }
 
+        private static void PerformAutofixes(GitHubClient ghClient, ValidationReport[] results)
+        {
+            foreach (var repositoryResult in results)
+            {
+                foreach (var ruleResult in repositoryResult.Results.Where(r => !r.IsValid))
+                {
+                    ruleResult.Fix(ghClient, repositoryResult.Repository).Wait();
+                }
+            }
+        }
+
         private static void ReportToConsole(ILogger logger, params ValidationReport[] reports)
         {
             foreach (var report in reports)
@@ -114,7 +116,7 @@ namespace Runner
                 logger.LogInformation($"{report.Owner}/{report.RepositoryName}");
                 foreach (var error in report.Results)
                 {
-                    logger.LogInformation("Rule: '{0}' Is valid: {1}", error.RuleName, error.IsValid);
+                    logger.LogInformation("Rule: '{ruleName}' Is valid: {isValid}", error.RuleName, error.IsValid);
                 }
             }
         }
@@ -137,7 +139,7 @@ namespace Runner
             var slackClient = new SlackClient(config);
             var response = await slackClient.SendMessageAsync(reports);
             var isValid = response.IsSuccessStatusCode ? "valid" : "invalid";
-            logger.LogInformation($"Received {isValid} response.");
+            logger.LogInformation("Received {isValid} response.", isValid);
         }
 
         private static GitHubClient CreateClient(GitHubConfiguration configuration)
