@@ -90,13 +90,13 @@ namespace ValidationLibrary.Rules
             newTree.Tree.Add(treeItem);
 
             var createdTree = await client.Git.Tree.Create(repository.Owner.Login, repository.Name, newTree);
-            var commit = new NewCommit($"Updated {LibraryName} to latest.", createdTree.Sha, new[] { latest.Sha });
+            var commit = new NewCommit($"Update {LibraryName} to latest versios.", createdTree.Sha, new[] { latest.Sha });
             var commitResponse = await client.Git.Commit.Create(repository.Owner.Login, repository.Name, commit);
 
             var refUpdate = new ReferenceUpdate(commitResponse.Sha);
             await client.Git.Reference.Update(repository.Owner.Login, repository.Name, $"heads/{branchName}", refUpdate);
 
-            var pullRequest = new NewPullRequest($"[Automatic Validation] Updated {LibraryName} to latest.", branchReference.Ref, master.Ref);
+            var pullRequest = new NewPullRequest($"[Automatic Validation] Update {LibraryName} to latest version.", branchReference.Ref, master.Ref);
             pullRequest.Body = "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
                                 Environment.NewLine +
                                "To prevent automatic validation, see documentation from [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
