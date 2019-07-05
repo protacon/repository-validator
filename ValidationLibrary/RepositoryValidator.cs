@@ -23,7 +23,8 @@ namespace ValidationLibrary
             {
                 new HasDescriptionRule(logger),
                 new HasReadmeRule(logger),
-                new HasNewestPtcsJenkinsLibRule(logger)
+                new HasNewestPtcsJenkinsLibRule(logger),
+                new HasLicenseRule(logger)
             };
 
             logger.LogInformation("Creating {className} with rules: {rules}", nameof(RepositoryValidator), string.Join(", ", _rules.Select(rule => rule.RuleName)));;
