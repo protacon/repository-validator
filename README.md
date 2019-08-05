@@ -112,7 +112,10 @@ NOTE: PowerShell needs to have an authenticated sessions. This can be done with 
 
 ### Creating environment
 
-Deployment\azuredeploy.json contains definition of environment. It can be deployed in multiple ways, but here are few examples
+Deployment\azuredeploy.json contains definition of environment. It can be deployed in multiple ways, but here are few examples.
+Read Deployment\azuredeploy.json for additional parameters and documentation.
+
+Handle secrets with care, following secure string example is just for convience.
 
 Azure PowerShell module
 ```
@@ -121,15 +124,14 @@ New-AzResourceGroupDeployment `
     -TemplateFile Deployment/azuredeploy.json `
     -ResourceGroupName my-resource-group `
     -appName my-app-name `
-    -gitHubToken "your github token here" `
+    -gitHubToken (ConvertTo-SecureString -String "your github token here" -AsPlainText -Force) `
     -gitHubOrganization "your github organization here" `
-    -slackWebhookUrl "your slack webhook url here" `
     -environment "Development"
 ```
 
 az cli
 ```
-az group deployment create -g "github-test" --template-file Deployment/azuredeploy.json --parameters appName=hjni-test --parameters gitHubToken=<tokenhere> --parameters gitHubOrganization=protacon --parameters slackWebhookUrl=<slackwebhook>
+az group deployment create -g "github-test" --template-file Deployment/azuredeploy.json --parameters appName=hjni-test --parameters gitHubToken=<tokenhere> --parameters gitHubOrganization=protacon
 ```
 
 ### Deploying site

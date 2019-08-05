@@ -3,8 +3,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Host;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using ValidationLibrary.AzureFunctions.GitHubDto;
@@ -12,39 +10,34 @@ using ValidationLibrary.GitHub;
 
 namespace ValidationLibrary.AzureFunctions
 {
-    public static class RepositoryValidator
+    public class RepositoryValidator
     {
-        private const string ProductHeader = "PTCS-Repository-Validator";
+        private readonly ILogger<RepositoryValidator> _logger;
+        private readonly IGitHubClient _gitHubClient;
+        private readonly ValidationClient _validationClient;
+
+        public RepositoryValidator(ILogger<RepositoryValidator> logger, IGitHubClient gitHubClient, ValidationClient validationClient)
+        {
+            _logger = logger;
+            _gitHubClient = gitHubClient;
+            _validationClient = validationClient;
+        }
 
         [FunctionName("RepositoryValidator")]
-        public static async Task Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req, ILogger log, ExecutionContext context)
+        public async Task Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req, ExecutionContext context)
         {
-            log.LogDebug("Repository validation hook launched");
+            _logger.LogDebug("Repository validation hook launched");
             var content = await req.Content.ReadAsAsync<PushData>();
             ValidateInput(content);
 
-            log.LogInformation("Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
-
-            log.LogDebug("Loading configuration.");
-            IConfiguration config = new ConfigurationBuilder()
-                .AddEnvironmentVariables()
-                .Build();
-
-            var githubConfig = new GitHubConfiguration();
-            config.GetSection("GitHub").Bind(githubConfig);
+            _logger.LogInformation("Doing validation. Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
             
-            ValidateConfig(githubConfig);
+            await _validationClient.Init();
+            var repository = await _validationClient.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name);
 
-            log.LogDebug("Doing validation.");
-            
-            var ghClient = CreateClient(githubConfig);
-            var client = new ValidationClient(log, ghClient);
-            await client.Init();
-            var repository = await client.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name);
-
-            log.LogDebug("Sending report.");
-            await ReportToGitHub(log, ghClient, repository);
-            log.LogInformation("Validation finished");
+            _logger.LogDebug("Sending report.");
+            await ReportToGitHub(_logger, repository);
+            _logger.LogInformation("Validation finished");
         }
 
         private static void ValidateInput(PushData content)
@@ -70,7 +63,7 @@ namespace ValidationLibrary.AzureFunctions
             }
         }
 
-        private static async Task ReportToGitHub(ILogger logger, GitHubClient client,  params ValidationReport[] reports)
+        private async Task ReportToGitHub(ILogger logger, params ValidationReport[] reports)
         {
             var gitHubReportConfig = new GitHubReportConfig();
             gitHubReportConfig.GenericNotice = 
@@ -82,29 +75,8 @@ namespace ValidationLibrary.AzureFunctions
 
             gitHubReportConfig.Prefix = "[Automatic validation]";
 
-            var reporter = new GitHubReporter(logger, client, gitHubReportConfig);
+            var reporter = new GitHubReporter(logger, _gitHubClient, gitHubReportConfig);
             await reporter.Report(reports);
-        }
-
-        private static void ValidateConfig(GitHubConfiguration gitHubConfiguration)
-        {
-            if (gitHubConfiguration.Organization == null)
-            {
-                throw new ArgumentNullException(nameof(gitHubConfiguration.Organization), "Organization was missing.");
-            }
-
-            if (gitHubConfiguration.Token == null)
-            {
-                throw new ArgumentNullException(nameof(gitHubConfiguration.Token), "Token was missing.");
-            }
-        }
-
-        private static GitHubClient CreateClient(GitHubConfiguration gitHubConfiguration)
-        {
-            var client = new GitHubClient(new ProductHeaderValue(ProductHeader));
-            var tokenAuth = new Credentials(gitHubConfiguration.Token);
-            client.Credentials = tokenAuth;
-            return client;
         }
     }
 }

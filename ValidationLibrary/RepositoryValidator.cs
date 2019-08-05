@@ -1,7 +1,5 @@
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Octokit;
@@ -16,8 +14,9 @@ namespace ValidationLibrary
         private readonly ILogger _logger;
 
         private readonly IValidationRule[] _rules;
+        private readonly GitHubClient _gitHubClient;
 
-        public RepositoryValidator(ILogger logger)
+        public RepositoryValidator(ILogger logger, GitHubClient gitHubClient)
         {
             _rules = new IValidationRule[]
             {
@@ -29,25 +28,25 @@ namespace ValidationLibrary
 
             logger.LogInformation("Creating {className} with rules: {rules}", nameof(RepositoryValidator), string.Join(", ", _rules.Select(rule => rule.RuleName)));;
             _logger = logger;
+            _gitHubClient = gitHubClient;
         }
 
         /// <summary>
         /// Performs necessary initiation for all rules
         /// </summary>
-        /// <param name="client">Github client</param>
-        public async Task Init(GitHubClient client)
+        public async Task Init()
         {
             _logger.LogInformation("Initializing {className}", nameof(RepositoryValidator));
             foreach (var rule in _rules)
             {
-                await rule.Init(client);
+                await rule.Init(_gitHubClient);
             }
         }
 
-        public async Task<ValidationReport> Validate(GitHubClient client, Repository gitHubRepository)
+        public async Task<ValidationReport> Validate(Repository gitHubRepository)
         {
             _logger.LogTrace("Validating repository {repositoryName}", gitHubRepository.FullName);
-            var config = await GetConfig(client, gitHubRepository);
+            var config = await GetConfig(gitHubRepository);
 
             var filteredRules = _rules.Where(rule => 
             {
@@ -57,7 +56,7 @@ namespace ValidationLibrary
                 return !isIgnored;
             });
 
-            var validationResults = await Task.WhenAll(filteredRules.Select(async rule => await rule.IsValid(client, gitHubRepository)));
+            var validationResults = await Task.WhenAll(filteredRules.Select(async rule => await rule.IsValid(_gitHubClient, gitHubRepository)));
             return new ValidationReport
             {
                 Owner = gitHubRepository.Owner.Login,
@@ -68,11 +67,11 @@ namespace ValidationLibrary
             };
         }
 
-        private async Task<ValidationConfiguration> GetConfig(GitHubClient client, Repository gitHubRepository)
+        private async Task<ValidationConfiguration> GetConfig(Repository gitHubRepository)
         {
             try {
                 _logger.LogTrace("Retrieving config for {repositoryName}", gitHubRepository.FullName);
-                var contents = await client.Repository.Content.GetAllContents(gitHubRepository.Owner.Login, gitHubRepository.Name, ConfigFileName);
+                var contents = await _gitHubClient.Repository.Content.GetAllContents(gitHubRepository.Owner.Login, gitHubRepository.Name, ConfigFileName);
                 var jsonContent = contents.FirstOrDefault().Content;
                 var config = JsonConvert.DeserializeObject<ValidationConfiguration>(jsonContent);
                 _logger.LogDebug("Configuration found for {repositoryName}. Ignored rules: {rules}", gitHubRepository.FullName, string.Join(",", config.IgnoredRules));

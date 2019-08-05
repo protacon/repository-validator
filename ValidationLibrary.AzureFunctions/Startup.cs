@@ -2,11 +2,12 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Octokit;
 using ValidationLibrary.AzureFunctions;
 
 [assembly: WebJobsStartup(typeof(Startup))]
@@ -31,9 +32,48 @@ namespace ValidationLibrary.AzureFunctions
 
     public class Startup : IWebJobsStartup
     {
+        private const string ProductHeader = "PTCS-Repository-Validator";
+
         public void Configure(IWebJobsBuilder builder)
         {
-            builder.Services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
+            IConfiguration config = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .Build();
+
+            builder
+                .Services
+                .AddLogging()
+                .AddTransient<IGitHubClient, GitHubClient>(services => {
+                    var githubConfig = new GitHubConfiguration();
+                    config.GetSection("GitHub").Bind(githubConfig);
+                    
+                    ValidateConfig(githubConfig);
+                    return CreateClient(githubConfig);
+                })
+                .AddTransient<ValidationClient>()
+                .AddTransient<RepositoryValidator>()
+                .AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
+        }
+
+        private static GitHubClient CreateClient(GitHubConfiguration gitHubConfiguration)
+        {
+            var client = new GitHubClient(new ProductHeaderValue(ProductHeader));
+            var tokenAuth = new Credentials(gitHubConfiguration.Token);
+            client.Credentials = tokenAuth;
+            return client;
+        }
+
+        private static void ValidateConfig(GitHubConfiguration gitHubConfiguration)
+        {
+            if (gitHubConfiguration.Organization == null)
+            {
+                throw new ArgumentNullException(nameof(gitHubConfiguration.Organization), "Organization was missing.");
+            }
+
+            if (gitHubConfiguration.Token == null)
+            {
+                throw new ArgumentNullException(nameof(gitHubConfiguration.Token), "Token was missing.");
+            }
         }
     }
 }
