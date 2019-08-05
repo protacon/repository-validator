@@ -184,7 +184,7 @@ namespace ValidationLibrary.Rules
 
         private ValidationResult OkResult()
         {
-            return new ValidationResult(RuleName, $"Update {LibraryName} to newest version.", true, DoNothing);
+            return new ValidationResult(RuleName, $"Update {LibraryName} to newest version. Newest version can be found in https://github.com/protacon/{LibraryName}/releases", true, DoNothing);
         }
 
         private Task DoNothing(IGitHubClient client, Repository repository)
