@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Octokit;
@@ -12,20 +11,28 @@ using ValidationLibrary.GitHub;
 
 namespace ValidationLibrary.AzureFunctions
 {
-    public static class RepositoryValidator
+    public class RepositoryValidator
     {
         private const string ProductHeader = "PTCS-Repository-Validator";
 
-        [FunctionName("RepositoryValidator")]
-        public static async Task Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req, ILogger log, ExecutionContext context)
+        private readonly ILogger<RepositoryValidator> _logger;
+
+        public RepositoryValidator(ILogger<RepositoryValidator> logger)
         {
-            log.LogDebug("Repository validation hook launched");
+            _logger = logger;
+        }
+
+
+        [FunctionName("RepositoryValidator")]
+        public async Task Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req, ExecutionContext context)
+        {
+            _logger.LogDebug("Repository validation hook launched");
             var content = await req.Content.ReadAsAsync<PushData>();
             ValidateInput(content);
 
-            log.LogInformation("Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
+            _logger.LogInformation("Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
 
-            log.LogDebug("Loading configuration.");
+            _logger.LogDebug("Loading configuration.");
             IConfiguration config = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .Build();
@@ -35,16 +42,16 @@ namespace ValidationLibrary.AzureFunctions
             
             ValidateConfig(githubConfig);
 
-            log.LogDebug("Doing validation.");
+            _logger.LogDebug("Doing validation.");
             
             var ghClient = CreateClient(githubConfig);
-            var client = new ValidationClient(log, ghClient);
+            var client = new ValidationClient(_logger, ghClient);
             await client.Init();
             var repository = await client.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name);
 
-            log.LogDebug("Sending report.");
-            await ReportToGitHub(log, ghClient, repository);
-            log.LogInformation("Validation finished");
+            _logger.LogDebug("Sending report.");
+            await ReportToGitHub(_logger, ghClient, repository);
+            _logger.LogInformation("Validation finished");
         }
 
         private static void ValidateInput(PushData content)

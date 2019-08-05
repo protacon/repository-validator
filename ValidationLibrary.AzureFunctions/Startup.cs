@@ -1,8 +1,6 @@
-using System;
 using System.Diagnostics;
 using System.Reflection;
 using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Hosting;
@@ -33,7 +31,10 @@ namespace ValidationLibrary.AzureFunctions
     {
         public void Configure(IWebJobsBuilder builder)
         {
-            builder.Services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
+            builder
+                .Services
+                .AddLogging()
+                .AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
         }
     }
 }
