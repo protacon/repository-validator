@@ -131,7 +131,7 @@ New-AzResourceGroupDeployment `
 
 az cli
 ```
-az group deployment create -g "github-test" --template-file Deployment/azuredeploy.json --parameters appName=hjni-test --parameters gitHubToken=<tokenhere> --parameters gitHubOrganization=protacon --parameters slackWebhookUrl=<slackwebhook>
+az group deployment create -g "github-test" --template-file Deployment/azuredeploy.json --parameters appName=hjni-test --parameters gitHubToken=<tokenhere> --parameters gitHubOrganization=protacon
 ```
 
 ### Deploying site
