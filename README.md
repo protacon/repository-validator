@@ -102,6 +102,21 @@ Example `repository-validator.json` file which ignores 4 rules.
 }
 ```
 
+#### Github webhook
+
+To validate repositories after every push GitHub webhook needs to be configured. Webhooks can be configured on repository level and organization level.
+Repository validator supports both ways but organization level webhook is recommended for production usage so webhook doesn't need to be configured for each
+repository separately. Repository level webhook should be used for developing.
+
+Webhook settings
+* Payload URL should be something like `https://<web app name here>.azurewebsites.net/api/RepositoryValidator?code=<code here>`.
+See [Azure Functions](#Azure-functions) payload URL generation
+* Content type should be `application/json`
+* Only push events should be sent. Validation probably works with other events too but this has not been tested. This can also
+lead to extra trafic and events when we don't want to perform validation, like pull request reviews.
+
+Read [GitHub developer guide](https://developer.github.com/webhooks/) for more information about webhooks.
+
 ## Deployment
 Project ValidationLibrary.AzureFunctions can be deployed to Azure as Azure Function.
 This function periodically validates repositories and reports to configured channel
