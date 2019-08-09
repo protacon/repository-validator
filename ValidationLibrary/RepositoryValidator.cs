@@ -11,12 +11,12 @@ namespace ValidationLibrary
     {
         private const string ConfigFileName = "repository-validator.json";
 
-        private readonly ILogger _logger;
+        private readonly ILogger<RepositoryValidator> _logger;
 
         private readonly IValidationRule[] _rules;
-        private readonly GitHubClient _gitHubClient;
+        private readonly IGitHubClient _gitHubClient;
 
-        public RepositoryValidator(ILogger logger, GitHubClient gitHubClient)
+        public RepositoryValidator(ILogger<RepositoryValidator> logger, IGitHubClient gitHubClient)
         {
             _rules = new IValidationRule[]
             {
