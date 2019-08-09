@@ -51,7 +51,7 @@ namespace ValidationLibrary.AzureFunctions
                     return CreateClient(githubConfig);
                 })
                 .AddTransient<ValidationClient>()
-                .AddTransient<RepositoryValidator>()
+                .AddTransient<ValidationLibrary.RepositoryValidator>()
                 .AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
         }
 

@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Octokit;
 
 namespace ValidationLibrary
@@ -12,10 +11,10 @@ namespace ValidationLibrary
         private readonly IGitHubClient _client;
         private readonly RepositoryValidator _validator;
 
-        public ValidationClient(ILogger logger, IGitHubClient client, RepositoryValidator validator)
+        public ValidationClient(IGitHubClient client, RepositoryValidator validator)
         {
-            _client = client;
-            _validator = validator;
+            _client = client ?? throw new System.ArgumentNullException(nameof(client));
+            _validator = validator ?? throw new System.ArgumentNullException(nameof(validator));
         }
 
         public async Task Init()
