@@ -13,9 +13,9 @@ namespace ValidationLibrary
         public string HowToFix { get; }
         public bool IsValid { get; }
 
-        public Func<GitHubClient, Repository, Task> Fix { get; }
+        public Func<IGitHubClient, Repository, Task> Fix { get; }
 
-        public ValidationResult(string ruleName, string howToFix, bool isValid, Func<GitHubClient, Repository, Task> fix)
+        public ValidationResult(string ruleName, string howToFix, bool isValid, Func<IGitHubClient, Repository, Task> fix)
         {
             RuleName = ruleName;
             HowToFix = howToFix;

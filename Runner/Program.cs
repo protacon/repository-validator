@@ -39,17 +39,10 @@ namespace Runner
             using (var di = BuildDependencyInjection(config))
             {
                 var logger = di.GetService<ILogger<Program>>();
-                var githubConfig = new GitHubConfiguration();
-                config.GetSection("GitHub").Bind(githubConfig);
-                if (string.IsNullOrWhiteSpace(githubConfig.Token))
-                {
-                    logger.LogCritical("GitHub token is missing. Add token to appsettings.json. Aborting...");
-                    return;
-                }
-
-                var ghClient = CreateClient(githubConfig);
-                var repositoryValidator = new RepositoryValidator(logger, ghClient);
-                var client = new ValidationClient(ghClient, repositoryValidator);
+                var githubConfig = di.GetService<GitHubConfiguration>();
+                var ghClient = di.GetService<IGitHubClient>();
+                var repositoryValidator = di.GetService<ValidationLibrary.RepositoryValidator>();
+                var client = di.GetService<ValidationClient>();
                 client.Init().Wait();
 
                 Action<IEnumerable<string>, Options> scanner = (IEnumerable<string> repositories, Options options) => 
@@ -99,7 +92,7 @@ namespace Runner
             }
         }
 
-        private static void PerformAutofixes(GitHubClient ghClient, ValidationReport[] results)
+        private static void PerformAutofixes(IGitHubClient ghClient, ValidationReport[] results)
         {
             foreach (var repositoryResult in results)
             {
@@ -122,7 +115,7 @@ namespace Runner
             }
         }
 
-        private static async Task ReportToGitHub(GitHubClient client, GitHubReportConfig config, ILogger<GitHubReporter> logger, params ValidationReport[] reports)
+        private static async Task ReportToGitHub(IGitHubClient client, GitHubReportConfig config, ILogger<GitHubReporter> logger, params ValidationReport[] reports)
         {
             var reporter = new GitHubReporter(logger, client, config);
             await reporter.Report(reports);
@@ -159,7 +152,32 @@ namespace Runner
                     loggingBuilder.AddConfiguration(config.GetSection("Logging"));
                     loggingBuilder.AddConsole();
                 })
+                .AddTransient<GitHubConfiguration>(services => {
+                    var githubConfig = new GitHubConfiguration();
+                    config.GetSection("GitHub").Bind(githubConfig);
+
+                    ValidateConfig(githubConfig);
+                    return githubConfig;
+                })
+                .AddTransient<IGitHubClient, GitHubClient>(services => {
+                    return CreateClient(services.GetService<GitHubConfiguration>());
+                })
+                .AddTransient<ValidationClient>()
+                .AddTransient<ValidationLibrary.RepositoryValidator>()
                 .BuildServiceProvider();
+        }
+
+        private static void ValidateConfig(GitHubConfiguration gitHubConfiguration)
+        {
+            if (gitHubConfiguration.Organization == null)
+            {
+                throw new ArgumentNullException(nameof(gitHubConfiguration.Organization), "Organization was missing.");
+            }
+
+            if (gitHubConfiguration.Token == null)
+            {
+                throw new ArgumentNullException(nameof(gitHubConfiguration.Token), "Token was missing.");
+            }
         }
     }
 }
