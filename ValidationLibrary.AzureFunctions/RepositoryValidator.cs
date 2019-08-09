@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
@@ -33,10 +34,11 @@ namespace ValidationLibrary.AzureFunctions
             _logger.LogInformation("Doing validation. Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
             
             await _validationClient.Init();
-            var repository = await _validationClient.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name);
+            var report = await _validationClient.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name);
 
             _logger.LogDebug("Sending report.");
-            await ReportToGitHub(_logger, repository);
+            await ReportToGitHub(report);
+            await PerformAutofixes(report);
             _logger.LogInformation("Validation finished");
         }
 
@@ -63,7 +65,7 @@ namespace ValidationLibrary.AzureFunctions
             }
         }
 
-        private async Task ReportToGitHub(ILogger logger, params ValidationReport[] reports)
+        private async Task ReportToGitHub(params ValidationReport[] reports)
         {
             var gitHubReportConfig = new GitHubReportConfig();
             gitHubReportConfig.GenericNotice = 
@@ -75,8 +77,19 @@ namespace ValidationLibrary.AzureFunctions
 
             gitHubReportConfig.Prefix = "[Automatic validation]";
 
-            var reporter = new GitHubReporter(logger, _gitHubClient, gitHubReportConfig);
+            var reporter = new GitHubReporter(_logger, _gitHubClient, gitHubReportConfig);
             await reporter.Report(reports);
+        }
+
+        private async Task PerformAutofixes(params ValidationReport[] results)
+        {
+            foreach (var repositoryResult in results)
+            {
+                foreach (var ruleResult in repositoryResult.Results.Where(r => !r.IsValid))
+                {
+                    await ruleResult.Fix(_gitHubClient, repositoryResult.Repository);
+                }
+            }
         }
     }
 }
