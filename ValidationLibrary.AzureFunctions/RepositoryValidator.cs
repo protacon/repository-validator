@@ -18,9 +18,9 @@ namespace ValidationLibrary.AzureFunctions
 
         public RepositoryValidator(ILogger<RepositoryValidator> logger, IGitHubClient gitHubClient, ValidationClient validationClient)
         {
-            _logger = logger;
-            _gitHubClient = gitHubClient;
-            _validationClient = validationClient;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _gitHubClient = gitHubClient ?? throw new ArgumentNullException(nameof(gitHubClient));
+            _validationClient = validationClient ?? throw new ArgumentNullException(nameof(validationClient));
         }
 
         [FunctionName("RepositoryValidator")]

@@ -49,7 +49,7 @@ namespace Runner
 
                 var ghClient = CreateClient(githubConfig);
                 var repositoryValidator = new RepositoryValidator(logger, ghClient);
-                var client = new ValidationClient(logger, ghClient, repositoryValidator);
+                var client = new ValidationClient(ghClient, repositoryValidator);
                 client.Init().Wait();
 
                 Action<IEnumerable<string>, Options> scanner = (IEnumerable<string> repositories, Options options) => 

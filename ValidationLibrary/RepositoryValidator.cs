@@ -26,9 +26,9 @@ namespace ValidationLibrary
                 new HasLicenseRule(logger)
             };
 
+            _logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
+            _gitHubClient = gitHubClient ?? throw new System.ArgumentNullException(nameof(gitHubClient));
             logger.LogInformation("Creating {className} with rules: {rules}", nameof(RepositoryValidator), string.Join(", ", _rules.Select(rule => rule.RuleName)));;
-            _logger = logger;
-            _gitHubClient = gitHubClient;
         }
 
         /// <summary>
