@@ -3,13 +3,12 @@ using System.IO;
 using System.Linq;
 using CsvHelper;
 using Microsoft.Extensions.Logging;
-using ValidationLibrary;
 
 namespace ValidationLibrary.Csv
 {
     public class CsvReporter
     {
-        private ILogger _logger;
+        private readonly ILogger _logger;
         private readonly FileInfo _destinationFile;
 
         public CsvReporter(ILogger logger, FileInfo destinationFile)
@@ -23,24 +22,25 @@ namespace ValidationLibrary.Csv
             _logger.LogTrace("Reporting {count} reports to CSV {destinationFile}", reports.Count(), _destinationFile.FullName);
             var flatten = from report in reports
                           from result in report.Results
-                          select new ReportLine {
-                            Timestamp = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
-                            Owner = report.Owner,
-                            Name = report.RepositoryName,
-                            RepositoryUrl = report.RepositoryUrl,
-                            RuleName = result.RuleName,
-                            IsValid = result.IsValid,
-                            HowToFix = result.HowToFix
+                          select new ReportLine
+                          {
+                              Timestamp = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
+                              Owner = report.Owner,
+                              Name = report.RepositoryName,
+                              RepositoryUrl = report.RepositoryUrl,
+                              RuleName = result.RuleName,
+                              IsValid = result.IsValid,
+                              HowToFix = result.HowToFix
                           };
 
             using (var writer = new StreamWriter(_destinationFile.FullName, true))
             using (var csv = new CsvWriter(writer))
-            {    
+            {
                 csv.WriteRecords(flatten.ToList());
-            }  
+            }
         }
 
-        private class ReportLine 
+        private class ReportLine
         {
             public string Timestamp { get; set; }
             public string Owner { get; set; }

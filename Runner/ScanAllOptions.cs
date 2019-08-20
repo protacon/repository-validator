@@ -11,7 +11,7 @@ namespace Runner
         {
         }
 
-        private static IEnumerable<UnParserSettings> ExampleSettings = new[]
+        private static readonly IEnumerable<UnParserSettings> ExampleSettings = new[]
         {
             new UnParserSettings { PreferShortName = false }
         };

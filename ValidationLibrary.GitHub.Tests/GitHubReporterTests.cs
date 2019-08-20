@@ -14,7 +14,7 @@ namespace ValidationLibrary.GitHub.Tests
     {
         private const string Prefix = "[Mock testing prefix]";
 
-        private GitHubReportConfig _config = new GitHubReportConfig 
+        private readonly GitHubReportConfig _config = new GitHubReportConfig
         {
             Prefix = Prefix,
             GenericNotice = "Notice of most generic quality"
@@ -104,7 +104,7 @@ namespace ValidationLibrary.GitHub.Tests
             };
 
             var issue = CreateIssue(CreateIssueTitle("Rule"), ItemState.Open);
-            _mockIssuesClient.GetAllForRepository(report.Owner, report.RepositoryName, Arg.Any<RepositoryIssueRequest>()).Returns(Task.FromResult((IReadOnlyList<Issue>)new List<Issue>(){issue}));
+            _mockIssuesClient.GetAllForRepository(report.Owner, report.RepositoryName, Arg.Any<RepositoryIssueRequest>()).Returns(Task.FromResult((IReadOnlyList<Issue>)new List<Issue>() { issue }));
 
             await _reporter.Report(report);
 
@@ -126,7 +126,7 @@ namespace ValidationLibrary.GitHub.Tests
             };
 
             var issue = CreateIssue(CreateIssueTitle("Rule"), ItemState.Closed);
-            _mockIssuesClient.GetAllForRepository(report.Owner, report.RepositoryName, Arg.Any<RepositoryIssueRequest>()).Returns(Task.FromResult((IReadOnlyList<Issue>)new List<Issue>(){issue}));
+            _mockIssuesClient.GetAllForRepository(report.Owner, report.RepositoryName, Arg.Any<RepositoryIssueRequest>()).Returns(Task.FromResult((IReadOnlyList<Issue>)new List<Issue>() { issue }));
 
             await _reporter.Report(report);
 
@@ -147,7 +147,7 @@ namespace ValidationLibrary.GitHub.Tests
                 }
             };
 
-            var issues = Enumerable.Range(0, 10).Select(i => 
+            var issues = Enumerable.Range(0, 10).Select(i =>
             {
                 return CreateIssue(CreateIssueTitle("Rule"), ItemState.Open);
             }).ToList();

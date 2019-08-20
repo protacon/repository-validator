@@ -10,7 +10,7 @@ namespace ValidationLibrary.GitHub
 {
     public class GitHubReporter
     {
-        private ILogger _logger;
+        private readonly ILogger _logger;
         private readonly IGitHubClient _client;
         private readonly GitHubReportConfig _config;
 
@@ -25,10 +25,10 @@ namespace ValidationLibrary.GitHub
         {
             _logger.LogTrace("Reporting {count} reports to GitHub.", reports.Count());
             var current = await _client.User.Current();
-            foreach(var report in reports)
+            foreach (var report in reports)
             {
                 var repository = await _client.Repository.Get(report.Owner, report.RepositoryName);
-                using(_logger.BeginScope(ScopeParameters(report)))
+                using (_logger.BeginScope(ScopeParameters(report)))
                 {
                     if (!repository.HasIssues)
                     {
@@ -42,10 +42,10 @@ namespace ValidationLibrary.GitHub
                         State = ItemStateFilter.All,
                         Creator = current.Login,
                     };
-                    
+
                     var issues = await _client.Issue.GetAllForRepository(report.Owner, report.RepositoryName, allIssues);
                     _logger.LogTrace("Found {count} total issues.", issues.Count);
-                    foreach(var validationResult in report.Results)
+                    foreach (var validationResult in report.Results)
                     {
                         _logger.LogTrace("Reporting rule {ruleName}, IsValid: {isValid}", validationResult.RuleName, validationResult.IsValid);
                         var title = CreateIssueTitle(validationResult);
@@ -55,7 +55,8 @@ namespace ValidationLibrary.GitHub
                         {
                             await CloseIfNeeded(report, validationResult, existingIssues);
                         }
-                        else {
+                        else
+                        {
                             await CreateOrOpenIssue(report, validationResult, existingIssues);
                         }
                     }
@@ -66,24 +67,24 @@ namespace ValidationLibrary.GitHub
         private static Dictionary<string, object> ScopeParameters(ValidationReport report)
         {
             return new Dictionary<string, object>
-            { 
+            {
                 { nameof(report.Owner), report.Owner },
                 { nameof(report.RepositoryName), report.RepositoryName },
-                { nameof(report.RepositoryUrl), report.RepositoryUrl } 
+                { nameof(report.RepositoryUrl), report.RepositoryUrl }
             };
         }
 
         private async Task CloseIfNeeded(ValidationReport report, ValidationResult result, IEnumerable<Issue> existingIssues)
         {
             _logger.LogTrace("Closing issues if needed for rule {0}", result.RuleName);
-            foreach(var existingIssue in existingIssues)
+            foreach (var existingIssue in existingIssues)
             {
                 _logger.LogTrace("Checking issue: #{0}, state: {1}", existingIssue.Number, existingIssue.State);
                 if (existingIssue.State == ItemState.Open)
                 {
                     _logger.LogTrace("Found open issue #{0}", existingIssue.Number);
                     await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, existingIssue.Number, $"{_config.Prefix}: Issue fixed. Closing issue.");
-                    var update = new IssueUpdate(){State = ItemState.Closed};
+                    var update = new IssueUpdate() { State = ItemState.Closed };
                     await _client.Issue.Update(report.Owner, report.RepositoryName, existingIssue.Number, update);
                     _logger.LogInformation("Closed issue #{0} for {1}/{2}", existingIssue.Number, report.Owner, report.RepositoryName);
                 }
@@ -109,8 +110,8 @@ namespace ValidationLibrary.GitHub
                 }
                 var closedIssue = existingIssues.FirstOrDefault(issue => issue.State == ItemState.Closed);
                 await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, closedIssue.Number, $"{_config.Prefix}: Issue resurfaced. Reopening issue.");
-                
-                var update = new IssueUpdate(){ State = ItemState.Open };
+
+                var update = new IssueUpdate() { State = ItemState.Open };
                 await _client.Issue.Update(report.Owner, report.RepositoryName, closedIssue.Number, update);
                 _logger.LogInformation("Reopened issue #{0} for {1}/{2}", closedIssue.Number, report.Owner, report.RepositoryName);
             }

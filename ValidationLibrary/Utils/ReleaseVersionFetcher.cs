@@ -5,9 +5,9 @@ namespace ValidationLibrary.Utils
 {
     public class ReleaseVersionFetcher
     {
-        private IGitHubClient _client;
-        private string _owner;
-        private string _name;
+        private readonly IGitHubClient _client;
+        private readonly string _owner;
+        private readonly string _name;
 
         public ReleaseVersionFetcher(IGitHubClient client, string owner, string name)
         {

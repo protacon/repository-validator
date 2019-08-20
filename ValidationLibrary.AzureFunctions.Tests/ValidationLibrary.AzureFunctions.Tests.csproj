@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ValidationLibrary.GitHub\ValidationLibrary.GitHub.csproj" />
+    <ProjectReference Include="..\ValidationLibrary.AzureFunctions\ValidationLibrary.AzureFunctions.csproj" />
   </ItemGroup>
 
 </Project>

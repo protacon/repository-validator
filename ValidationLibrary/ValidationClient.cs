@@ -6,7 +6,7 @@ namespace ValidationLibrary
     /// <summary>
     /// Wrapper for GitHub-communication
     /// </summary>
-    public class ValidationClient
+    public class ValidationClient : IValidationClient
     {
         private readonly IGitHubClient _client;
         private readonly RepositoryValidator _validator;
