@@ -45,10 +45,11 @@ namespace Runner
                 var client = di.GetService<ValidationClient>();
                 client.Init().Wait();
 
-                Action<IEnumerable<string>, Options> scanner = (IEnumerable<string> repositories, Options options) => 
+                void scanner(IEnumerable<string> repositories, Options options)
                 {
                     var start = DateTime.UtcNow;
-                    var results = repositories.Select(repo => {
+                    var results = repositories.Select(repo =>
+                    {
                         Thread.Sleep(TimeSpan.FromSeconds(3));
                         return client.ValidateRepository(githubConfig.Organization, repo).Result;
                     }).ToArray();
@@ -78,14 +79,15 @@ namespace Runner
                         }
                     }
                     logger.LogInformation("Duration {duration}", (DateTime.UtcNow - start).TotalSeconds);
-                };
+                }
 
                 Parser.Default.ParseArguments<ScanSelectedOptions, ScanAllOptions>(args)
                 .WithParsed<ScanSelectedOptions>(options =>
                 {
                     scanner(options.Repositories, options);
                 })
-                .WithParsed<ScanAllOptions>(options => {
+                .WithParsed<ScanAllOptions>(options =>
+                {
                     var allRepositories = ghClient.Repository.GetAllForOrg(githubConfig.Organization).Result;
                     scanner(allRepositories.Select(r => r.Name).ToArray(), options);
                 });
@@ -131,9 +133,11 @@ namespace Runner
         private static async Task ReportToSlack(SlackConfiguration config, ILogger logger, params ValidationReport[] reports)
         {
             var slackClient = new SlackClient(config);
-            var response = await slackClient.SendMessageAsync(reports);
-            var isValid = response.IsSuccessStatusCode ? "valid" : "invalid";
-            logger.LogInformation("Received {isValid} response.", isValid);
+            using (var response = await slackClient.SendMessageAsync(reports))
+            {
+                var isValid = response.IsSuccessStatusCode ? "valid" : "invalid";
+                logger.LogInformation("Received {isValid} response.", isValid);
+            }
         }
 
         private static GitHubClient CreateClient(GitHubConfiguration configuration)
@@ -152,14 +156,16 @@ namespace Runner
                     loggingBuilder.AddConfiguration(config.GetSection("Logging"));
                     loggingBuilder.AddConsole();
                 })
-                .AddTransient<GitHubConfiguration>(services => {
+                .AddTransient<GitHubConfiguration>(services =>
+                {
                     var githubConfig = new GitHubConfiguration();
                     config.GetSection("GitHub").Bind(githubConfig);
 
                     ValidateConfig(githubConfig);
                     return githubConfig;
                 })
-                .AddTransient<IGitHubClient, GitHubClient>(services => {
+                .AddTransient<IGitHubClient, GitHubClient>(services =>
+                {
                     return CreateClient(services.GetService<GitHubConfiguration>());
                 })
                 .AddTransient<ValidationClient>()

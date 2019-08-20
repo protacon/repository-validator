@@ -43,15 +43,17 @@ namespace ValidationLibrary.AzureFunctions
             builder
                 .Services
                 .AddLogging()
-                .AddTransient<IGitHubClient, GitHubClient>(services => {
+                .AddTransient<IGitHubClient, GitHubClient>(services =>
+                {
                     var githubConfig = new GitHubConfiguration();
                     config.GetSection("GitHub").Bind(githubConfig);
-                    
+
                     ValidateConfig(githubConfig);
                     return CreateClient(githubConfig);
                 })
-                .AddTransient<ValidationClient>()
+                .AddTransient<IValidationClient, ValidationClient>()
                 .AddTransient<ValidationLibrary.RepositoryValidator>()
+                .AddTransient<RepositoryValidator>()
                 .AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
         }
 

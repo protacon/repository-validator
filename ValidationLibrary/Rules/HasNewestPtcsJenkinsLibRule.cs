@@ -27,7 +27,7 @@ namespace ValidationLibrary.Rules
 
         private readonly ILogger _logger;
         private string _expectedVersion;
-        
+
         public HasNewestPtcsJenkinsLibRule(ILogger logger)
         {
             _logger = logger;
@@ -75,8 +75,10 @@ namespace ValidationLibrary.Rules
             _logger.LogTrace("Latest commit with message {a}", latest.Message);
 
             var oldTree = await client.Git.Tree.Get(repository.Owner.Login, repository.Name, latest.Sha);
-            var newTree = new NewTree();
-            newTree.BaseTree = oldTree.Sha;
+            var newTree = new NewTree
+            {
+                BaseTree = oldTree.Sha
+            };
 
             BlobReference blobReference = await CreateBlob(client, repository, fixedContent);
 
@@ -96,12 +98,14 @@ namespace ValidationLibrary.Rules
             var refUpdate = new ReferenceUpdate(commitResponse.Sha);
             await client.Git.Reference.Update(repository.Owner.Login, repository.Name, $"heads/{branchName}", refUpdate);
 
-            var pullRequest = new NewPullRequest($"[Automatic Validation] Update {LibraryName} to latest version.", branchReference.Ref, master.Ref);
-            pullRequest.Body = "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
-                                Environment.NewLine +
-                               "To prevent automatic validation, see documentation from [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
-                               Environment.NewLine +
-                               "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation." + Environment.NewLine;
+            var pullRequest = new NewPullRequest($"[Automatic Validation] Update {LibraryName} to latest version.", branchReference.Ref, master.Ref)
+            {
+                Body = "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
+                        Environment.NewLine +
+                        "To prevent automatic validation, see documentation from [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
+                        Environment.NewLine +
+                        "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation." + Environment.NewLine
+            };
             await client.PullRequest.Create(repository.Owner.Login, repository.Name, pullRequest);
         }
 
@@ -166,9 +170,10 @@ namespace ValidationLibrary.Rules
 
         private async Task<IReadOnlyList<RepositoryContent>> GetContents(IGitHubClient client, Repository repository)
         {
-            try {
+            try
+            {
                 return await client.Repository.Content.GetAllContents(repository.Owner.Login, repository.Name);
-            } 
+            }
             catch (Octokit.NotFoundException exception)
             {
                 /* 
