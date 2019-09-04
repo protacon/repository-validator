@@ -2,10 +2,11 @@
     "version": "2.0",
     "logging": {
         "logLevel": {
-            "default": "Information",
+            "default": "TrInformationace",
             "Host.Results": "Information",
             "Function": "Information",
-            "Host.Aggregator": "Information"
+            "Host.Aggregator": "Information",
+            "ValidationLibrary": "Trace"
         },
         "applicationInsights": {}
     }

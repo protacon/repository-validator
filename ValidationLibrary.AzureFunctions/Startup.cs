@@ -53,8 +53,8 @@ namespace ValidationLibrary.AzureFunctions
                 })
                 .AddTransient<IValidationClient, ValidationClient>()
                 .AddTransient<ValidationLibrary.RepositoryValidator>()
-                .AddTransient<RepositoryValidator>()
-                .AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
+                .AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>()
+                .AddTransient<RepositoryValidator>();
         }
 
         private static GitHubClient CreateClient(GitHubConfiguration gitHubConfiguration)
