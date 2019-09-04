@@ -2,7 +2,7 @@
     "version": "2.0",
     "logging": {
         "logLevel": {
-            "default": "TrInformationace",
+            "default": "Information",
             "Host.Results": "Information",
             "Function": "Information",
             "Host.Aggregator": "Information",
