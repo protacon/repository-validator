@@ -28,7 +28,7 @@ namespace ValidationLibrary
 
             _logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
             _gitHubClient = gitHubClient ?? throw new System.ArgumentNullException(nameof(gitHubClient));
-            logger.LogInformation("Creating {className} with rules: {rules}", nameof(RepositoryValidator), string.Join(", ", _rules.Select(rule => rule.RuleName)));;
+            logger.LogInformation("Creating {className} with rules: {rules}", nameof(RepositoryValidator), string.Join(", ", _rules.Select(rule => rule.RuleName))); ;
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace ValidationLibrary
             _logger.LogTrace("Validating repository {repositoryName}", gitHubRepository.FullName);
             var config = await GetConfig(gitHubRepository);
 
-            var filteredRules = _rules.Where(rule => 
+            var filteredRules = _rules.Where(rule =>
             {
                 var name = rule.GetType().Name;
                 var isIgnored = config.IgnoredRules.Contains(name);
@@ -69,14 +69,17 @@ namespace ValidationLibrary
 
         private async Task<ValidationConfiguration> GetConfig(Repository gitHubRepository)
         {
-            try {
+            try
+            {
                 _logger.LogTrace("Retrieving config for {repositoryName}", gitHubRepository.FullName);
                 var contents = await _gitHubClient.Repository.Content.GetAllContents(gitHubRepository.Owner.Login, gitHubRepository.Name, ConfigFileName);
                 var jsonContent = contents.FirstOrDefault().Content;
                 var config = JsonConvert.DeserializeObject<ValidationConfiguration>(jsonContent);
                 _logger.LogDebug("Configuration found for {repositoryName}. Ignored rules: {rules}", gitHubRepository.FullName, string.Join(",", config.IgnoredRules));
                 return config;
-            } catch (Octokit.NotFoundException) {
+            }
+            catch (Octokit.NotFoundException)
+            {
                 _logger.LogDebug("No {configFileName} found in {repositoryName}. Using default config.", ConfigFileName, gitHubRepository.FullName);
                 return new ValidationConfiguration();
             }

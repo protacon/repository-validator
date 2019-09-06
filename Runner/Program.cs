@@ -41,7 +41,7 @@ namespace Runner
                 var logger = di.GetService<ILogger<Program>>();
                 var githubConfig = di.GetService<GitHubConfiguration>();
                 var ghClient = di.GetService<IGitHubClient>();
-                var repositoryValidator = di.GetService<ValidationLibrary.RepositoryValidator>();
+                var repositoryValidator = di.GetService<RepositoryValidator>();
                 var client = di.GetService<ValidationClient>();
                 client.Init().Wait();
 
@@ -88,8 +88,12 @@ namespace Runner
                 })
                 .WithParsed<ScanAllOptions>(options =>
                 {
-                    var allRepositories = ghClient.Repository.GetAllForOrg(githubConfig.Organization).Result;
-                    scanner(allRepositories.Select(r => r.Name).ToArray(), options);
+                    var allNonArchivedRepositories = ghClient
+                        .Repository
+                        .GetAllForOrg(githubConfig.Organization)
+                        .Result
+                        .Where(repository => !repository.Archived);
+                    scanner(allNonArchivedRepositories.Select(r => r.Name).ToArray(), options);
                 });
             }
         }
@@ -156,7 +160,7 @@ namespace Runner
                     loggingBuilder.AddConfiguration(config.GetSection("Logging"));
                     loggingBuilder.AddConsole();
                 })
-                .AddTransient<GitHubConfiguration>(services =>
+                .AddTransient(services =>
                 {
                     var githubConfig = new GitHubConfiguration();
                     config.GetSection("GitHub").Bind(githubConfig);
@@ -169,7 +173,7 @@ namespace Runner
                     return CreateClient(services.GetService<GitHubConfiguration>());
                 })
                 .AddTransient<ValidationClient>()
-                .AddTransient<ValidationLibrary.RepositoryValidator>()
+                .AddSingleton<RepositoryValidator>()
                 .BuildServiceProvider();
         }
 

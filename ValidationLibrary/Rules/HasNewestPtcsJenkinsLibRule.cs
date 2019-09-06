@@ -23,7 +23,7 @@ namespace ValidationLibrary.Rules
 
         public string RuleName => $"Old {LibraryName}";
 
-        private readonly Regex _regex = new Regex($@"'{LibraryName}@(\d+.\d+.\d+.*)'", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private readonly Regex _regex = new Regex($@"[""']{LibraryName}@(\d+.\d+.\d+.*)[""']", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private readonly ILogger _logger;
         private string _expectedVersion;
@@ -156,12 +156,14 @@ namespace ValidationLibrary.Rules
             var match = matches.OfType<Match>().FirstOrDefault();
             if (match == null)
             {
+                _logger.LogTrace("Rule {ruleClass} / {ruleName}, no jenkins-ptcs-library matches found. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
                 return OkResult();
             }
 
             var group = match.Groups.OfType<Group>().LastOrDefault();
             if (group == null)
             {
+                _logger.LogTrace("Rule {ruleClass} / {ruleName}, no jenkins-ptcs-library groups found. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
                 return OkResult();
             }
 

@@ -28,6 +28,11 @@ namespace ValidationLibrary.GitHub
             foreach (var report in reports)
             {
                 var repository = await _client.Repository.Get(report.Owner, report.RepositoryName);
+                if (repository.Archived)
+                {
+                    _logger.LogWarning("Repository {owner}/{repositoryName} is archived. Skipping reporting.", report.Owner, report.RepositoryName);
+                    continue;
+                }
                 using (_logger.BeginScope(ScopeParameters(report)))
                 {
                     if (!repository.HasIssues)
