@@ -88,8 +88,12 @@ namespace Runner
                 })
                 .WithParsed<ScanAllOptions>(options =>
                 {
-                    var allRepositories = ghClient.Repository.GetAllForOrg(githubConfig.Organization).Result;
-                    scanner(allRepositories.Select(r => r.Name).ToArray(), options);
+                    var allNonArchivedRepositories = ghClient
+                        .Repository
+                        .GetAllForOrg(githubConfig.Organization)
+                        .Result
+                        .Where(repository => !repository.Archived);
+                    scanner(allNonArchivedRepositories.Select(r => r.Name).ToArray(), options);
                 });
             }
         }
