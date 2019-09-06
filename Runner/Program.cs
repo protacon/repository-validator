@@ -41,7 +41,7 @@ namespace Runner
                 var logger = di.GetService<ILogger<Program>>();
                 var githubConfig = di.GetService<GitHubConfiguration>();
                 var ghClient = di.GetService<IGitHubClient>();
-                var repositoryValidator = di.GetService<ValidationLibrary.RepositoryValidator>();
+                var repositoryValidator = di.GetService<RepositoryValidator>();
                 var client = di.GetService<ValidationClient>();
                 client.Init().Wait();
 
@@ -160,7 +160,7 @@ namespace Runner
                     loggingBuilder.AddConfiguration(config.GetSection("Logging"));
                     loggingBuilder.AddConsole();
                 })
-                .AddTransient<GitHubConfiguration>(services =>
+                .AddTransient(services =>
                 {
                     var githubConfig = new GitHubConfiguration();
                     config.GetSection("GitHub").Bind(githubConfig);
@@ -173,7 +173,7 @@ namespace Runner
                     return CreateClient(services.GetService<GitHubConfiguration>());
                 })
                 .AddTransient<ValidationClient>()
-                .AddTransient<ValidationLibrary.RepositoryValidator>()
+                .AddSingleton<RepositoryValidator>()
                 .BuildServiceProvider();
         }
 
