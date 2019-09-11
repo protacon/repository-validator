@@ -92,7 +92,7 @@ namespace ValidationLibrary.Rules
             newTree.Tree.Add(treeItem);
 
             var createdTree = await client.Git.Tree.Create(repository.Owner.Login, repository.Name, newTree);
-            var commit = new NewCommit($"Update {LibraryName} to latest versios.", createdTree.Sha, new[] { latest.Sha });
+            var commit = new NewCommit($"Update {LibraryName} to latest version.", createdTree.Sha, new[] { latest.Sha });
             var commitResponse = await client.Git.Commit.Create(repository.Owner.Login, repository.Name, commit);
 
             var refUpdate = new ReferenceUpdate(commitResponse.Sha);
