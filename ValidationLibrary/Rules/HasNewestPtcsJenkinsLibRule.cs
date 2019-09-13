@@ -50,25 +50,9 @@ namespace ValidationLibrary.Rules
         {
             // This method should be refactored when we have a better general idea how we want to fix things
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
+            var latest = await GetCommitAsBase(client, repository);
 
-            var branches = await client.Repository.Branch.GetAll(repository.Owner.Login, repository.Name);
-            var existingBranch = branches.FirstOrDefault(branch => branch.Name == BranchName);
-
-            Commit latest;
-            if (existingBranch == null)
-            {
-                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} did exists, creating branch.",
-                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, BranchName);
-                var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, BranchName);
-                latest = await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha);
-            }
-            else
-            {
-                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} already exists, updating existing branch.",
-                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, BranchName);
-                latest = await client.Git.Commit.Get(repository.Owner.Login, repository.Name, existingBranch.Commit.Sha);
-            }
-            string fixedContent = await GetFixedContent(client, repository, existingBranch == null ? "master" : BranchName);
+            string fixedContent = await GetFixedContent(client, repository, latest.Sha);
             if (fixedContent == null)
             {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, Branch {branchName} already had latest version fix, skipping updating existing branch.",
@@ -90,6 +74,28 @@ namespace ValidationLibrary.Rules
             }
 
             await CreateNewPullRequest(client, repository, latest);
+        }
+
+        /// <summary>
+        /// This takes either the latest commit from master or latest from updated branch if it exists.
+        /// </summary>
+        private async Task<Commit> GetCommitAsBase(IGitHubClient client, Repository repository)
+        {
+            var branches = await client.Repository.Branch.GetAll(repository.Owner.Login, repository.Name);
+            var existingBranch = branches.FirstOrDefault(branch => branch.Name == BranchName);
+            if (existingBranch == null)
+            {
+                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} did not exists, creating branch.",
+                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, BranchName);
+                var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, BranchName);
+                return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha);
+            }
+            else
+            {
+                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} already exists, using existing branch.",
+                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, BranchName);
+                return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, existingBranch.Commit.Sha);
+            }
         }
 
         private async Task PushFix(IGitHubClient client, Repository repository, Commit latest, string jenkinsFile)
