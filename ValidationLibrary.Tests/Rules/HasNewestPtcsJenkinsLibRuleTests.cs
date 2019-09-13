@@ -55,7 +55,7 @@ namespace ValidationLibrary.Tests.Rules
         }
 
         [Test]
-        public async Task IsValid_ReturnsOkIFThereIsNoJenkinsFile()
+        public async Task IsValid_ReturnsOkIfThereIsNoJenkinsFile()
         {
             var repository = CreateRepository("repomen");
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MasterBranch).Returns(Task.FromResult((IReadOnlyList<RepositoryContent>)new List<RepositoryContent>()));
