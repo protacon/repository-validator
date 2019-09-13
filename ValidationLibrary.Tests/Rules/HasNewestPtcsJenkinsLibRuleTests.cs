@@ -11,7 +11,12 @@ namespace ValidationLibrary.Tests.Rules
 {
     public class HasNewestPtcsJenkinsLibRuleTests
     {
-        private const string NewestJenkinsPtcsLibrary = "0.3.2";
+        /// <summary>
+        /// By default, master is checked for Jenkinsfile if there is no branch
+        /// </summary>
+        private const string MasterBranch = "master";
+
+        private const string ExpectedJenkinsPtcsLibrary = "0.3.2";
 
         private HasNewestPtcsJenkinsLibRule _rule;
 
@@ -38,7 +43,7 @@ namespace ValidationLibrary.Tests.Rules
 
             var mockReleaseClient = Substitute.For<IReleasesClient>();
             _mockRepositoryClient.Release.Returns(mockReleaseClient);
-            var release = new Release(null, null, null, null, 0, null, NewestJenkinsPtcsLibrary, null, null, null, false, false, DateTime.UtcNow, null, null, null, null, null);
+            var release = new Release(null, null, null, null, 0, null, ExpectedJenkinsPtcsLibrary, null, null, null, false, false, DateTime.UtcNow, null, null, null, null, null);
             _mockRepositoryClient.Release.GetLatest("protacon", "jenkins-ptcs-library").Returns(Task.FromResult(release));
             await _rule.Init(_mockClient);
         }
@@ -53,7 +58,7 @@ namespace ValidationLibrary.Tests.Rules
         public async Task IsValid_ReturnsOkIFThereIsNoJenkinsFile()
         {
             var repository = CreateRepository("repomen");
-            _mockRepositoryContentClient.GetAllContents(_owner.Name, repository.Name).Returns(Task.FromResult((IReadOnlyList<RepositoryContent>)new List<RepositoryContent>()));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MasterBranch).Returns(Task.FromResult((IReadOnlyList<RepositoryContent>)new List<RepositoryContent>()));
 
             var result = await _rule.IsValid(_mockClient, repository);
             Assert.IsTrue(result.IsValid);
@@ -66,8 +71,8 @@ namespace ValidationLibrary.Tests.Rules
             IReadOnlyList<RepositoryContent> contents = new[] { content };
 
             var repository = CreateRepository("repomen");
-            _mockRepositoryContentClient.GetAllContents(_owner.Name, repository.Name).Returns(Task.FromResult(contents));
-            _mockRepositoryContentClient.GetAllContents(_owner.Name, repository.Name, contents[0].Name).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MasterBranch).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MasterBranch).Returns(Task.FromResult(contents));
 
             var result = await _rule.IsValid(_mockClient, repository);
             Assert.IsTrue(result.IsValid);
@@ -80,8 +85,8 @@ namespace ValidationLibrary.Tests.Rules
             IReadOnlyList<RepositoryContent> contents = new[] { content };
 
             var repository = CreateRepository("repomen");
-            _mockRepositoryContentClient.GetAllContents(_owner.Name, repository.Name).Returns(Task.FromResult(contents));
-            _mockRepositoryContentClient.GetAllContents(_owner.Name, repository.Name, contents[0].Name).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MasterBranch).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MasterBranch).Returns(Task.FromResult(contents));
 
             var result = await _rule.IsValid(_mockClient, repository);
             Assert.IsFalse(result.IsValid);
@@ -94,8 +99,8 @@ namespace ValidationLibrary.Tests.Rules
             IReadOnlyList<RepositoryContent> contents = new[] { content };
 
             var repository = CreateRepository("repomen");
-            _mockRepositoryContentClient.GetAllContents(_owner.Name, repository.Name).Returns(Task.FromResult(contents));
-            _mockRepositoryContentClient.GetAllContents(_owner.Name, repository.Name, contents[0].Name).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MasterBranch).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MasterBranch).Returns(Task.FromResult(contents));
 
             var result = await _rule.IsValid(_mockClient, repository);
             Assert.IsFalse(result.IsValid);
@@ -104,12 +109,12 @@ namespace ValidationLibrary.Tests.Rules
         [Test]
         public async Task IsValid_ReturnsTrueWhenPtcsLibraryIsNewest()
         {
-            var content = CreateContent("JENKINSFILE", $"library 'jenkins-ptcs-library@{NewestJenkinsPtcsLibrary}'");
+            var content = CreateContent("JENKINSFILE", $"library 'jenkins-ptcs-library@{ExpectedJenkinsPtcsLibrary}'");
             IReadOnlyList<RepositoryContent> contents = new[] { content };
 
             var repository = CreateRepository("repomen");
-            _mockRepositoryContentClient.GetAllContents(_owner.Name, repository.Name).Returns(Task.FromResult(contents));
-            _mockRepositoryContentClient.GetAllContents(_owner.Name, repository.Name, contents[0].Name).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MasterBranch).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MasterBranch).Returns(Task.FromResult(contents));
 
             var result = await _rule.IsValid(_mockClient, repository);
             Assert.IsTrue(result.IsValid);
