@@ -20,6 +20,7 @@ namespace ValidationLibrary.Rules
 
         private const string LibraryName = "jenkins-ptcs-library";
         private readonly string BranchName = $"feature/{LibraryName}-update";
+        private readonly string PullRequestTitle = $"[Automatic Validation] Update {LibraryName} to latest version.";
         private const string FileMode = "100644";
 
         public string RuleName => $"Old {LibraryName}";
@@ -67,7 +68,7 @@ namespace ValidationLibrary.Rules
                 State = ItemStateFilter.Open
             };
             var pullRequests = await client.PullRequest.GetAllForRepository(repository.Owner.Login, repository.Name, pullRequest);
-            if (pullRequests.Any(pr => pr.Title == $"[Automatic Validation] Update {LibraryName} to latest version."))
+            if (pullRequests.Any(pr => pr.Title == PullRequestTitle))
             {
                 _logger.LogInformation("Rule {ruleClass} / {ruleName}, Open pull request already exists. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
                 return;
@@ -142,7 +143,7 @@ namespace ValidationLibrary.Rules
         private async Task CreateNewPullRequest(IGitHubClient client, Repository repository, Commit latest)
         {
             var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, "heads/master");
-            var pullRequest = new NewPullRequest($"[Automatic Validation] Update {LibraryName} to latest version.", latest.Ref, master.Ref)
+            var pullRequest = new NewPullRequest(PullRequestTitle, latest.Ref, master.Ref)
             {
                 Body = "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
                         Environment.NewLine +
