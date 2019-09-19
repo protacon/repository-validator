@@ -22,10 +22,10 @@ namespace ValidationLibrary
             await _validator.Init();
         }
 
-        public async Task<ValidationReport> ValidateRepository(string organization, string repositoryName)
+        public async Task<ValidationReport> ValidateRepository(string organization, string repositoryName, bool overrideRuleIgnore)
         {
             var repository = await _client.Repository.Get(organization, repositoryName);
-            var result = await _validator.Validate(repository);
+            var result = await _validator.Validate(repository, overrideRuleIgnore);
             return result;
         }
     }

@@ -16,16 +16,9 @@ namespace ValidationLibrary
         private readonly IValidationRule[] _rules;
         private readonly IGitHubClient _gitHubClient;
 
-        public RepositoryValidator(ILogger<RepositoryValidator> logger, IGitHubClient gitHubClient)
+        public RepositoryValidator(ILogger<RepositoryValidator> logger, IGitHubClient gitHubClient, IValidationRule[] validationRules)
         {
-            _rules = new IValidationRule[]
-            {
-                new HasDescriptionRule(logger),
-                new HasReadmeRule(logger),
-                new HasNewestPtcsJenkinsLibRule(logger),
-                new HasLicenseRule(logger)
-            };
-
+            _rules = validationRules ?? throw new System.ArgumentNullException(nameof(validationRules));
             _logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
             _gitHubClient = gitHubClient ?? throw new System.ArgumentNullException(nameof(gitHubClient));
             logger.LogInformation("Creating {className} with rules: {rules}", nameof(RepositoryValidator), string.Join(", ", _rules.Select(rule => rule.RuleName))); ;
@@ -43,12 +36,12 @@ namespace ValidationLibrary
             }
         }
 
-        public async Task<ValidationReport> Validate(Repository gitHubRepository)
+        public async Task<ValidationReport> Validate(Repository gitHubRepository, bool overrideRuleIgnore)
         {
             _logger.LogTrace("Validating repository {repositoryName}", gitHubRepository.FullName);
             var config = await GetConfig(gitHubRepository);
 
-            var filteredRules = _rules.Where(rule =>
+            var filteredRules = overrideRuleIgnore ? _rules : _rules.Where(rule =>
             {
                 var name = rule.GetType().Name;
                 var isIgnored = config.IgnoredRules.Contains(name);

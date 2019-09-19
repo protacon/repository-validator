@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using CommandLine;
-using CommandLine.Text;
 
 namespace Runner
 {
@@ -18,12 +16,16 @@ namespace Runner
         [Option("CsvFile", HelpText = "If set, results are written to this CSV file. Old file is overridden")]
         public string CsvFile { get; }
 
-        public Options(bool reportToSlack, bool reportToGithub, bool autoFix, string csvFile)
+        [Option('f', "ForceAllRules", HelpText = "If enabled, repository-validator.json is ignored in checking.")]
+        public bool IgnoreRepositoryRules { get; }
+
+        public Options(bool reportToSlack, bool reportToGithub, bool autoFix, string csvFile, bool ignoreRepositoryRules)
         {
             ReportToSlack = reportToSlack;
             ReportToGithub = reportToGithub;
             AutoFix = autoFix;
             CsvFile = csvFile;
+            IgnoreRepositoryRules = ignoreRepositoryRules;
         }
     }
 }

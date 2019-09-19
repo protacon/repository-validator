@@ -34,7 +34,7 @@ namespace ValidationLibrary.AzureFunctions
             _logger.LogInformation("Doing validation. Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
 
             await _validationClient.Init();
-            var report = await _validationClient.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name);
+            var report = await _validationClient.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name, false);
 
             _logger.LogDebug("Sending report.");
             await ReportToGitHub(report);

@@ -6,6 +6,7 @@ using NSubstitute;
 using NUnit.Framework;
 using Octokit;
 using ValidationLibrary.Rules;
+using ValidationLibrary.Utils;
 
 namespace ValidationLibrary.Tests.Rules
 {
@@ -37,9 +38,9 @@ namespace ValidationLibrary.Tests.Rules
             _mockRepositoryContentClient = Substitute.For<IRepositoryContentsClient>();
             _mockRepositoryClient.Content.Returns(_mockRepositoryContentClient);
 
-            var logger = Substitute.For<ILogger>();
-
-            _rule = new HasNewestPtcsJenkinsLibRule(logger);
+            _rule = new HasNewestPtcsJenkinsLibRule(
+                Substitute.For<ILogger<HasNewestPtcsJenkinsLibRule>>(),
+                new GitUtils(Substitute.For<ILogger<GitUtils>>()));
 
             var mockReleaseClient = Substitute.For<IReleasesClient>();
             _mockRepositoryClient.Release.Returns(mockReleaseClient);
@@ -123,7 +124,7 @@ namespace ValidationLibrary.Tests.Rules
         private RepositoryContent CreateContent(string name, string content)
         {
             var bytes = System.Text.Encoding.UTF8.GetBytes(content);
-            var converted = System.Convert.ToBase64String(bytes);
+            var converted = Convert.ToBase64String(bytes);
             return new RepositoryContent(name, null, null, 0, ContentType.File, null, null, null, null, null, converted, null, null);
         }
 
