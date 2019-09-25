@@ -102,12 +102,10 @@ namespace ValidationLibrary.Rules
                 var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, _branchName);
                 return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha);
             }
-            else
-            {
-                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} already exists, using existing branch.",
-                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, _branchName);
-                return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, existingBranch.Commit.Sha);
-            }
+
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} already exists, using existing branch.",
+                    nameof(HasNewestPtcsJenkinsLibRule), RuleName, _branchName);
+            return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, existingBranch.Commit.Sha);
         }
 
         private async Task<Reference> PushFix(IGitHubClient client, Repository repository, Commit latest, string jenkinsFile)
