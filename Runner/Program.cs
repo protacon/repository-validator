@@ -83,7 +83,7 @@ namespace Runner
                     logger.LogInformation("Duration {duration}", (DateTime.UtcNow - start).TotalSeconds);
                 }
 
-                Parser.Default.ParseArguments<ScanSelectedOptions, ScanAllOptions, GitTestOptions>(args)
+                Parser.Default.ParseArguments<ScanSelectedOptions, ScanAllOptions, DebugTestOptions>(args)
                 .WithParsed<ScanSelectedOptions>(options =>
                 {
                     scanner(options.Repositories, options);
@@ -97,7 +97,7 @@ namespace Runner
                         .Where(repository => !repository.Archived);
                     scanner(allNonArchivedRepositories.Select(r => r.Name).ToArray(), options);
                 })
-                .WithParsed<GitTestOptions>(options =>
+                .WithParsed<DebugTestOptions>(options =>
                 {
                     var utils = di.GetService<GitUtils>();
                     var pr = ghClient.PullRequest.Get(githubConfig.Organization, options.Repository, options.PullRequestNumber).Result;

@@ -3,10 +3,10 @@ using CommandLine;
 namespace Runner
 {
     /// <summary>
-    /// Debugging help for stuff.
+    /// Debugging help for tool development. Append when needed
     /// </summary>
-    [Verb("git-test", HelpText = "Debug help", Hidden = true)]
-    public class GitTestOptions
+    [Verb("git-test", HelpText = "Checks if PR has live branch.", Hidden = true)]
+    public class DebugTestOptions
     {
         [Option('r', "Repository", Required = true, HelpText = "Name of the scanned repository (without owner)")]
         public string Repository { get; set; }
@@ -14,7 +14,7 @@ namespace Runner
         [Option("PullRequestNumber", HelpText = "Number of the Pull Request to be checked", Required = true)]
         public int PullRequestNumber { get; set; }
 
-        public GitTestOptions()
+        public DebugTestOptions()
         {
         }
     }
