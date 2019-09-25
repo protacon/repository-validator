@@ -52,8 +52,9 @@ namespace Runner
                     var start = DateTime.UtcNow;
                     var results = repositories.Select(repo =>
                     {
+                        // This sleeps used to avoid hitting GitHub API limits
                         Thread.Sleep(TimeSpan.FromSeconds(3));
-                        return client.ValidateRepository(githubConfig.Organization, repo, options.IgnoreRepositoryRules).Result;
+                        return client.ValidateRepository(githubConfig.Organization, repo, options.IgnoreRepositoryRules).ConfigureAwait(false).GetAwaiter().GetResult();
                     }).ToArray();
 
                     ReportToConsole(logger, results);
@@ -100,7 +101,7 @@ namespace Runner
                 .WithParsed<DebugTestOptions>(options =>
                 {
                     var utils = di.GetService<GitUtils>();
-                    var pr = ghClient.PullRequest.Get(githubConfig.Organization, options.Repository, options.PullRequestNumber).Result;
+                    var pr = ghClient.PullRequest.Get(githubConfig.Organization, options.Repository, options.PullRequestNumber).ConfigureAwait(false).GetAwaiter().GetResult();
                     var result = utils.PullRequestHasLiveBranch(ghClient, pr).Result;
                     logger.LogInformation("PR '{title}' has live branch: {result}", pr.Title, result);
                 });
@@ -180,18 +181,18 @@ namespace Runner
                     return CreateClient(services.GetService<GitHubConfiguration>());
                 })
                 .AddTransient<ValidationClient>()
-                .AddSingleton(provicer =>
+                .AddSingleton(provider =>
                 {
                     var rules = new IValidationRule[]
                     {
-                        provicer.GetService<HasDescriptionRule>(),
-                        provicer.GetService<HasReadmeRule>(),
-                        provicer.GetService<HasNewestPtcsJenkinsLibRule>(),
-                        provicer.GetService<HasLicenseRule>()
+                        provider.GetService<HasDescriptionRule>(),
+                        provider.GetService<HasReadmeRule>(),
+                        provider.GetService<HasNewestPtcsJenkinsLibRule>(),
+                        provider.GetService<HasLicenseRule>()
                     };
                     return new RepositoryValidator(
-                        provicer.GetService<ILogger<RepositoryValidator>>(),
-                        provicer.GetService<IGitHubClient>(),
+                        provider.GetService<ILogger<RepositoryValidator>>(),
+                        provider.GetService<IGitHubClient>(),
                         rules);
                 })
                 .AddTransient<GitUtils>()
