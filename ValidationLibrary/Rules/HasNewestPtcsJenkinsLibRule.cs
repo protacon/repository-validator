@@ -19,8 +19,8 @@ namespace ValidationLibrary.Rules
         private const string JenkinsFileName = "Jenkinsfile";
 
         private const string LibraryName = "jenkins-ptcs-library";
-        private readonly string BranchName = $"feature/{LibraryName}-update";
-        private readonly string PullRequestTitle = $"[Automatic Validation] Update {LibraryName} to latest version.";
+        private readonly string _branchName = $"feature/{LibraryName}-update";
+        private readonly string _pullRequestTitle = $"[Automatic Validation] Update {LibraryName} to latest version.";
         private const string FileMode = "100644";
 
         public string RuleName => $"Old {LibraryName}";
@@ -60,7 +60,7 @@ namespace ValidationLibrary.Rules
             if (fixedContent == null)
             {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, Branch {branchName} already had latest version fix, skipping updating existing branch.",
-                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, BranchName);
+                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, _branchName);
                 return;
             }
 
@@ -70,14 +70,14 @@ namespace ValidationLibrary.Rules
                 State = ItemStateFilter.All
             };
             var pullRequests = await client.PullRequest.GetAllForRepository(repository.Owner.Login, repository.Name, pullRequest);
-            var openPullRequests = pullRequests.Where(pr => pr.Title == PullRequestTitle && pr.State == ItemState.Open);
+            var openPullRequests = pullRequests.Where(pr => pr.Title == _pullRequestTitle && pr.State == ItemState.Open);
             if (openPullRequests.Any())
             {
                 _logger.LogInformation("Rule {ruleClass} / {ruleName}, Open pull request already exists. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
                 return;
             }
 
-            var closed = pullRequests.FirstOrDefault(pr => pr.Title == PullRequestTitle && pr.State == ItemState.Closed && !pr.Merged);
+            var closed = pullRequests.FirstOrDefault(pr => pr.Title == _pullRequestTitle && pr.State == ItemState.Closed && !pr.Merged);
             if (closed != null && await _gitUtils.PullRequestHasLiveBranch(client, closed))
             {
                 _logger.LogInformation("Rule {ruleClass} / {ruleName}, Closed pull request with active branch found. Reopening pull request.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
@@ -94,18 +94,18 @@ namespace ValidationLibrary.Rules
         private async Task<Commit> GetCommitAsBase(IGitHubClient client, Repository repository)
         {
             var branches = await client.Repository.Branch.GetAll(repository.Owner.Login, repository.Name);
-            var existingBranch = branches.FirstOrDefault(branch => branch.Name == BranchName);
+            var existingBranch = branches.FirstOrDefault(branch => branch.Name == _branchName);
             if (existingBranch == null)
             {
                 _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} did not exists, creating branch.",
-                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, BranchName);
-                var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, BranchName);
+                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, _branchName);
+                var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, _branchName);
                 return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha);
             }
             else
             {
                 _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} already exists, using existing branch.",
-                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, BranchName);
+                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, _branchName);
                 return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, existingBranch.Commit.Sha);
             }
         }
@@ -133,7 +133,7 @@ namespace ValidationLibrary.Rules
             var commitResponse = await client.Git.Commit.Create(repository.Owner.Login, repository.Name, commit);
 
             var refUpdate = new ReferenceUpdate(commitResponse.Sha);
-            return await client.Git.Reference.Update(repository.Owner.Login, repository.Name, $"heads/{BranchName}", refUpdate);
+            return await client.Git.Reference.Update(repository.Owner.Login, repository.Name, $"heads/{_branchName}", refUpdate);
         }
 
         private async Task<string> GetFixedContent(IGitHubClient client, Repository repository, string branchName)
@@ -155,7 +155,7 @@ namespace ValidationLibrary.Rules
             _logger.LogInformation("Rule {ruleClass} / {ruleName}: Opening pull request #{number}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, oldPullRequest.Number);
             var pullRequest = new PullRequestUpdate()
             {
-                Title = PullRequestTitle,
+                Title = _pullRequestTitle,
                 State = ItemState.Open,
                 Body = oldPullRequest.Body,
                 Base = "master"
@@ -166,7 +166,7 @@ namespace ValidationLibrary.Rules
         private async Task CreateNewPullRequest(IGitHubClient client, Repository repository, Reference latest)
         {
             var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, "heads/master");
-            var pullRequest = new NewPullRequest(PullRequestTitle, latest.Ref, master.Ref)
+            var pullRequest = new NewPullRequest(_pullRequestTitle, latest.Ref, master.Ref)
             {
                 Body = "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
                         Environment.NewLine +
