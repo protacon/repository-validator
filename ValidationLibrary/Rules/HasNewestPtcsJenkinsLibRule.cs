@@ -22,6 +22,7 @@ namespace ValidationLibrary.Rules
         private readonly string _branchName = $"feature/{LibraryName}-update";
         private readonly string _pullRequestTitle = $"[Automatic Validation] Update {LibraryName} to latest version.";
         private const string FileMode = "100644";
+        private const string MainBranch = "master";
 
         public string RuleName => $"Old {LibraryName}";
 
@@ -156,14 +157,14 @@ namespace ValidationLibrary.Rules
                 Title = _pullRequestTitle,
                 State = ItemState.Open,
                 Body = oldPullRequest.Body,
-                Base = "master"
+                Base = MainBranch
             };
             await client.PullRequest.Update(repository.Owner.Login, repository.Name, oldPullRequest.Number, pullRequest);
         }
 
         private async Task CreateNewPullRequest(IGitHubClient client, Repository repository, Reference latest)
         {
-            var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, "heads/master");
+            var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, $"heads/{MainBranch}");
             var pullRequest = new NewPullRequest(_pullRequestTitle, latest.Ref, master.Ref)
             {
                 Body = "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
@@ -210,7 +211,7 @@ namespace ValidationLibrary.Rules
         {
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.FullName);
 
-            var jenkinsContent = await GetJenkinsFileContent(client, repository, "master");
+            var jenkinsContent = await GetJenkinsFileContent(client, repository, MainBranch);
             if (jenkinsContent == null)
             {
                 // This is unlikely to happen.
