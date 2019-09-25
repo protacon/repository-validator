@@ -13,9 +13,5 @@ namespace Runner
 
         [Option("PullRequestNumber", HelpText = "Number of the Pull Request to be checked", Required = true)]
         public int PullRequestNumber { get; set; }
-
-        public DebugTestOptions()
-        {
-        }
     }
 }
