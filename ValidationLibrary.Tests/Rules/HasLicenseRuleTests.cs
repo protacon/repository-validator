@@ -11,7 +11,7 @@ namespace ValidationLibrary.Tests.Rules
     public class HasLicenseRuleTests
     {
         private HasLicenseRule _rule;
-        
+
         private IGitHubClient _mockClient;
 
 
@@ -19,7 +19,7 @@ namespace ValidationLibrary.Tests.Rules
         public void Setup()
         {
             _mockClient = Substitute.For<IGitHubClient>();
-            _rule = new HasLicenseRule(Substitute.For<ILogger>());
+            _rule = new HasLicenseRule(Substitute.For<ILogger<HasLicenseRule>>());
         }
 
         [Test]

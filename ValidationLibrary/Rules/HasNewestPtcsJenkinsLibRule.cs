@@ -19,18 +19,23 @@ namespace ValidationLibrary.Rules
         private const string JenkinsFileName = "Jenkinsfile";
 
         private const string LibraryName = "jenkins-ptcs-library";
+        private readonly string _branchName = $"feature/{LibraryName}-update";
+        private readonly string _pullRequestTitle = $"[Automatic Validation] Update {LibraryName} to latest version.";
         private const string FileMode = "100644";
+        private const string MainBranch = "master";
 
         public string RuleName => $"Old {LibraryName}";
 
         private readonly Regex _regex = new Regex($@"[""']{LibraryName}@(\d+.\d+.\d+.*)[""']", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        private readonly ILogger _logger;
+        private readonly ILogger<HasNewestPtcsJenkinsLibRule> _logger;
+        private readonly GitUtils _gitUtils;
         private string _expectedVersion;
 
-        public HasNewestPtcsJenkinsLibRule(ILogger logger)
+        public HasNewestPtcsJenkinsLibRule(ILogger<HasNewestPtcsJenkinsLibRule> logger, GitUtils gitUtils)
         {
             _logger = logger;
+            _gitUtils = gitUtils;
         }
 
         public async Task Init(IGitHubClient ghClient)
@@ -45,43 +50,74 @@ namespace ValidationLibrary.Rules
         /// </summary>
         /// <param name="client">Github client</param>
         /// <param name="repository">Repository to be fixed</param>
-        /// <returns></returns>
         private async Task Fix(IGitHubClient client, Repository repository)
         {
             // This method should be refactored when we have a better general idea how we want to fix things
-            var branchName = $"feature/{LibraryName}-update";
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
+            var latest = await GetCommitAsBase(client, repository);
+            _logger.LogTrace("Latest commit {sha} with message {message}", latest.Sha, latest.Message);
 
-            var jenkinsContent = await GetJenkinsFileContent(client, repository);
-            if (jenkinsContent == null)
+            string fixedContent = await GetFixedContent(client, repository, latest.Sha);
+            if (fixedContent == null)
             {
-                _logger.LogWarning("Rule {ruleClass} / {ruleName}, no {filename} found, unable to fix.",
-                    nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
+                _logger.LogDebug("Rule {ruleClass} / {ruleName}, Branch {branchName} already had latest version fix or it didn't have Jenkinsfile, skipping updating existing branch.",
+                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, _branchName);
                 return;
             }
-            var fixedContent = _regex.Replace(jenkinsContent.Content, $"'{LibraryName}@{_expectedVersion}'");
 
+            var reference = await PushFix(client, repository, latest, fixedContent);
+            var pullRequest = new PullRequestRequest
+            {
+                State = ItemStateFilter.All
+            };
+            var pullRequests = await client.PullRequest.GetAllForRepository(repository.Owner.Login, repository.Name, pullRequest);
+            var openPullRequests = pullRequests.Where(pr => pr.Title == _pullRequestTitle && pr.State == ItemState.Open);
+            if (openPullRequests.Any())
+            {
+                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Open pull request already exists. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
+                return;
+            }
+
+            var closed = pullRequests.FirstOrDefault(pr => pr.Title == _pullRequestTitle && pr.State == ItemState.Closed && !pr.Merged);
+            if (closed != null && await _gitUtils.PullRequestHasLiveBranch(client, closed))
+            {
+                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Closed pull request with active branch found. Reopening pull request.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
+                await OpenOldPullRequest(client, repository, closed);
+                return;
+            }
+
+            await CreateNewPullRequest(client, repository, reference);
+        }
+
+        /// <summary>
+        /// This takes either the latest commit from master or latest from updated branch if it exists.
+        /// </summary>
+        private async Task<Commit> GetCommitAsBase(IGitHubClient client, Repository repository)
+        {
             var branches = await client.Repository.Branch.GetAll(repository.Owner.Login, repository.Name);
-            if (branches.Any(branch => branch.Name == branchName))
+            var existingBranch = branches.FirstOrDefault(branch => branch.Name == _branchName);
+            if (existingBranch == null)
             {
-                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} already exists, skipping fix.",
-                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, branchName);
-                return;
+                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} did not exists, creating branch.",
+                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, _branchName);
+                var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, _branchName);
+                return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha);
             }
-            var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, branchName);
-            var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, "heads/master");
 
-            var latest = await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha);
-            _logger.LogTrace("Latest commit with message {a}", latest.Message);
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} already exists, using existing branch.",
+                    nameof(HasNewestPtcsJenkinsLibRule), RuleName, _branchName);
+            return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, existingBranch.Commit.Sha);
+        }
 
+        private async Task<Reference> PushFix(IGitHubClient client, Repository repository, Commit latest, string jenkinsFile)
+        {
             var oldTree = await client.Git.Tree.Get(repository.Owner.Login, repository.Name, latest.Sha);
             var newTree = new NewTree
             {
                 BaseTree = oldTree.Sha
             };
 
-            BlobReference blobReference = await CreateBlob(client, repository, fixedContent);
-
+            BlobReference blobReference = await CreateBlob(client, repository, jenkinsFile);
             var treeItem = new NewTreeItem()
             {
                 Path = JenkinsFileName,
@@ -96,9 +132,40 @@ namespace ValidationLibrary.Rules
             var commitResponse = await client.Git.Commit.Create(repository.Owner.Login, repository.Name, commit);
 
             var refUpdate = new ReferenceUpdate(commitResponse.Sha);
-            await client.Git.Reference.Update(repository.Owner.Login, repository.Name, $"heads/{branchName}", refUpdate);
+            return await client.Git.Reference.Update(repository.Owner.Login, repository.Name, $"heads/{_branchName}", refUpdate);
+        }
 
-            var pullRequest = new NewPullRequest($"[Automatic Validation] Update {LibraryName} to latest version.", branchReference.Ref, master.Ref)
+        private async Task<string> GetFixedContent(IGitHubClient client, Repository repository, string branchName)
+        {
+            _logger.LogTrace("Rule {ruleClass} / {ruleName}: Retrieving fixed contents for JenkinsFile from branch {branch}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, branchName);
+            var jenkinsContent = await GetJenkinsFileContent(client, repository, branchName);
+            if (jenkinsContent == null)
+            {
+                _logger.LogWarning("Rule {ruleClass} / {ruleName}, no {filename} found, unable to fix.",
+                    nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
+                return null;
+            }
+            var fixedContent = _regex.Replace(jenkinsContent.Content, $"'{LibraryName}@{_expectedVersion}'");
+            return string.Equals(fixedContent, jenkinsContent.Content, StringComparison.InvariantCulture) ? null : fixedContent;
+        }
+
+        private async Task OpenOldPullRequest(IGitHubClient client, Repository repository, PullRequest oldPullRequest)
+        {
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}: Opening pull request #{number}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, oldPullRequest.Number);
+            var pullRequest = new PullRequestUpdate()
+            {
+                Title = _pullRequestTitle,
+                State = ItemState.Open,
+                Body = oldPullRequest.Body,
+                Base = MainBranch
+            };
+            await client.PullRequest.Update(repository.Owner.Login, repository.Name, oldPullRequest.Number, pullRequest);
+        }
+
+        private async Task CreateNewPullRequest(IGitHubClient client, Repository repository, Reference latest)
+        {
+            var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, $"heads/{MainBranch}");
+            var pullRequest = new NewPullRequest(_pullRequestTitle, latest.Ref, master.Ref)
             {
                 Body = "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
                         Environment.NewLine +
@@ -122,12 +189,12 @@ namespace ValidationLibrary.Rules
         }
 
 
-        private async Task<RepositoryContent> GetJenkinsFileContent(IGitHubClient client, Repository repository)
+        private async Task<RepositoryContent> GetJenkinsFileContent(IGitHubClient client, Repository repository, string branch)
         {
-            _logger.LogTrace("Retrieving JenkinsFile for {repositoryName}", repository.FullName);
+            _logger.LogTrace("Retrieving JenkinsFile for {repositoryName} from branch {branch}", repository.FullName, branch);
 
             // NOTE: rootContents doesn't contain actual contents, content is only fetched when we fetch the single file later.
-            var rootContents = await GetContents(client, repository);
+            var rootContents = await GetContents(client, repository, branch);
 
             var jenkinsFile = rootContents.FirstOrDefault(content => content.Name.Equals(JenkinsFileName, StringComparison.InvariantCultureIgnoreCase));
             if (jenkinsFile == null)
@@ -136,7 +203,7 @@ namespace ValidationLibrary.Rules
                 return null;
             }
 
-            var matchingJenkinsFiles = await client.Repository.Content.GetAllContents(repository.Owner.Login, repository.Name, jenkinsFile.Name);
+            var matchingJenkinsFiles = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, jenkinsFile.Name, branch);
             return matchingJenkinsFiles.FirstOrDefault();
         }
 
@@ -144,7 +211,7 @@ namespace ValidationLibrary.Rules
         {
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.FullName);
 
-            var jenkinsContent = await GetJenkinsFileContent(client, repository);
+            var jenkinsContent = await GetJenkinsFileContent(client, repository, MainBranch);
             if (jenkinsContent == null)
             {
                 // This is unlikely to happen.
@@ -170,13 +237,13 @@ namespace ValidationLibrary.Rules
             return new ValidationResult(RuleName, $"Update {LibraryName} to newest version.", group.Value == _expectedVersion, Fix);
         }
 
-        private async Task<IReadOnlyList<RepositoryContent>> GetContents(IGitHubClient client, Repository repository)
+        private async Task<IReadOnlyList<RepositoryContent>> GetContents(IGitHubClient client, Repository repository, string branch)
         {
             try
             {
-                return await client.Repository.Content.GetAllContents(repository.Owner.Login, repository.Name);
+                return await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, branch);
             }
-            catch (Octokit.NotFoundException exception)
+            catch (NotFoundException exception)
             {
                 /* 
                  * NOTE: Repository that was just created (empty repository) doesn't have content this causes
@@ -184,7 +251,7 @@ namespace ValidationLibrary.Rules
                  * was missing, but we don't care for that case (no point to validate if repository doesn't exist.)
                  */
                 _logger.LogWarning(exception, "Rule {ruleClass} / {ruleName}, Repository {repositoryName} caused {exceptionClass}. This may be a new repository, but if this persists, repository should be removed.",
-                 nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.Name, nameof(Octokit.NotFoundException));
+                 nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.Name, nameof(NotFoundException));
                 return new RepositoryContent[0];
             }
         }

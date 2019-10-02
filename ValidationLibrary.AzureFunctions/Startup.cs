@@ -7,8 +7,11 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Octokit;
 using ValidationLibrary.AzureFunctions;
+using ValidationLibrary.Rules;
+using ValidationLibrary.Utils;
 
 [assembly: WebJobsStartup(typeof(Startup))]
 namespace ValidationLibrary.AzureFunctions
@@ -51,8 +54,26 @@ namespace ValidationLibrary.AzureFunctions
                     ValidateConfig(githubConfig);
                     return CreateClient(githubConfig);
                 })
+                .AddTransient<GitUtils>()
+                .AddTransient<HasDescriptionRule>()
+                .AddTransient<HasLicenseRule>()
+                .AddTransient<HasNewestPtcsJenkinsLibRule>()
+                .AddTransient<HasReadmeRule>()
                 .AddTransient<IValidationClient, ValidationClient>()
-                .AddTransient<ValidationLibrary.RepositoryValidator>()
+                .AddSingleton(provicer =>
+                {
+                    var rules = new IValidationRule[]
+                    {
+                        provicer.GetService<HasDescriptionRule>(),
+                        provicer.GetService<HasReadmeRule>(),
+                        provicer.GetService<HasNewestPtcsJenkinsLibRule>(),
+                        provicer.GetService<HasLicenseRule>()
+                    };
+                    return new ValidationLibrary.RepositoryValidator(
+                        provicer.GetService<ILogger<ValidationLibrary.RepositoryValidator>>(),
+                        provicer.GetService<IGitHubClient>(),
+                        rules);
+                })
                 .AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>()
                 .AddTransient<RepositoryValidator>();
         }

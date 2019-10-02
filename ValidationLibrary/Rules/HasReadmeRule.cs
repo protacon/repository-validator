@@ -9,15 +9,15 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasReadmeRule : IValidationRule
     {
-        public string RuleName =>  "Missing Readme.md";
+        public string RuleName => "Missing Readme.md";
 
-        private readonly ILogger _logger;
+        private readonly ILogger<HasReadmeRule> _logger;
 
-        public HasReadmeRule(ILogger logger)
+        public HasReadmeRule(ILogger<HasReadmeRule> logger)
         {
             _logger = logger;
         }
-        
+
         public Task Init(IGitHubClient ghClient)
         {
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Initialized", nameof(HasReadmeRule), RuleName);
@@ -32,7 +32,7 @@ namespace ValidationLibrary.Rules
                 var readme = await client.Repository.Content.GetReadme(gitHubRepository.Owner.Login, gitHubRepository.Name);
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, !string.IsNullOrWhiteSpace(readme.Content));
                 return new ValidationResult(RuleName, "Add Readme.md file to repository root with content describing this repository.", !string.IsNullOrWhiteSpace(readme.Content), DoNothing);
-            } 
+            }
             catch (Octokit.NotFoundException)
             {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, No Readme found, validation false.", nameof(HasReadmeRule), RuleName);

@@ -11,9 +11,9 @@ namespace ValidationLibrary.Rules
     {
         public string RuleName => "Missing description";
 
-        private readonly ILogger _logger;
+        private readonly ILogger<HasDescriptionRule> _logger;
 
-        public HasDescriptionRule(ILogger logger)
+        public HasDescriptionRule(ILogger<HasDescriptionRule> logger)
         {
             _logger = logger;
         }

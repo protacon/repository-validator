@@ -13,9 +13,9 @@ namespace ValidationLibrary.Rules
 
         private const string HowToFix = "Add a license for this repository. See [help](https://help.github.com/en/articles/licensing-a-repository) for guidance. Private repositories don't need a license.";
 
-        private readonly ILogger _logger;
+        private readonly ILogger<HasLicenseRule> _logger;
 
-        public HasLicenseRule(ILogger logger)
+        public HasLicenseRule(ILogger<HasLicenseRule> logger)
         {
             _logger = logger;
         }

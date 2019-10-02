@@ -12,7 +12,9 @@ using Octokit;
 using ValidationLibrary;
 using ValidationLibrary.Csv;
 using ValidationLibrary.GitHub;
+using ValidationLibrary.Rules;
 using ValidationLibrary.Slack;
+using ValidationLibrary.Utils;
 
 namespace Runner
 {
@@ -50,8 +52,9 @@ namespace Runner
                     var start = DateTime.UtcNow;
                     var results = repositories.Select(repo =>
                     {
+                        // This sleeps used to avoid hitting GitHub API limits
                         Thread.Sleep(TimeSpan.FromSeconds(3));
-                        return client.ValidateRepository(githubConfig.Organization, repo).Result;
+                        return client.ValidateRepository(githubConfig.Organization, repo, options.IgnoreRepositoryRules).ConfigureAwait(false).GetAwaiter().GetResult();
                     }).ToArray();
 
                     ReportToConsole(logger, results);
@@ -81,7 +84,7 @@ namespace Runner
                     logger.LogInformation("Duration {duration}", (DateTime.UtcNow - start).TotalSeconds);
                 }
 
-                Parser.Default.ParseArguments<ScanSelectedOptions, ScanAllOptions>(args)
+                Parser.Default.ParseArguments<ScanSelectedOptions, ScanAllOptions, DebugTestOptions>(args)
                 .WithParsed<ScanSelectedOptions>(options =>
                 {
                     scanner(options.Repositories, options);
@@ -94,6 +97,13 @@ namespace Runner
                         .Result
                         .Where(repository => !repository.Archived);
                     scanner(allNonArchivedRepositories.Select(r => r.Name).ToArray(), options);
+                })
+                .WithParsed<DebugTestOptions>(options =>
+                {
+                    var utils = di.GetService<GitUtils>();
+                    var pr = ghClient.PullRequest.Get(githubConfig.Organization, options.Repository, options.PullRequestNumber).ConfigureAwait(false).GetAwaiter().GetResult();
+                    var result = utils.PullRequestHasLiveBranch(ghClient, pr).Result;
+                    logger.LogInformation("PR '{title}' has live branch: {result}", pr.Title, result);
                 });
             }
         }
@@ -152,9 +162,7 @@ namespace Runner
             return client;
         }
 
-        private static ServiceProvider BuildDependencyInjection(IConfiguration config)
-        {
-            return new ServiceCollection()
+        private static ServiceProvider BuildDependencyInjection(IConfiguration config) => new ServiceCollection()
                 .AddLogging(loggingBuilder =>
                 {
                     loggingBuilder.AddConfiguration(config.GetSection("Logging"));
@@ -173,9 +181,26 @@ namespace Runner
                     return CreateClient(services.GetService<GitHubConfiguration>());
                 })
                 .AddTransient<ValidationClient>()
-                .AddSingleton<RepositoryValidator>()
+                .AddSingleton(provider =>
+                {
+                    var rules = new IValidationRule[]
+                    {
+                        provider.GetService<HasDescriptionRule>(),
+                        provider.GetService<HasReadmeRule>(),
+                        provider.GetService<HasNewestPtcsJenkinsLibRule>(),
+                        provider.GetService<HasLicenseRule>()
+                    };
+                    return new RepositoryValidator(
+                        provider.GetService<ILogger<RepositoryValidator>>(),
+                        provider.GetService<IGitHubClient>(),
+                        rules);
+                })
+                .AddTransient<GitUtils>()
+                .AddTransient<HasDescriptionRule>()
+                .AddTransient<HasLicenseRule>()
+                .AddTransient<HasNewestPtcsJenkinsLibRule>()
+                .AddTransient<HasReadmeRule>()
                 .BuildServiceProvider();
-        }
 
         private static void ValidateConfig(GitHubConfiguration gitHubConfiguration)
         {
