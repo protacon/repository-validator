@@ -16,7 +16,7 @@ namespace Runner
         [Option("CsvFile", HelpText = "If set, results are written to this CSV file. Old file is overridden")]
         public string CsvFile { get; }
 
-        [Option('f', "ForceAllRules", HelpText = "If enabled, repository-validator.json is ignored in checking.")]
+        [Option('i', "IgnoreRepositoryRules", HelpText = "If enabled, repository-validator.json is ignored in checking.")]
         public bool IgnoreRepositoryRules { get; }
 
         public Options(bool reportToSlack, bool reportToGithub, bool autoFix, string csvFile, bool ignoreRepositoryRules)

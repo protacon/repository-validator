@@ -60,7 +60,7 @@ namespace ValidationLibrary.Rules
             string fixedContent = await GetFixedContent(client, repository, latest.Sha);
             if (fixedContent == null)
             {
-                _logger.LogDebug("Rule {ruleClass} / {ruleName}, Branch {branchName} already had latest version fix, skipping updating existing branch.",
+                _logger.LogDebug("Rule {ruleClass} / {ruleName}, Branch {branchName} already had latest version fix or it didn't have Jenkinsfile, skipping updating existing branch.",
                      nameof(HasNewestPtcsJenkinsLibRule), RuleName, _branchName);
                 return;
             }
@@ -146,7 +146,7 @@ namespace ValidationLibrary.Rules
                 return null;
             }
             var fixedContent = _regex.Replace(jenkinsContent.Content, $"'{LibraryName}@{_expectedVersion}'");
-            return string.Equals(fixedContent, jenkinsContent.Content) ? null : fixedContent;
+            return string.Equals(fixedContent, jenkinsContent.Content, StringComparison.InvariantCulture) ? null : fixedContent;
         }
 
         private async Task OpenOldPullRequest(IGitHubClient client, Repository repository, PullRequest oldPullRequest)

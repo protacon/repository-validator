@@ -33,7 +33,7 @@ namespace ValidationLibrary.Utils
             var branch = await client.Repository.Branch.Get(owner, repositoryName, pullRequest.Head.Ref);
             _logger.LogTrace("Refence SHA {sha}", branch.Commit.Sha, branch.Commit.Ref);
 
-            return branch.Commit.Sha == pullRequest.Head.Sha;
+            return string.Equals(branch.Commit.Sha, pullRequest.Head.Sha, System.StringComparison.InvariantCulture);
         }
     }
 }
