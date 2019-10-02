@@ -48,7 +48,7 @@ namespace ValidationLibrary.Tests.Utils
         {
             var headReference = CreateGitReference(reference, sha);
 
-            return new PullRequest(0, null, null, null, null, null, null, null, 666, ItemState.Closed, "title", null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, headReference, null, null, null, null, null, null, null, null, 0, 0, 0, 0, 0, null, false, null, null);
+            return new PullRequest(0, null, null, null, null, null, null, null, 666, ItemState.Closed, "title", null, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, headReference, null, null, null, null, false, null, null, null, null, 0, 0, 0, 0, 0, null, false, null, null, null);
         }
 
         private GitReference CreateGitReference(string reference, string sha)
