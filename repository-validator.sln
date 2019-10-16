@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ValidationLibrary.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ValidationLibrary.AzureFunctions.Tests", "ValidationLibrary.AzureFunctions.Tests\ValidationLibrary.AzureFunctions.Tests.csproj", "{7126846B-F00E-48AF-BD75-8F420D914F1B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcceptanceTests", "AcceptanceTests\AcceptanceTests.csproj", "{F94D3459-F069-41AD-B4CA-A1723711A0AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -142,5 +144,17 @@ Global
 		{7126846B-F00E-48AF-BD75-8F420D914F1B}.Release|x64.Build.0 = Release|Any CPU
 		{7126846B-F00E-48AF-BD75-8F420D914F1B}.Release|x86.ActiveCfg = Release|Any CPU
 		{7126846B-F00E-48AF-BD75-8F420D914F1B}.Release|x86.Build.0 = Release|Any CPU
+		{F94D3459-F069-41AD-B4CA-A1723711A0AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F94D3459-F069-41AD-B4CA-A1723711A0AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F94D3459-F069-41AD-B4CA-A1723711A0AE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F94D3459-F069-41AD-B4CA-A1723711A0AE}.Debug|x64.Build.0 = Debug|Any CPU
+		{F94D3459-F069-41AD-B4CA-A1723711A0AE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F94D3459-F069-41AD-B4CA-A1723711A0AE}.Debug|x86.Build.0 = Debug|Any CPU
+		{F94D3459-F069-41AD-B4CA-A1723711A0AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F94D3459-F069-41AD-B4CA-A1723711A0AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F94D3459-F069-41AD-B4CA-A1723711A0AE}.Release|x64.ActiveCfg = Release|Any CPU
+		{F94D3459-F069-41AD-B4CA-A1723711A0AE}.Release|x64.Build.0 = Release|Any CPU
+		{F94D3459-F069-41AD-B4CA-A1723711A0AE}.Release|x86.ActiveCfg = Release|Any CPU
+		{F94D3459-F069-41AD-B4CA-A1723711A0AE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

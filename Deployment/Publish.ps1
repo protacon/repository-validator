@@ -19,7 +19,7 @@
 ##############################################################################
 param(
     [Parameter(Mandatory = $true)][string]$ResourceGroup,
-    [Parameter(Mandatory = $true)][string]$WebAppName,
+    [Parameter(Mandatory = $true)][string]$WebAppName = $ResourceGroup,
     [Parameter()][string]$VersionSuffx = "DEV")
 
 $ErrorActionPreference = "Stop"
