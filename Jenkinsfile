@@ -56,7 +56,7 @@ podTemplate(label: pod.label,
                         }
                         stage('Create temporary Resource Group'){
                             sh """
-                                pwsh -command "New-AzResourceGroup -Name '$ciRg'"
+                                pwsh -command "New-AzResourceGroup -Name '$ciRg' -Location 'North Europe'"
                             """
                         }
                         stage('Create test environment'){
