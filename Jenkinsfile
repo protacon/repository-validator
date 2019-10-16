@@ -64,6 +64,13 @@ podTemplate(label: pod.label,
                                 pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $ciRg -appName $ciAppName -gitHubToken (ConvertTo-SecureString -String 'MOCKTOKEN' -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -environment Development"
                             """
                         }
+                        stage('Publish to test environment') {
+                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                sh """
+                                    pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName -ZipFilePath $zipName"
+                                """
+                            }
+                        }
                         stage('Delete test environment'){
                             sh """
                                 pwsh -command "Remove-AzResourceGroup -Name '$ciRg'"
@@ -86,13 +93,13 @@ podTemplate(label: pod.label,
                     withCredentials([
                         string(credentialsId: 'hjni_github_token', variable: 'GH_TOKEN')
                     ]){
-                        stage('Create environment') {
+                        stage('Create production environment') {
                             sh """
                                 pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -environment Development"
                             """
                         }
                     }
-                    stage('Publish') {
+                    stage('Publish to production environment') {
                         sh """
                             pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup -WebAppName $appName -ZipFilePath $zipName"
                         """
