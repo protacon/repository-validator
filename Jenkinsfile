@@ -1,6 +1,7 @@
 library 'jenkins-ptcs-library@1.0.0'
 
 def isMaster(branchName) {return branchName == "master"}
+def isTest(branchName) {return branchName == "test"}
 
 podTemplate(label: pod.label,
   containers: pod.templates + [
@@ -32,6 +33,22 @@ podTemplate(label: pod.label,
                 sh """
                     dotnet test
                 """
+            }
+        }
+        if (isTest(branch)){
+            container('powershell') {
+                stage('Package') {
+                    sh """
+                        pwsh -command "&./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder"
+                    """
+                }
+                withCredentials([azureServicePrincipal('HJNI-MSDN-Subscriptions')]) {
+                    stage('Login'){
+                        sh """
+                            pwsh -command "./Deployment/Login.ps1 -ApplicationId '$AZURE_CLIENT_ID' -ApplicationKey '$AZURE_CLIENT_SECRET' -TenantId '$AZURE_TENANT_ID'"
+                        """
+                    }
+                }
             }
         }
         if (isMaster(branch)){
