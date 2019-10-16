@@ -35,53 +35,49 @@ podTemplate(label: pod.label,
                 """
             }
         }
-        if (isTest(branch)){
+        if (isTest(branch) || isMaster(branch)){
             container('powershell') {
                 stage('Package') {
                     sh """
                         pwsh -command "&./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder"
                     """
                 }
-                withCredentials([azureServicePrincipal('HJNI-MSDN-Subscriptions')]) {
-                    stage('Login'){
-                        sh """
-                            pwsh -command "./Deployment/Login.ps1 -ApplicationId '$AZURE_CLIENT_ID' -ApplicationKey '$AZURE_CLIENT_SECRET' -TenantId '$AZURE_TENANT_ID'"
-                        """
+
+                if (isTest(branch)){
+                    withCredentials([azureServicePrincipal('HJNI-MSDN-Subscriptions')]) {
+                        stage('Login'){
+                            sh """
+                                pwsh -command "./Deployment/Login.ps1 -ApplicationId '$AZURE_CLIENT_ID' -ApplicationKey '$AZURE_CLIENT_SECRET' -TenantId '$AZURE_TENANT_ID'"
+                            """
+                        }
                     }
                 }
-            }
-        }
-        if (isMaster(branch)){
-            container('powershell') {
-                stage('Package') {
-                    sh """
-                        pwsh -command "&./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder"
-                    """
-                }
-                withCredentials([
-                    string(credentialsId: 'hjni_azure_sp_id', variable: 'SP_APPLICATION'),
-                    string(credentialsId: 'hjni_azure_sp_key', variable: 'SP_KEY'),
-                    string(credentialsId: 'hjni_azure_sp_tenant', variable: 'SP_TENANT'),
+                if (isMaster(branch)){
+                    withCredentials([
+                        string(credentialsId: 'hjni_azure_sp_id', variable: 'SP_APPLICATION'),
+                        string(credentialsId: 'hjni_azure_sp_key', variable: 'SP_KEY'),
+                        string(credentialsId: 'hjni_azure_sp_tenant', variable: 'SP_TENANT'),
+                        ]){
+                        stage('Login'){
+                            sh """
+                                pwsh -command "./Deployment/Login.ps1 -ApplicationId '$SP_APPLICATION' -ApplicationKey '$SP_KEY' -TenantId '$SP_TENANT'"
+                            """
+                        }
+                    }
+                    withCredentials([
+                        string(credentialsId: 'hjni_github_token', variable: 'GH_TOKEN')
                     ]){
-                    stage('Login'){
+                        stage('Create environment') {
+                            sh """
+                                pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -environment Development"
+                            """
+                        }
+                    }
+                    stage('Publish') {
                         sh """
-                            pwsh -command "./Deployment/Login.ps1 -ApplicationId '$SP_APPLICATION' -ApplicationKey '$SP_KEY' -TenantId '$SP_TENANT'"
+                            pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup -WebAppName $appName -ZipFilePath $zipName"
                         """
                     }
-                }
-                withCredentials([
-                    string(credentialsId: 'hjni_github_token', variable: 'GH_TOKEN')
-                ]){
-                    stage('Create environment') {
-                        sh """
-                            pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -environment Development"
-                        """
-                    }
-                }
-                stage('Publish') {
-                    sh """
-                        pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup -WebAppName $appName -ZipFilePath $zipName"
-                    """
                 }
             }
         }
