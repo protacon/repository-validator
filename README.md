@@ -8,7 +8,7 @@ Checks that organization repositories conforms to policies defined by organizati
 For example, repositories should have
   * Descriptions
   * README.MD-files
-  * License, if public
+  * Licenses, if public
 
 ## Build
 This project requires [dotnet core](https://www.microsoft.com/net/download),
