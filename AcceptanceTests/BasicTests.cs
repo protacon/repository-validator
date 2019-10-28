@@ -30,7 +30,7 @@ namespace AcceptanceTests
         }
 
         [Test]
-        public async Task BasicResponse()
+        public async Task RepositoryValidator_CorrectResponseForBadRequest()
         {
             var client = new RestClient();
             var request = new RestRequest(_url, Method.POST);
