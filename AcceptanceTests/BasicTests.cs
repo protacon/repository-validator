@@ -1,27 +1,40 @@
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
 using RestSharp;
 
 namespace AcceptanceTests
 {
     [TestFixture]
-    [Category("Acceptance")]
     public class BasicTests
     {
-        private readonly string _tempUrl = "https://APP_NAME HERE.azurewebsites.net/api/RepositoryValidator";
+        private string _url;
+        private string _code;
 
         [SetUp]
         public void Setup()
         {
+            IConfiguration config = new ConfigurationBuilder()
+                .AddEnvironmentVariables(prefix: "TEST_")
+                .Build();
+
+            var name = config["FunctionAppName"];
+            _code = config["FunctionAppCode"];
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(_code))
+            {
+                Assert.Inconclusive("Function app name or code not defined. Skipping acceptance tests.");
+            }
+
+            _url = $"https://{name}.azurewebsites.net/api/RepositoryValidator";
         }
 
         [Test]
         public async Task BasicResponse()
         {
             var client = new RestClient();
-            var request = new RestRequest(_tempUrl, Method.POST);
-            request.AddQueryParameter("code", "codehere");
+            var request = new RestRequest(_url, Method.POST);
+            request.AddQueryParameter("code", _code);
             request.AddJsonBody(new object { });
 
             var result = await client.ExecuteTaskAsync(request);

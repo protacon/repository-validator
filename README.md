@@ -18,8 +18,15 @@ dotnet build
 ```
 
 ## Testing
+
 ```
 dotnet test
+```
+
+To run acceptances tests, set following environment variables
+```
+$Env:TEST_FunctionAppName = "name of the function app"
+$Env:TEST_FunctionAppCode = "default code for function"
 ```
 
 ## Usage
@@ -148,7 +155,7 @@ New-AzResourceGroupDeployment `
 
 az cli
 ```
-az group deployment create -g "github-test" --template-file Deployment/azuredeploy.json --parameters appName=hjni-test --parameters gitHubToken=<tokenhere> --parameters gitHubOrganization=protacon
+az group deployment create -g "github-test" --template-file Deployment/azuredeploy.json --parameters appName=hjni-test --parameters gitHubToken=<tokenhere> --parameters gitHubOrganization=protacon --parameters Development
 ```
 
 ### Deploying site
