@@ -21,8 +21,8 @@ Set-StrictMode -Version Latest
 Write-Host "Current Function app name $Env:TEST_FunctionAppName"
 Write-Host "Current Function app code $Env:TEST_FunctionAppCode"
 
-$kuduCreds = getKuduCreds $WebAppName $ResourceGroup
-$code = getDefaultCode $WebAppName $kuduCreds
+$kuduCreds = Get-KuduCredentials $WebAppName $ResourceGroup
+$code = Get-DefaultCode -AppName $WebAppName -EncodedCreds $kuduCreds
 
 $Env:TEST_FunctionAppName = $WebAppName
 $Env:TEST_FunctionAppCode = $code

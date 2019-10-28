@@ -1,29 +1,57 @@
-function getKuduCreds($appName, $resourceGroup) {
-    $user = az webapp deployment list-publishing-profiles -n $appName -g $resourceGroup `
-        --query "[?publishMethod=='MSDeploy'].userName" -o tsv
+function Get-KuduCredentials() {
+    param(
+        [Parameter(Mandatory = $true)][string]$AppName,
+        [Parameter(Mandatory = $true)][string]$ResourceGroup
+    )
 
-    $pass = az webapp deployment list-publishing-profiles -n $appName -g $resourceGroup `
-        --query "[?publishMethod=='MSDeploy'].userPWD" -o tsv
+    $xml = [xml](Get-AzWebAppPublishingProfile -Name $AppName `
+            -ResourceGroupName $ResourceGroup `
+            -OutputFile $null)
 
-    $pair = "$($user):$($pass)"
-    $encodedCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($pair))
-    return $encodedCreds
+    # Extract connection information from publishing profile
+    $username = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userName").value
+    $password = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userPWD").value
+
+    $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username, $password)))
+    return $base64AuthInfo
 }
 
-function getFunctionKey([string]$appName, [string]$functionName, [string]$encodedCreds) {
-    $jwt = Invoke-RestMethod -Uri "https://$appName.scm.azurewebsites.net/api/functions/admin/token" -Headers @{Authorization = ("Basic {0}" -f $encodedCreds) } -Method GET
+function Get-Token() {
+    param(
+        [Parameter(Mandatory = $true)][string]$AppName,
+        [Parameter(Mandatory = $true)][string]$EncodedCreds
+    )
+    $jwt = Invoke-RestMethod -Uri "https://$AppName.scm.azurewebsites.net/api/functions/admin/token" `
+        -Headers @{Authorization = ("Basic {0}" -f $EncodedCreds) } `
+        -Method GET
+
+    return $jwt
+}
+
+function Get-FunctionKey() {
+    param(
+        [Parameter(Mandatory = $true)][string]$AppName,
+        [Parameter(Mandatory = $true)][string]$FunctionName,
+        [Parameter(Mandatory = $true)][string]$EncodedCreds
+    )
+
+    $jwt = Get-Token -AppName $AppName -EncodedCreds $EncodedCreds
 
     $keys = Invoke-RestMethod -Method GET -Headers @{Authorization = ("Bearer {0}" -f $jwt) } `
-        -Uri "https://$appName.azurewebsites.net/admin/functions/$functionName/keys" 
+        -Uri "https://$AppName.azurewebsites.net/admin/functions/$FunctionName/keys" 
 
     $code = $keys.keys[0].value
     return $code
 }
-function getDefaultCode([string]$appName, [string]$encodedCreds) {
-    $jwt = Invoke-RestMethod -Uri "https://$appName.scm.azurewebsites.net/api/functions/admin/token" -Headers @{Authorization = ("Basic {0}" -f $encodedCreds) } -Method GET
+function Get-DefaultCode() {
+    param(
+        [Parameter(Mandatory = $true)][string]$AppName,
+        [Parameter(Mandatory = $true)][string]$EncodedCreds
+    )
+    $jwt = Get-Token -AppName $AppName -EncodedCreds $EncodedCreds
 
     $keys = Invoke-RestMethod -Method GET -Headers @{Authorization = ("Bearer {0}" -f $jwt) } `
-        -Uri "https://$appName.azurewebsites.net/admin/host/keys" 
+        -Uri "https://$AppName.azurewebsites.net/admin/host/keys" 
 
     $code = $keys.keys[0].value
     return $code
