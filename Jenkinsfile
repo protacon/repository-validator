@@ -79,10 +79,12 @@ podTemplate(label: pod.label,
                             }
                         }
                         container('dotnet') {
-                            stage('Test') {
-                                sh """
-                                    dotnet test
-                                """
+                            stage('Acceptance tests') {
+                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                    sh """
+                                        dotnet test
+                                    """
+                                }
                             }
                         }
                         stage('Delete test environment'){
