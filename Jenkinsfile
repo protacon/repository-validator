@@ -27,7 +27,7 @@ podTemplate(label: pod.label,
         container('dotnet') {
             stage('Build') {
                 sh """
-                    dotnet publish -c Release -o $publishFolder $functionsProject --version-suffix  ${env.BUILD_NUMBER}
+                    dotnet publish -c Release -o $publishFolder $functionsProject --version-suffix ${env.BUILD_NUMBER}
                 """
             }
             stage('Test') {
@@ -68,6 +68,20 @@ podTemplate(label: pod.label,
                             catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                 sh """
                                     pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName -ZipFilePath $zipName"
+                                """
+                            }
+                        }
+                        stage('Set environment variables for acceptance tests') {
+                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                sh """
+                                    pwsh -command "&./Deployment/Set-TestEnvVariables.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName"
+                                """
+                            }
+                        }
+                        container('dotnet') {
+                            stage('Test') {
+                                sh """
+                                    dotnet test
                                 """
                             }
                         }
