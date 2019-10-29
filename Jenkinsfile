@@ -64,23 +64,19 @@ podTemplate(label: pod.label,
                                 pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $ciRg -appName $ciAppName -gitHubToken (ConvertTo-SecureString -String 'MOCKTOKEN' -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -environment Development"
                             """
                         }
-                        stage('Publish to test environment') {
-                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                            stage('Publish to test environment') {
                                 sh """
                                     pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName -ZipFilePath $zipName"
                                 """
                             }
-                        }
-                        stage('Set environment variables for acceptance tests') {
-                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                            stage('Set environment variables for acceptance tests') {
                                 sh """
                                     pwsh -command "&./Deployment/Set-TestEnvVariables.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName"
                                 """
                             }
-                        }
-                        container('dotnet') {
-                            stage('Acceptance tests') {
-                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                            container('dotnet') {
+                                stage('Acceptance tests') {
                                     sh """
                                         dotnet test
                                     """
