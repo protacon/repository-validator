@@ -15,12 +15,8 @@ namespace AcceptanceTests
         [SetUp]
         public void Setup()
         {
-            IConfiguration config = new ConfigurationBuilder()
-                .AddEnvironmentVariables(prefix: "TEST_")
-                .Build();
-
-            var name = config["FunctionAppName"];
-            _code = config["FunctionAppCode"];
+            var name = TestContext.Parameters["FunctionAppName"];
+            _code = TestContext.Parameters["FunctionAppCode"];
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(_code))
             {
                 Assert.Inconclusive("Function app name or code not defined. Skipping acceptance tests.");

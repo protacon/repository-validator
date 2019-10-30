@@ -23,15 +23,10 @@ dotnet build
 dotnet test
 ```
 
-To run acceptances tests, set following environment variables with script
+To run acceptances tests, create `.runsettings`-file with test parameters
+and move it to Acceptance-tests folder
 ```
-./Deployment/Set-TestEnvVariables -ResourceGroup 'resource-group-name'
-```
-
-Or do it manually.
-```
-$Env:TEST_FunctionAppName = "name of the function app"
-$Env:TEST_FunctionAppCode = "default code for function"
+./Deployment/Create-RunSettingsFile -ResourceGroup 'resource-group-name'
 ```
 
 ## Usage

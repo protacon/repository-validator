@@ -70,15 +70,18 @@ podTemplate(label: pod.label,
                                     pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName -ZipFilePath $zipName"
                                 """
                             }
-                            stage('Set environment variables for acceptance tests') {
+                            stage('Create .runsettings-file acceptance tests') {
                                 sh """
-                                    pwsh -command "&./Deployment/Set-TestEnvVariables.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName"
+                                    pwsh -command "&./Deployment/Create-Create-RunSettingsFile.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName"
+                                    cp .runsettings AcceptanceTests/.runsettings
                                 """
                             }
                             container('dotnet') {
                                 stage('Acceptance tests') {
                                     sh """
-                                        dotnet test
+                                        cd AcceptanceTests
+                                        dotnet test --settings .runsettings
+                                        cd ..
                                     """
                                 }
                             }
