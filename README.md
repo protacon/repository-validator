@@ -24,7 +24,7 @@ dotnet test
 ```
 
 To run acceptances tests, create `.runsettings`-file with test parameters
-and move it to Acceptance-tests folder
+using following script
 ```
 ./Deployment/Create-RunSettingsFile -ResourceGroup 'resource-group-name'
 ```
