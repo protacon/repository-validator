@@ -18,8 +18,8 @@ Set-StrictMode -Version Latest
 . "./Deployment/FunctionUtil.ps1"
 
 Write-Host "Fetch credentials..."
-#$kuduCreds = Get-KuduCredentials $WebAppName $ResourceGroup
-#$code = Get-DefaultCode -AppName $WebAppName -EncodedCreds $kuduCreds
+$kuduCreds = Get-KuduCredentials $WebAppName $ResourceGroup
+$code = Get-DefaultCode -AppName $WebAppName -EncodedCreds $kuduCreds
 
 [xml]$document = New-Object System.Xml.XmlDocument
 $declaration = $document.CreateXmlDeclaration('1.0', 'UTF-8', $null)
@@ -37,7 +37,7 @@ $parameters.AppendChild($appNameNode);
 
 $codeNode = $document.CreateElement('Parameter')
 $codeNode.SetAttribute('name', 'FunctionAppCode')
-#$codeNode.SetAttribute('value', $code)
+$codeNode.SetAttribute('value', $code)
 $parameters.AppendChild($codeNode);
 
 Write-Host "Create settings..."
