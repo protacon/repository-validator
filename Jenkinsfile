@@ -79,9 +79,7 @@ podTemplate(label: pod.label,
                                 stage('Acceptance tests') {
                                     sh """
                                         cd AcceptanceTests
-                                        ls -a
                                         dotnet test --settings '.runsettings'
-                                        cd ..
                                     """
                                 }
                             }
