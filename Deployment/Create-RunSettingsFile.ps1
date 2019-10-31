@@ -24,10 +24,10 @@ $code = Get-DefaultCode -AppName $WebAppName -EncodedCreds $kuduCreds
 [xml]$document = New-Object System.Xml.XmlDocument
 $declaration = $document.CreateXmlDeclaration('1.0', 'UTF-8', $null)
 $document.AppendChild($declaration)
-$root = $document.CreateNode('element', 'RunSettings', $null)
+$root = $document.CreateElement('RunSettings')
 $document.AppendChild($root)
 
-$parameters = $document.CreateNode('element', 'TestRunParameters', $null)
+$parameters = $document.CreateElement('TestRunParameters')
 $root.AppendChild($parameters)
 
 $appNameNode = $document.CreateElement('Parameter')
