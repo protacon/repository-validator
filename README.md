@@ -29,6 +29,11 @@ using following script
 ./Deployment/Create-RunSettingsFile -ResourceGroup 'resource-group-name'
 ```
 
+Testing development environment can be created by creating your own version of
+`developer-settings.example.json` as `developer-settings.json` and
+then running `.\Deployment\Prepare-Envrionment.ps1`. For more details,
+see the script.
+
 ## Usage
 
 There are 2 main ways to use this project
@@ -60,7 +65,9 @@ dotnet run --project Runner -- --help
 ### Configuration (this project)
 
 Configuration parameters are read from appsettings.json-file for both, ValidationLibrary.AzureFunctions and Runner.
+
 #### Console runner
+
 For Runner
 ```
 {

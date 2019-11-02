@@ -336,3 +336,4 @@ Deployment/azuredeploy.parameters.json
 Deployment/azuredeploy.hjnidev.parameters.json
 Deployment/azuredeploy.ptcs.parameters.json
 .runsettings
+developer-settings.json

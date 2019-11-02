@@ -1,0 +1,6 @@
+{
+    "ResourceGroupName": "repo-dev",
+    "Location": "North Europe",
+    "GitHubOrganization": "protacon",
+    "GitHubToken": "mocktoken"
+}
