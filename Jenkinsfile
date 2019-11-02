@@ -59,9 +59,12 @@ podTemplate(label: pod.label,
                                 pwsh -command "New-AzResourceGroup -Name '$ciRg' -Location 'North Europe'"
                             """
                         }
+                        withCredentials([
+                            string(credentialsId: 'hjni_github_token', variable: 'GH_TOKEN')
+                        ])
                         stage('Create test environment'){
                             sh """
-                                pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $ciRg -appName $ciAppName -gitHubToken (ConvertTo-SecureString -String 'MOCKTOKEN' -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -environment Development"
+                                pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $ciRg -appName $ciAppName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -environment Development"
                             """
                         }
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
