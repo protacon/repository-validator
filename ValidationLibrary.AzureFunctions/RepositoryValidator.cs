@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Octokit;
 using ValidationLibrary.AzureFunctions.GitHubDto;
 using ValidationLibrary.GitHub;
@@ -50,10 +51,15 @@ namespace ValidationLibrary.AzureFunctions
                 _logger.LogInformation("Validation finished");
                 return new OkResult();
             }
-            catch (ArgumentException exception)
+            catch (Exception exception)
             {
-                _logger.LogError(exception, "Invalid request received");
-                return new BadRequestResult();
+                if (exception is ArgumentException || exception is JsonException)
+                {
+                    _logger.LogError(exception, "Invalid request received");
+                    return new BadRequestResult();
+                }
+
+                throw;
             }
         }
 
