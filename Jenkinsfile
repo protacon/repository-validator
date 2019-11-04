@@ -45,7 +45,7 @@ podTemplate(label: pod.label,
                 }
 
                 if (isTest(branch)){
-                    withCredentials([azureServicePrincipal('HJNI-MSDN-Subscriptions')]) {
+                    withCredentials([azureServicePrincipal('PTCS_Development_use_SP')]) {
                         def ciRg = 'repo-ci-' + buildNumber
                         def ciAppName = 'repo-ci-' + buildNumber
 
@@ -96,14 +96,10 @@ podTemplate(label: pod.label,
                     }
                 }
                 if (isMaster(branch)){
-                    withCredentials([
-                        string(credentialsId: 'hjni_azure_sp_id', variable: 'SP_APPLICATION'),
-                        string(credentialsId: 'hjni_azure_sp_key', variable: 'SP_KEY'),
-                        string(credentialsId: 'hjni_azure_sp_tenant', variable: 'SP_TENANT'),
-                        ]){
+                    withCredentials([azureServicePrincipal('PTCG_Azure_SP')]){
                         stage('Login to production'){
                             sh """
-                                pwsh -command "./Deployment/Login.ps1 -ApplicationId '$SP_APPLICATION' -ApplicationKey '$SP_KEY' -TenantId '$SP_TENANT'"
+                                pwsh -command "./Deployment/Login.ps1 -ApplicationId '$AZURE_CLIENT_ID' -ApplicationKey '$AZURE_CLIENT_SECRET' -TenantId '$AZURE_TENANT_ID'"
                             """
                         }
                     }
