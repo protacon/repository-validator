@@ -51,7 +51,7 @@ podTemplate(label: pod.label,
 
                         stage('Login to test'){
                             sh """
-                                pwsh -command "./Deployment/Login.ps1 -ApplicationId '$AZURE_CLIENT_ID' -ApplicationKey '$AZURE_CLIENT_SECRET' -TenantId '$AZURE_TENANT_ID'"
+                                pwsh -command "./Deployment/Login.ps1 -ApplicationId '$AZURE_CLIENT_ID' -ApplicationKey '$AZURE_CLIENT_SECRET' -TenantId '$AZURE_TENANT_ID' -SubscriptionId $AZURE_SUBSCRIPTION_ID"
                             """
                         }
                         stage('Create temporary Resource Group'){
@@ -99,7 +99,7 @@ podTemplate(label: pod.label,
                     withCredentials([azureServicePrincipal('PTCG_Azure_SP')]){
                         stage('Login to production'){
                             sh """
-                                pwsh -command "./Deployment/Login.ps1 -ApplicationId '$AZURE_CLIENT_ID' -ApplicationKey '$AZURE_CLIENT_SECRET' -TenantId '$AZURE_TENANT_ID'"
+                                pwsh -command "./Deployment/Login.ps1 -ApplicationId '$AZURE_CLIENT_ID' -ApplicationKey '$AZURE_CLIENT_SECRET' -TenantId '$AZURE_TENANT_ID' -SubscriptionId $AZURE_SUBSCRIPTION_ID"
                             """
                         }
                     }
