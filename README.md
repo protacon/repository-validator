@@ -8,7 +8,7 @@ Checks that organization repositories conforms to policies defined by organizati
 For example, repositories should have
   * Descriptions
   * README.MD-files
-  * License, if public
+  * Licenses, if public
 
 ## Build
 This project requires [dotnet core](https://www.microsoft.com/net/download),
@@ -18,9 +18,21 @@ dotnet build
 ```
 
 ## Testing
+
 ```
 dotnet test
 ```
+
+To run acceptances tests, create `.runsettings`-file with test parameters
+using following script
+```
+./Deployment/Create-RunSettingsFile -ResourceGroup 'resource-group-name'
+```
+
+Testing development environment can be created by creating your own version of
+`developer-settings.example.json` as `developer-settings.json` and
+then running `.\Deployment\Prepare-Envrionment.ps1`. For more details,
+see the script.
 
 ## Usage
 
@@ -53,7 +65,9 @@ dotnet run --project Runner -- --help
 ### Configuration (this project)
 
 Configuration parameters are read from appsettings.json-file for both, ValidationLibrary.AzureFunctions and Runner.
+
 #### Console runner
+
 For Runner
 ```
 {
@@ -148,7 +162,7 @@ New-AzResourceGroupDeployment `
 
 az cli
 ```
-az group deployment create -g "github-test" --template-file Deployment/azuredeploy.json --parameters appName=hjni-test --parameters gitHubToken=<tokenhere> --parameters gitHubOrganization=protacon
+az group deployment create -g "github-test" --template-file Deployment/azuredeploy.json --parameters appName=hjni-test --parameters gitHubToken=<tokenhere> --parameters gitHubOrganization=protacon --parameters Development
 ```
 
 ### Deploying site

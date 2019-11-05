@@ -2,9 +2,11 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Octokit;
 using ValidationLibrary.AzureFunctions.GitHubDto;
 using ValidationLibrary.GitHub;
@@ -25,21 +27,40 @@ namespace ValidationLibrary.AzureFunctions
         }
 
         [FunctionName("RepositoryValidator")]
-        public async Task Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req)
         {
-            _logger.LogDebug("Repository validation hook launched");
-            var content = await req.Content.ReadAsAsync<PushData>();
-            ValidateInput(content);
+            try
+            {
+                _logger.LogDebug("Repository validation hook launched");
+                if (req.Content == null)
+                {
+                    throw new ArgumentNullException("Request content was null. Unable to retrieve parameters.");
+                }
 
-            _logger.LogInformation("Doing validation. Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
+                var content = await req.Content.ReadAsAsync<PushData>();
+                ValidateInput(content);
 
-            await _validationClient.Init();
-            var report = await _validationClient.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name, false);
+                _logger.LogInformation("Doing validation. Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
 
-            _logger.LogDebug("Sending report.");
-            await ReportToGitHub(report);
-            await PerformAutofixes(report);
-            _logger.LogInformation("Validation finished");
+                await _validationClient.Init();
+                var report = await _validationClient.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name, false);
+
+                _logger.LogDebug("Sending report.");
+                await ReportToGitHub(report);
+                await PerformAutofixes(report);
+                _logger.LogInformation("Validation finished");
+                return new OkResult();
+            }
+            catch (Exception exception)
+            {
+                if (exception is ArgumentException || exception is JsonException)
+                {
+                    _logger.LogError(exception, "Invalid request received");
+                    return new BadRequestResult();
+                }
+
+                throw;
+            }
         }
 
         private static void ValidateInput(PushData content)
