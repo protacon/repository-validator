@@ -69,7 +69,7 @@ podTemplate(label: pod.label,
                                 """
                             }
                         }
-                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        try {
                             stage('Publish to test environment') {
                                 sh """
                                     pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName -ZipFilePath $zipName"
@@ -89,10 +89,12 @@ podTemplate(label: pod.label,
                                 }
                             }
                         }
-                        stage('Delete test environment'){
-                            sh """
-                                pwsh -command "Remove-AzResourceGroup -Name '$ciRg' -Force"
-                            """
+                        finally {
+                            stage('Delete test environment'){
+                                sh """
+                                    pwsh -command "Remove-AzResourceGroup -Name '$ciRg' -Force"
+                                """
+                            }
                         }
                     }
                 }
