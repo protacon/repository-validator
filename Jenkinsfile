@@ -19,6 +19,7 @@ podTemplate(label: pod.label,
     def functionsProject = 'ValidationLibrary.AzureFunctions'
     def zipName = 'publish.zip'
     def publishFolder = 'publish'
+    def environment = isMaster(branch) ? 'Production' : 'Development'
 
     node(pod.label) {
         stage('Checkout') {
@@ -64,7 +65,7 @@ podTemplate(label: pod.label,
                         ]) {
                             stage('Create test environment'){
                                 sh """
-                                    pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $ciRg -appName $ciAppName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -environment Development"
+                                    pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $ciRg -appName $ciAppName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -environment $environment"
                                 """
                             }
                         }
