@@ -1,4 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ValidationLibrary\ValidationLibrary.csproj" />
@@ -7,9 +10,4 @@
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="12.1.3" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-
 </Project>
