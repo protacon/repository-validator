@@ -28,10 +28,10 @@ podTemplate(label: pod.label,
         container('dotnet') {
             stage ('Install 2.2') {
                 sh """
-                    sudo apt-get update
-                    sudo apt-get install apt-transport-https
-                    sudo apt-get update
-                    sudo apt-get install dotnet-sdk-2.2=2.2.102-1
+                    apt-get update
+                    apt-get install apt-transport-https
+                    apt-get update
+                    apt-get install dotnet-sdk-2.2=2.2.102-1
                 """
             }
             stage('Build') {
