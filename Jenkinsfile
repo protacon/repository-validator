@@ -37,7 +37,7 @@ podTemplate(label: pod.label,
                     apt-get update
                     apt-get install apt-transport-https
                     apt-get update
-                    apt-get install dotnet-sdk-2.2=2.2.102-1
+                    apt-get install dotnet-sdk-2.2=2.2.402-1
                 """
             }
             stage('Build') {
