@@ -5,7 +5,7 @@ def isTest(branchName) {return branchName == "test"}
 
 podTemplate(label: pod.label,
   containers: pod.templates + [
-    containerTemplate(name: 'dotnet', image: 'mcr.microsoft.com/dotnet/core/sdk:3.0', ttyEnabled: true, command: '/bin/sh -c', args: 'cat'),
+    containerTemplate(name: 'dotnet', image: 'mcr.microsoft.com/dotnet/core/sdk:3.1.100-preview2-buster', ttyEnabled: true, command: '/bin/sh -c', args: 'cat'),
     containerTemplate(name: 'powershell', image: 'azuresdk/azure-powershell-core:master', ttyEnabled: true, command: '/bin/sh -c', args: 'cat')
   ]
 ) {
@@ -26,9 +26,25 @@ podTemplate(label: pod.label,
             checkout scm
         }
         container('dotnet') {
+            stage ('Install 2.2') {
+                sh """
+                    wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.asc.gpg
+                    mv microsoft.asc.gpg /etc/apt/trusted.gpg.d/
+                    wget -q https://packages.microsoft.com/config/debian/10/prod.list
+                    mv prod.list /etc/apt/sources.list.d/microsoft-prod.list
+                    chown root:root /etc/apt/trusted.gpg.d/microsoft.asc.gpg
+                    chown root:root /etc/apt/sources.list.d/microsoft-prod.list
+                    apt-get update
+                    apt-get install apt-transport-https -y --no-install-recommends
+                    apt-get update
+                    apt-get install dotnet-sdk-2.2=2.2.402-1 -y --no-install-recommends
+                """
+            }
             stage('Build') {
                 sh """
-                    dotnet publish -c Release -o $publishFolder $functionsProject --version-suffix ${env.BUILD_NUMBER}
+                    cd $functionsProject
+                    dotnet publish -c Release -o $publishFolder --version-suffix ${env.BUILD_NUMBER}
+                    cd ..
                 """
             }
             stage('Test') {
