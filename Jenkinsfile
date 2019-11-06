@@ -35,9 +35,9 @@ podTemplate(label: pod.label,
                     chown root:root /etc/apt/trusted.gpg.d/microsoft.asc.gpg
                     chown root:root /etc/apt/sources.list.d/microsoft-prod.list
                     apt-get update
-                    apt-get install apt-transport-https
+                    apt-get install apt-transport-https -y --no-install-recommends
                     apt-get update
-                    apt-get install dotnet-sdk-2.2=2.2.402-1
+                    apt-get install dotnet-sdk-2.2=2.2.402-1 -y --no-install-recommends
                 """
             }
             stage('Build') {
