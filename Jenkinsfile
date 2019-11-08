@@ -5,7 +5,7 @@ def isTest(branchName) {return branchName == "test"}
 
 podTemplate(label: pod.label,
   containers: pod.templates + [
-    containerTemplate(name: 'dotnet', image: 'microsoft/dotnet:2.2-sdk', ttyEnabled: true, command: '/bin/sh -c', args: 'cat'),
+    containerTemplate(name: 'dotnet', image: 'ptcos/multi-netcore-sdk:v0.0.1-alpha', ttyEnabled: true, command: '/bin/sh -c', args: 'cat'),
     containerTemplate(name: 'powershell', image: 'azuresdk/azure-powershell-core:master', ttyEnabled: true, command: '/bin/sh -c', args: 'cat')
   ]
 ) {
@@ -28,7 +28,9 @@ podTemplate(label: pod.label,
         container('dotnet') {
             stage('Build') {
                 sh """
-                    dotnet publish -c Release -o $publishFolder $functionsProject --version-suffix ${env.BUILD_NUMBER}
+                    cd $functionsProject
+                    dotnet publish -c Release -o $publishFolder --version-suffix ${env.BUILD_NUMBER}
+                    cd ..
                 """
             }
             stage('Test') {
