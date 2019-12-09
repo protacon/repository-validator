@@ -1,11 +1,12 @@
 library 'jenkins-ptcs-library@2.1.0'
 
-def isMaster(branchName) {return branchName == "master"}
-def isTest(branchName) {return branchName == "test"}
+def isDependabot(branchName) { return branchName.toString().startsWith("dependabot/nuget") }
+def isMaster(branchName) { return branchName == "master" }
+def isTest(branchName) { return branchName == "test" }
 
 podTemplate(label: pod.label,
   containers: pod.templates + [
-    containerTemplate(name: 'dotnet', image: 'ptcos/multi-netcore-sdk:v0.0.1-alpha', ttyEnabled: true, command: '/bin/sh -c', args: 'cat'),
+    containerTemplate(name: 'dotnet', image: 'ptcos/multi-netcore-sdk:0.0.2', ttyEnabled: true, command: '/bin/sh -c', args: 'cat'),
     containerTemplate(name: 'powershell', image: 'azuresdk/azure-powershell-core:master', ttyEnabled: true, command: '/bin/sh -c', args: 'cat')
   ]
 ) {
@@ -39,7 +40,7 @@ podTemplate(label: pod.label,
                 """
             }
         }
-        if (isTest(branch) || isMaster(branch)){
+        if (isTest(branch) || isMaster(branch) || isDependabot(branch)){
             container('powershell') {
                 stage('Package') {
                     sh """
@@ -47,7 +48,7 @@ podTemplate(label: pod.label,
                     """
                 }
 
-                if (isTest(branch)){
+                if (isTest(branch) || isDependabot(branch)){
                     withCredentials([azureServicePrincipal('PTCS_Development_use_SP')]) {
                         def ciRg = 'repo-ci-' + buildNumber
                         def ciAppName = 'repo-ci-' + buildNumber
