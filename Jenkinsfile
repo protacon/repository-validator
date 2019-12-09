@@ -1,8 +1,8 @@
 library 'jenkins-ptcs-library@2.1.0'
 
-def isMaster(branchName) {return branchName == "master"}
-def isTest(branchName) {return branchName == "test"}
-def isDependabot(branchName) {return branchName.startsWith("dependabot/nuget/")​​​​​​​​}
+def isMaster(branchName) { return branchName == "master" }
+def isTest(branchName) { return branchName == "test" }
+def isDependabot(branchName) { return branchName.startsWith("dependabot/nuget/")​​​​​​​​ }
 
 podTemplate(label: pod.label,
   containers: pod.templates + [
