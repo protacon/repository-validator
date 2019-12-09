@@ -2,6 +2,7 @@ library 'jenkins-ptcs-library@2.1.0'
 
 def isMaster(branchName) {return branchName == "master"}
 def isTest(branchName) {return branchName == "test"}
+def isDependabot(branchName) {return branchName.startsWith("dependabot/nuget/")​​​​​​​​}
 
 podTemplate(label: pod.label,
   containers: pod.templates + [
@@ -39,7 +40,7 @@ podTemplate(label: pod.label,
                 """
             }
         }
-        if (isTest(branch) || isMaster(branch)){
+        if (isTest(branch) || isMaster(branch) || isDependabot(branch)){
             container('powershell') {
                 stage('Package') {
                     sh """
@@ -47,7 +48,7 @@ podTemplate(label: pod.label,
                     """
                 }
 
-                if (isTest(branch)){
+                if (isTest(branch) || isDependabot(branch)){
                     withCredentials([azureServicePrincipal('PTCS_Development_use_SP')]) {
                         def ciRg = 'repo-ci-' + buildNumber
                         def ciAppName = 'repo-ci-' + buildNumber
