@@ -1,8 +1,8 @@
-library 'jenkins-ptcs-library@feature/azure-test-env-support'
+library 'jenkins-ptcs-library@2.2.0'
 
 def isDependabot(branchName) { return branchName.toString().startsWith("dependabot/nuget") }
 def isMaster(branchName) { return branchName == "master" }
-def isTest(branchName) { return true }
+def isTest(branchName) { return branchName == "test" }
 
 podTemplate(label: pod.label,
   containers: pod.templates + [
