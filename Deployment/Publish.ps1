@@ -37,7 +37,7 @@ $destination = "publish.zip"
 if (Test-path $destination) { Remove-item $destination }
 Add-Type -assembly "system.io.compression.filesystem"
 
-$fullSourcePath = (Resolve-Path "$azureFunctionProject\$publishFolder").Path
+$fullSourcePath = (Resolve-Path "$publishFolder").Path
 $fullTargetPath = (Resolve-Path ".\").Path
 $fullZipTarget = "$fullTargetPath\$destination"
 [io.compression.zipfile]::CreateFromDirectory($fullSourcePath, $fullZipTarget)
