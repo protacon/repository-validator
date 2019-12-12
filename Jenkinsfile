@@ -1,4 +1,4 @@
-library 'jenkins-ptcs-library@2.1.0'
+library 'jenkins-ptcs-library@2.2.0'
 
 def isDependabot(branchName) { return branchName.toString().startsWith("dependabot/nuget") }
 def isMaster(branchName) { return branchName == "master" }
@@ -49,15 +49,10 @@ podTemplate(label: pod.label,
                 }
 
                 if (isTest(branch) || isDependabot(branch)){
-                    withCredentials([azureServicePrincipal('PTCS_Development_use_SP')]) {
+                    toAzureTestEnv {
                         def ciRg = 'repo-ci-' + buildNumber
                         def ciAppName = 'repo-ci-' + buildNumber
 
-                        stage('Login to test'){
-                            sh """
-                                pwsh -command "./Deployment/Login.ps1 -ApplicationId '$AZURE_CLIENT_ID' -ApplicationKey '$AZURE_CLIENT_SECRET' -TenantId '$AZURE_TENANT_ID' -SubscriptionId $AZURE_SUBSCRIPTION_ID"
-                            """
-                        }
                         stage('Create temporary Resource Group'){
                             sh """
                                 pwsh -command "New-AzResourceGroup -Name '$ciRg' -Location 'North Europe' -Tag @{subproject='2026956'; Description='Continuous Integration'}"
