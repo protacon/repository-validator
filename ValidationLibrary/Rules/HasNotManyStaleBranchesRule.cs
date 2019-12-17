@@ -54,7 +54,7 @@ namespace ValidationLibrary.Rules
 
         private Task DoNothing(IGitHubClient client, Repository repository)
         {
-            _logger.LogInformation("Rule {ruleClass} / {ruleName}, No fix.", nameof(HasReadmeRule), RuleName);
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}, No fix.", nameof(HasNotManyStaleBranchesRule), RuleName);
             return Task.FromResult(0);
         }
     }
