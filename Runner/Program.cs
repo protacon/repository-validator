@@ -188,6 +188,7 @@ namespace Runner
                         provider.GetService<HasDescriptionRule>(),
                         provider.GetService<HasReadmeRule>(),
                         provider.GetService<HasNewestPtcsJenkinsLibRule>(),
+                        provider.GetService<HasNotManyStaleBranchesRule>(),
                         provider.GetService<HasLicenseRule>()
                     };
                     return new RepositoryValidator(
@@ -199,6 +200,7 @@ namespace Runner
                 .AddTransient<HasDescriptionRule>()
                 .AddTransient<HasLicenseRule>()
                 .AddTransient<HasNewestPtcsJenkinsLibRule>()
+                .AddTransient<HasNotManyStaleBranchesRule>()
                 .AddTransient<HasReadmeRule>()
                 .BuildServiceProvider();
 
