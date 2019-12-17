@@ -51,11 +51,12 @@ namespace ValidationLibrary.Tests.Rules
             Assert.IsFalse(result.IsValid);
         }
 
-        private Repository CreateRepository(string name, string owner)
+        private Repository CreateRepository(string name, string ownerName)
         {
+            var owner = new User(null, null, null, 0, null, DateTimeOffset.FromUnixTimeSeconds(0), DateTimeOffset.FromUnixTimeSeconds(0), 0, null, 0, 0, null, null, 0, 0, null, ownerName, null, null, 0, null, 0, 0, 1, null, null, true, null, null);
             return new Repository(
                 null, null, null, null, null, null,
-                null, 0, null, null, name, (owner + "/" + name),
+                null, 0, null, owner, name, (owner + "/" + name),
                 null, null, null, false, false, 0,
                 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow,
                 null, null, null, null, false, false,

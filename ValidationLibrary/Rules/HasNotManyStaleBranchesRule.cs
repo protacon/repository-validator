@@ -31,7 +31,7 @@ namespace ValidationLibrary.Rules
         {
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasNotManyStaleBranchesRule), RuleName, gitHubRepository.FullName);
 
-            var branches = await client.Repository.Branch.GetAll(gitHubRepository.FullName?.Split('/')[0] ?? "", gitHubRepository.Name);
+            var branches = await client.Repository.Branch.GetAll(gitHubRepository.Owner.Login, gitHubRepository.Name);
 
             var staleCommitsMap = new Dictionary<string, bool>();
             var staleTreshold = DateTimeOffset.UtcNow - TimeSpan.FromDays(90);
