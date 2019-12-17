@@ -34,7 +34,7 @@ namespace ValidationLibrary.Rules
             var branches = await client.Repository.Branch.GetAll(gitHubRepository.FullName?.Split('/')[0] ?? "", gitHubRepository.Name);
 
             var staleCommitsMap = new Dictionary<string, bool>();
-            var staleTreshold = DateTimeOffset.Now - TimeSpan.FromDays(90);
+            var staleTreshold = DateTimeOffset.UtcNow - TimeSpan.FromDays(90);
             var staleCount = 0;
 
             foreach (var branch in branches)
