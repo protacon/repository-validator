@@ -13,6 +13,7 @@ namespace ValidationLibrary.Rules
     {
         public string RuleName => "Stale branches";
 
+        private const int StaleCountLimit = 10;
         private readonly ILogger<HasNotManyStaleBranchesRule> _logger;
 
         public HasNotManyStaleBranchesRule(ILogger<HasNotManyStaleBranchesRule> logger)
@@ -33,7 +34,7 @@ namespace ValidationLibrary.Rules
             var branches = await client.Repository.Branch.GetAll(gitHubRepository.FullName?.Split('/')[0] ?? "", gitHubRepository.Name);
 
             var staleCommitsMap = new Dictionary<string, bool>();
-            var now = DateTimeOffset.Now;
+            var staleTreshold = DateTimeOffset.Now - TimeSpan.FromDays(90);
             var staleCount = 0;
 
             foreach (var branch in branches)
@@ -41,15 +42,15 @@ namespace ValidationLibrary.Rules
                 if (!staleCommitsMap.ContainsKey(branch.Commit.Sha))
                 {
                     var commit = await client.Repository.Commit.Get(gitHubRepository.Id, branch.Commit.Sha);
-                    staleCommitsMap[branch.Commit.Sha] = (now - commit.Commit.Author.Date) > TimeSpan.FromDays(90);
+                    staleCommitsMap[branch.Commit.Sha] = commit.Commit.Author.Date < staleTreshold;
                 }
 
                 if (staleCommitsMap[branch.Commit.Sha]) staleCount++;
-                if (staleCount >= 10) break;
+                if (staleCount >= StaleCountLimit) break;
             }
 
-            _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Not too many stale branches: {isValid}", nameof(HasNotManyStaleBranchesRule), RuleName, gitHubRepository.FullName, staleCount < 10);
-            return new ValidationResult(RuleName, "Remove branches, that have not been updated in 90 days or more.", staleCount < 10, DoNothing);
+            _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Not too many stale branches: {isValid}", nameof(HasNotManyStaleBranchesRule), RuleName, gitHubRepository.FullName, staleCount < StaleCountLimit);
+            return new ValidationResult(RuleName, "Remove branches, that have not been updated in 90 days or more.", staleCount < StaleCountLimit, DoNothing);
         }
 
         private Task DoNothing(IGitHubClient client, Repository repository)
