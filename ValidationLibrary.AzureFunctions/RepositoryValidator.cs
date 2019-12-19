@@ -27,38 +27,39 @@ namespace ValidationLibrary.AzureFunctions
         }
 
         [FunctionName("RepositoryValidator")]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req)
         {
             try
             {
                 _logger.LogDebug("Repository validation hook launched");
-                if (req.Content == null)
+                if (req == null || req.Content == null)
                 {
-                    throw new ArgumentNullException("Request content was null. Unable to retrieve parameters.");
+                    throw new ArgumentNullException(nameof(req), "Request content was null. Unable to retrieve parameters.");
                 }
 
-                var content = await req.Content.ReadAsAsync<PushData>();
+                var content = await req.Content.ReadAsAsync<PushData>().ConfigureAwait(false);
                 ValidateInput(content);
 
                 _logger.LogInformation("Doing validation. Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
 
-                await _validationClient.Init();
-                var report = await _validationClient.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name, false);
+                await _validationClient.Init().ConfigureAwait(false);
+                var report = await _validationClient.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name, false).ConfigureAwait(false);
 
                 _logger.LogDebug("Sending report.");
-                await ReportToGitHub(report);
-                await PerformAutofixes(report);
+                await ReportToGitHub(report).ConfigureAwait(false);
+                await PerformAutofixes(report).ConfigureAwait(false);
                 _logger.LogInformation("Validation finished");
                 return new OkResult();
             }
             catch (Exception exception)
             {
+                req?.Dispose();
                 if (exception is ArgumentException || exception is JsonException)
                 {
                     _logger.LogError(exception, "Invalid request received");
+
                     return new BadRequestResult();
                 }
-
                 throw;
             }
         }
@@ -67,7 +68,7 @@ namespace ValidationLibrary.AzureFunctions
         {
             if (content == null)
             {
-                throw new ArgumentNullException("Content was null. Unable to retrieve parameters.");
+                throw new ArgumentNullException(nameof(content), "Content was null. Unable to retrieve parameters.");
             }
 
             if (content.Repository == null)
@@ -100,7 +101,7 @@ namespace ValidationLibrary.AzureFunctions
             };
 
             var reporter = new GitHubReporter(_logger, _gitHubClient, gitHubReportConfig);
-            await reporter.Report(reports);
+            await reporter.Report(reports).ConfigureAwait(false);
         }
 
         private async Task PerformAutofixes(params ValidationReport[] results)
@@ -109,7 +110,7 @@ namespace ValidationLibrary.AzureFunctions
             {
                 foreach (var ruleResult in repositoryResult.Results.Where(r => !r.IsValid))
                 {
-                    await ruleResult.Fix(_gitHubClient, repositoryResult.Repository);
+                    await ruleResult.Fix(_gitHubClient, repositoryResult.Repository).ConfigureAwait(false);
                 }
             }
         }

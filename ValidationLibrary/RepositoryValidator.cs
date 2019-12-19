@@ -32,14 +32,19 @@ namespace ValidationLibrary
             _logger.LogInformation("Initializing {className}", nameof(RepositoryValidator));
             foreach (var rule in _rules)
             {
-                await rule.Init(_gitHubClient);
+                await rule.Init(_gitHubClient).ConfigureAwait(false);
             }
         }
 
         public async Task<ValidationReport> Validate(Repository gitHubRepository, bool overrideRuleIgnore)
         {
+            if (gitHubRepository is null)
+            {
+                throw new System.ArgumentNullException(nameof(gitHubRepository));
+            }
+
             _logger.LogTrace("Validating repository {repositoryName}", gitHubRepository.FullName);
-            var config = await GetConfig(gitHubRepository);
+            var config = await GetConfig(gitHubRepository).ConfigureAwait(false);
 
             var filteredRules = overrideRuleIgnore ? _rules : _rules.Where(rule =>
             {
@@ -49,7 +54,7 @@ namespace ValidationLibrary
                 return !isIgnored;
             });
 
-            var validationResults = await Task.WhenAll(filteredRules.Select(async rule => await rule.IsValid(_gitHubClient, gitHubRepository)));
+            var validationResults = await Task.WhenAll(filteredRules.Select(async rule => await rule.IsValid(_gitHubClient, gitHubRepository).ConfigureAwait(false))).ConfigureAwait(false);
             return new ValidationReport
             {
                 Owner = gitHubRepository.Owner.Login,
@@ -65,13 +70,13 @@ namespace ValidationLibrary
             try
             {
                 _logger.LogTrace("Retrieving config for {repositoryName}", gitHubRepository.FullName);
-                var contents = await _gitHubClient.Repository.Content.GetAllContents(gitHubRepository.Owner.Login, gitHubRepository.Name, ConfigFileName);
-                var jsonContent = contents.FirstOrDefault().Content;
+                var contents = await _gitHubClient.Repository.Content.GetAllContents(gitHubRepository.Owner.Login, gitHubRepository.Name, ConfigFileName).ConfigureAwait(false);
+                var jsonContent = contents[0].Content;
                 var config = JsonConvert.DeserializeObject<ValidationConfiguration>(jsonContent);
                 _logger.LogDebug("Configuration found for {repositoryName}. Ignored rules: {rules}", gitHubRepository.FullName, string.Join(",", config.IgnoredRules));
                 return config;
             }
-            catch (Octokit.NotFoundException)
+            catch (NotFoundException)
             {
                 _logger.LogDebug("No {configFileName} found in {repositoryName}. Using default config.", ConfigFileName, gitHubRepository.FullName);
                 return new ValidationConfiguration();

@@ -23,11 +23,11 @@ namespace ValidationLibrary.GitHub
 
         public async Task Report(params ValidationReport[] reports)
         {
-            _logger.LogTrace("Reporting {count} reports to GitHub.", reports.Count());
-            var current = await _client.User.Current();
+            _logger.LogTrace("Reporting {count} reports to GitHub.", reports.Length);
+            var current = await _client.User.Current().ConfigureAwait(false);
             foreach (var report in reports)
             {
-                var repository = await _client.Repository.Get(report.Owner, report.RepositoryName);
+                var repository = await _client.Repository.Get(report.Owner, report.RepositoryName).ConfigureAwait(false);
                 if (repository.Archived)
                 {
                     _logger.LogWarning("Repository {owner}/{repositoryName} is archived. Skipping reporting.", report.Owner, report.RepositoryName);
@@ -48,7 +48,7 @@ namespace ValidationLibrary.GitHub
                         Creator = current.Login,
                     };
 
-                    var issues = await _client.Issue.GetAllForRepository(report.Owner, report.RepositoryName, allIssues);
+                    var issues = await _client.Issue.GetAllForRepository(report.Owner, report.RepositoryName, allIssues).ConfigureAwait(false);
                     _logger.LogTrace("Found {count} total issues.", issues.Count);
                     foreach (var validationResult in report.Results)
                     {
@@ -58,11 +58,11 @@ namespace ValidationLibrary.GitHub
                         _logger.LogTrace("Found {count} existing issues with title {title}", existingIssues.Count(), title);
                         if (validationResult.IsValid)
                         {
-                            await CloseIfNeeded(report, validationResult, existingIssues);
+                            await CloseIfNeeded(report, validationResult, existingIssues).ConfigureAwait(false);
                         }
                         else
                         {
-                            await CreateOrOpenIssue(report, validationResult, existingIssues);
+                            await CreateOrOpenIssue(report, validationResult, existingIssues).ConfigureAwait(false);
                         }
                     }
                 }
@@ -88,9 +88,9 @@ namespace ValidationLibrary.GitHub
                 if (existingIssue.State == ItemState.Open)
                 {
                     _logger.LogTrace("Found open issue #{0}", existingIssue.Number);
-                    await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, existingIssue.Number, $"{_config.Prefix}: Issue fixed. Closing issue.");
+                    await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, existingIssue.Number, $"{_config.Prefix}: Issue fixed. Closing issue.").ConfigureAwait(false);
                     var update = new IssueUpdate() { State = ItemState.Closed };
-                    await _client.Issue.Update(report.Owner, report.RepositoryName, existingIssue.Number, update);
+                    await _client.Issue.Update(report.Owner, report.RepositoryName, existingIssue.Number, update).ConfigureAwait(false);
                     _logger.LogInformation("Closed issue #{0} for {1}/{2}", existingIssue.Number, report.Owner, report.RepositoryName);
                 }
             }
@@ -101,7 +101,7 @@ namespace ValidationLibrary.GitHub
             if (!existingIssues.Any())
             {
                 _logger.LogInformation("No issues found, creating new issue for {0}/{1}.", report.Owner, report.RepositoryName);
-                await _client.Issue.Create(report.Owner, report.RepositoryName, CreateIssue(result));
+                await _client.Issue.Create(report.Owner, report.RepositoryName, CreateIssue(result)).ConfigureAwait(false);
             }
             else
             {
@@ -114,10 +114,10 @@ namespace ValidationLibrary.GitHub
                     return;
                 }
                 var closedIssue = existingIssues.FirstOrDefault(issue => issue.State == ItemState.Closed);
-                await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, closedIssue.Number, $"{_config.Prefix}: Issue resurfaced. Reopening issue.");
+                await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, closedIssue.Number, $"{_config.Prefix}: Issue resurfaced. Reopening issue.").ConfigureAwait(false);
 
                 var update = new IssueUpdate() { State = ItemState.Open };
-                await _client.Issue.Update(report.Owner, report.RepositoryName, closedIssue.Number, update);
+                await _client.Issue.Update(report.Owner, report.RepositoryName, closedIssue.Number, update).ConfigureAwait(false);
                 _logger.LogInformation("Reopened issue #{0} for {1}/{2}", closedIssue.Number, report.Owner, report.RepositoryName);
             }
         }

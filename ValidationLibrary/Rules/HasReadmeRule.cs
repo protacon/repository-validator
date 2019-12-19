@@ -21,19 +21,29 @@ namespace ValidationLibrary.Rules
         public Task Init(IGitHubClient ghClient)
         {
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Initialized", nameof(HasReadmeRule), RuleName);
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public async Task<ValidationResult> IsValid(IGitHubClient client, Repository gitHubRepository)
         {
+            if (client is null)
+            {
+                throw new System.ArgumentNullException(nameof(client));
+            }
+
+            if (gitHubRepository is null)
+            {
+                throw new System.ArgumentNullException(nameof(gitHubRepository));
+            }
+
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
             try
             {
-                var readme = await client.Repository.Content.GetReadme(gitHubRepository.Owner.Login, gitHubRepository.Name);
+                var readme = await client.Repository.Content.GetReadme(gitHubRepository.Owner.Login, gitHubRepository.Name).ConfigureAwait(false);
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, !string.IsNullOrWhiteSpace(readme.Content));
                 return new ValidationResult(RuleName, "Add Readme.md file to repository root with content describing this repository.", !string.IsNullOrWhiteSpace(readme.Content), DoNothing);
             }
-            catch (Octokit.NotFoundException)
+            catch (NotFoundException)
             {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, No Readme found, validation false.", nameof(HasReadmeRule), RuleName);
                 return new ValidationResult(RuleName, "Add Readme.md file to repository root.", false, DoNothing);
@@ -43,7 +53,7 @@ namespace ValidationLibrary.Rules
         private Task DoNothing(IGitHubClient client, Repository repository)
         {
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, No fix.", nameof(HasReadmeRule), RuleName);
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
     }
 }

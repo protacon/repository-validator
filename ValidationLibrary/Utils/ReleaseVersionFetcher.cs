@@ -19,7 +19,7 @@ namespace ValidationLibrary.Utils
         public async Task<string> GetLatest()
         {
             // Per documentation, this should not return prerelease or draft-releases.
-            var result = await _client.Repository.Release.GetLatest(_owner, _name);
+            var result = await _client.Repository.Release.GetLatest(_owner, _name).ConfigureAwait(false);
             return result.TagName;
         }
     }
