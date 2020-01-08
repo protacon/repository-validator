@@ -70,7 +70,7 @@ podTemplate(label: pod.label,
                         try {
                             stage('Publish to test environment') {
                                 sh """
-                                    pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName -ZipFilePath $zipName"
+                                    pwsh -command "Publish-AzWebApp -ResourceGroupName $ciRg -Name $ciAppName -ArchivePath $zipName -Force"
                                 """
                             }
                             stage('Create .runsettings-file acceptance tests') {
@@ -115,7 +115,7 @@ podTemplate(label: pod.label,
                     }
                     stage('Publish to production environment') {
                         sh """
-                            pwsh -command "&./Deployment/Deploy.ps1 -ResourceGroup $resourceGroup -WebAppName $appName -ZipFilePath $zipName"
+                            pwsh -command "Publish-AzWebApp -ResourceGroupName $resourceGroup -Name $appName -ArchivePath $zipName -Force"
                         """
                     }
                 }
