@@ -177,9 +177,9 @@ Create Zip file for deployment
 ./Deployment/Zip.ps1 -Destination "publish.zip" -PublishFolder "ValidationLibrary.AzureFunctions/my-publish-directory"
 ```
 
-Use Deployment/Deploy.ps1
+Use [Publish-AzWebApp](https://docs.microsoft.com/en-us/powershell/module/az.websites/publish-azwebapp)
 ```
-./Deployment/Deploy.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-app-name" -ZipFilePath "publish.zip"
+Publish-AzWebApp -ResourceGroupName $ResourceGroup -Name $WebAppName -ArchivePath $fullZipTarget -Force
 ```
 
 ## License
