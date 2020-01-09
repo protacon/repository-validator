@@ -95,7 +95,7 @@
                     "defaultDocuments": [
                     ],
                     "phpVersion": "",
-                    "use32BitWorkerProcess": false,
+                    "use32BitWorkerProcess": true,
                     "appSettings": [
                         {
                             "name": "AzureWebJobsStorage",
