@@ -16,7 +16,12 @@ Set-StrictMode -Version Latest
 Write-Host "Reading settings from file $SettingsFile"
 $settingsJson = Get-Content -Raw -Path $SettingsFile | ConvertFrom-Json
 
-$address = ./Deployment/Get-FunctionUri.ps1 -ResourceGroup $settingsJson.ResourceGroupName
+$webApp = Get-AzWebApp `
+    -ResourceGroupName $ResourceGroupName `
+    -Name $ResourceGroupName
+ 
+$address = ./Deployment/Get-FunctionUri.ps1 `
+    -WebApp $webApp `
 
 For ($i = 0; $i -le 10; $i++) {
     Try {

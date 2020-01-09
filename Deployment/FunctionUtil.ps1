@@ -1,11 +1,9 @@
 function Get-KuduCredentials() {
     param(
-        [Parameter(Mandatory = $true)][string]$AppName,
-        [Parameter(Mandatory = $true)][string]$ResourceGroup
+        [Parameter(Mandatory = $true)][Microsoft.Azure.Commands.WebApps.Models.PSSite]$App
     )
 
-    $xml = [xml](Get-AzWebAppPublishingProfile -Name $AppName `
-            -ResourceGroupName $ResourceGroup `
+    $xml = [xml](Get-AzWebAppPublishingProfile -WebApp $App `
             -OutputFile $null)
 
     # Extract connection information from publishing profile
@@ -43,6 +41,23 @@ function Get-FunctionKey() {
     $code = $keys.keys[0].value
     return $code
 }
+
+function Get-InvokeUrl() {
+    param(
+        [Parameter(Mandatory = $true)][string]$AppName,
+        [Parameter(Mandatory = $true)][string]$FunctionName,
+        [Parameter(Mandatory = $true)][string]$EncodedCreds
+    )
+
+    $jwt = Get-Token -AppName $AppName -EncodedCreds $EncodedCreds
+
+    $response = Invoke-RestMethod -Method GET -Headers @{Authorization = ("Bearer {0}" -f $jwt) } `
+        -Uri "https://$AppName.azurewebsites.net/admin/functions/$FunctionName"
+
+    $url = $response.invoke_url_template
+    return $url
+}
+
 function Get-DefaultCode() {
     param(
         [Parameter(Mandatory = $true)][string]$AppName,
