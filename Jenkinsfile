@@ -44,7 +44,7 @@ podTemplate(label: pod.label,
             container('powershell') {
                 stage('Package') {
                     sh """
-                        pwsh -command "Compress-Archive -DestinationPath $zipName -Path $functionsProject/$publishFolder -Force"
+                        pwsh -command "Compress-Archive -DestinationPath $zipName -Path $functionsProject/$publishFolder/* -Force"
                     """
                 }
 
