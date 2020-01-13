@@ -43,10 +43,8 @@ namespace ValidationLibrary.Rules
         {
             var versionFetcher = new ReleaseVersionFetcher(ghClient, "protacon", LibraryName);
             _expectedVersion = await versionFetcher.GetLatest();
+            _latestReleaseUrl = await versionFetcher.GetLatestUrl();
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Newest version: {expectedVersion}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, _expectedVersion);
-
-            var releases = await ghClient.Repository.Release.GetAll("protacon", LibraryName);
-            _latestReleaseUrl = releases[0].HtmlUrl;
         }
 
         /// <summary>
