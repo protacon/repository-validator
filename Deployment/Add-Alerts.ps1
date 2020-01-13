@@ -17,9 +17,9 @@
     Resource group hosting the Repository Validator solution
 #>
 param(
-    [Parameter(Mandatory = $true)][string]$AlertTargetResourceGroup,
-    [Parameter(Mandatory = $true)][string]$AlertTargetGroupName,
-    [Parameter(Mandatory = $true)][string]$ResourceGroup
+    [Parameter(Mandatory)][string]$AlertTargetResourceGroup,
+    [Parameter(Mandatory)][string]$AlertTargetGroupName,
+    [Parameter(Mandatory)][string]$ResourceGroup
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest

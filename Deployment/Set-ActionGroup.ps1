@@ -8,9 +8,9 @@
     channel as part of the url
 #>
 param(
-    [Parameter(Mandatory = $true)][string]$AlertUrl,
-    [Parameter(Mandatory = $true)][string]$ActionGroupResourceGroup,
-    [Parameter(Mandatory = $true)][string]$ActionGroupName
+    [Parameter(Mandatory)][string]$AlertUrl,
+    [Parameter(Mandatory)][string]$ActionGroupResourceGroup,
+    [Parameter(Mandatory)][string]$ActionGroupName
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest

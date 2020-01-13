@@ -14,7 +14,7 @@
     .\Publish.ps1 -ResourceGroup "github-test" -WebAppName "test-app"
 #>
 param(
-    [Parameter(Mandatory = $true)][Microsoft.Azure.Commands.WebApps.Models.PSSite]$WebApp,
+    [Parameter(Mandatory)][Microsoft.Azure.Commands.WebApps.Models.PSSite]$WebApp,
     [Parameter()][string]$FunctionName = 'RepositoryValidator'
 )
 $ErrorActionPreference = "Stop"

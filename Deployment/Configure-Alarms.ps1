@@ -27,12 +27,12 @@
     web hook url
 #>
 param(
-    [Parameter(Mandatory = $true)][string]$MonitoredWebAppResourceGroup,
-    [Parameter(Mandatory = $true)][string]$MonitoredWebAppName,
-    [Parameter(Mandatory = $true)][string]$AlertHandlingResourceGroup,
-    [Parameter(Mandatory = $true)][string]$AlertHandlingWebAppName = $AlertHandlingResourceGroup,
-    [Parameter(Mandatory = $true)][string]$AlertHandlingFunction = 'AlertEndpoint',
-    [Parameter(Mandatory = $true)][string]$AlertSlackChannel
+    [Parameter(Mandatory)][string]$MonitoredWebAppResourceGroup,
+    [Parameter(Mandatory)][string]$MonitoredWebAppName,
+    [Parameter(Mandatory)][string]$AlertHandlingResourceGroup,
+    [Parameter(Mandatory)][string]$AlertHandlingWebAppName = $AlertHandlingResourceGroup,
+    [Parameter(Mandatory)][string]$AlertHandlingFunction = 'AlertEndpoint',
+    [Parameter(Mandatory)][string]$AlertSlackChannel
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest

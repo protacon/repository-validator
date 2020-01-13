@@ -19,7 +19,7 @@
     .\Publish.ps1 -ResourceGroup "github-test" -WebAppName "hjni-test"
 #>
 param(
-    [Parameter(Mandatory = $true)][string]$ResourceGroup,
+    [Parameter(Mandatory)][string]$ResourceGroup,
     [Parameter()][string]$WebAppName = $ResourceGroup,
     [Parameter()][string]$VersionSuffx = "DEV")
 

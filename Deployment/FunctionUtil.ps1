@@ -1,6 +1,6 @@
 function Get-KuduCredentials() {
     param(
-        [Parameter(Mandatory = $true)][Microsoft.Azure.Commands.WebApps.Models.PSSite]$App
+        [Parameter(Mandatory)][Microsoft.Azure.Commands.WebApps.Models.PSSite]$App
     )
 
     $xml = [xml](Get-AzWebAppPublishingProfile -WebApp $App `
@@ -16,8 +16,8 @@ function Get-KuduCredentials() {
 
 function Get-Token() {
     param(
-        [Parameter(Mandatory = $true)][string]$AppName,
-        [Parameter(Mandatory = $true)][string]$EncodedCreds
+        [Parameter(Mandatory)][string]$AppName,
+        [Parameter(Mandatory)][string]$EncodedCreds
     )
     $jwt = Invoke-RestMethod -Uri "https://$AppName.scm.azurewebsites.net/api/functions/admin/token" `
         -Headers @{Authorization = ("Basic {0}" -f $EncodedCreds) } `
@@ -28,9 +28,9 @@ function Get-Token() {
 
 function Get-FunctionKey() {
     param(
-        [Parameter(Mandatory = $true)][string]$AppName,
-        [Parameter(Mandatory = $true)][string]$FunctionName,
-        [Parameter(Mandatory = $true)][string]$EncodedCreds
+        [Parameter(Mandatory)][string]$AppName,
+        [Parameter(Mandatory)][string]$FunctionName,
+        [Parameter(Mandatory)][string]$EncodedCreds
     )
 
     $jwt = Get-Token -AppName $AppName -EncodedCreds $EncodedCreds
@@ -44,9 +44,9 @@ function Get-FunctionKey() {
 
 function Get-InvokeUrl() {
     param(
-        [Parameter(Mandatory = $true)][string]$AppName,
-        [Parameter(Mandatory = $true)][string]$FunctionName,
-        [Parameter(Mandatory = $true)][string]$EncodedCreds
+        [Parameter(Mandatory)][string]$AppName,
+        [Parameter(Mandatory)][string]$FunctionName,
+        [Parameter(Mandatory)][string]$EncodedCreds
     )
 
     $jwt = Get-Token -AppName $AppName -EncodedCreds $EncodedCreds
@@ -60,8 +60,8 @@ function Get-InvokeUrl() {
 
 function Get-DefaultCode() {
     param(
-        [Parameter(Mandatory = $true)][string]$AppName,
-        [Parameter(Mandatory = $true)][string]$EncodedCreds
+        [Parameter(Mandatory)][string]$AppName,
+        [Parameter(Mandatory)][string]$EncodedCreds
     )
     $jwt = Get-Token -AppName $AppName -EncodedCreds $EncodedCreds
 
