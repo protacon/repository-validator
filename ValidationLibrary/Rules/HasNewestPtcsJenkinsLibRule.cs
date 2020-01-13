@@ -31,6 +31,7 @@ namespace ValidationLibrary.Rules
         private readonly ILogger<HasNewestPtcsJenkinsLibRule> _logger;
         private readonly GitUtils _gitUtils;
         private string _expectedVersion;
+        private string _latestReleaseUrl;
 
         public HasNewestPtcsJenkinsLibRule(ILogger<HasNewestPtcsJenkinsLibRule> logger, GitUtils gitUtils)
         {
@@ -43,6 +44,9 @@ namespace ValidationLibrary.Rules
             var versionFetcher = new ReleaseVersionFetcher(ghClient, "protacon", LibraryName);
             _expectedVersion = await versionFetcher.GetLatest();
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Newest version: {expectedVersion}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, _expectedVersion);
+
+            var releases = await ghClient.Repository.Release.GetAll("protacon", LibraryName);
+            _latestReleaseUrl = releases[0].HtmlUrl;
         }
 
         /// <summary>
@@ -151,6 +155,7 @@ namespace ValidationLibrary.Rules
 
         private async Task OpenOldPullRequest(IGitHubClient client, Repository repository, PullRequest oldPullRequest)
         {
+            Console.WriteLine("Olen suomalainen");
             _logger.LogInformation("Rule {ruleClass} / {ruleName}: Opening pull request #{number}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, oldPullRequest.Number);
             var pullRequest = new PullRequestUpdate()
             {
@@ -171,7 +176,9 @@ namespace ValidationLibrary.Rules
                         Environment.NewLine +
                         "To prevent automatic validation, see documentation from [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
                         Environment.NewLine +
-                        "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation." + Environment.NewLine
+                        "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation." + Environment.NewLine +
+                        Environment.NewLine +
+                        "The latest release can be found here: " + _latestReleaseUrl + Environment.NewLine
             };
             await client.PullRequest.Create(repository.Owner.Login, repository.Name, pullRequest);
         }
