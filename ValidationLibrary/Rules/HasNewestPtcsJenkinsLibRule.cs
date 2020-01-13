@@ -155,7 +155,6 @@ namespace ValidationLibrary.Rules
 
         private async Task OpenOldPullRequest(IGitHubClient client, Repository repository, PullRequest oldPullRequest)
         {
-            Console.WriteLine("Olen suomalainen");
             _logger.LogInformation("Rule {ruleClass} / {ruleName}: Opening pull request #{number}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, oldPullRequest.Number);
             var pullRequest = new PullRequestUpdate()
             {
