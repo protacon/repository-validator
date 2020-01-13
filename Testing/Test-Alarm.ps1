@@ -17,8 +17,8 @@ Write-Host "Reading settings from file $SettingsFile"
 $settingsJson = Get-Content -Raw -Path $SettingsFile | ConvertFrom-Json
 
 $webApp = Get-AzWebApp `
-    -ResourceGroupName $ResourceGroupName `
-    -Name $ResourceGroupName
+    -ResourceGroupName $settingsJson.ResourceGroupName `
+    -Name $settingsJson.ResourceGroupName
  
 $address = ./Deployment/Get-FunctionUri.ps1 `
     -WebApp $webApp `

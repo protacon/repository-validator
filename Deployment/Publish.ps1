@@ -56,6 +56,6 @@ $apiUrl = "https://$url/api/zipdeploy"
 $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username, $password)))
 $userAgent = "powershell/1.0"
 
-Write-Host 'Deploying new version...'
+Write-Host "Deploying new version to $apiUrl..."
 Invoke-RestMethod -Uri $apiUrl -Headers @{Authorization = ("Basic {0}" -f $base64AuthInfo) } -UserAgent $userAgent -Method POST -InFile $fullZipTarget -ContentType "multipart/form-data"
 Write-Host 'Version deployed'
