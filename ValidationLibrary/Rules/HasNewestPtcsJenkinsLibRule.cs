@@ -42,9 +42,9 @@ namespace ValidationLibrary.Rules
         public async Task Init(IGitHubClient ghClient)
         {
             var versionFetcher = new ReleaseVersionFetcher(ghClient, "protacon", LibraryName);
-            var fetchedVersion = await versionFetcher.GetLatest();
-            _expectedVersion = fetchedVersion.TagName;
-            _latestReleaseUrl = fetchedVersion.HtmlUrl;
+            var release = await versionFetcher.GetLatest();
+            _expectedVersion = release.TagName;
+            _latestReleaseUrl = release.HtmlUrl;
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Newest version: {expectedVersion}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, _expectedVersion);
         }
 
