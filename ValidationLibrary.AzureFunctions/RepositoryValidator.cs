@@ -53,7 +53,6 @@ namespace ValidationLibrary.AzureFunctions
             }
             catch (Exception exception)
             {
-                req?.Dispose();
                 if (exception is ArgumentException || exception is JsonException)
                 {
                     _logger.LogError(exception, "Invalid request received");
