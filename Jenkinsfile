@@ -1,4 +1,4 @@
-library 'jenkins-ptcs-library@2.2.0'
+library 'jenkins-ptcs-library@2.3.0'
 
 def isDependabot(branchName) { return branchName.toString().startsWith("dependabot/nuget") }
 def isMaster(branchName) { return branchName == "master" }
@@ -44,7 +44,7 @@ podTemplate(label: pod.label,
             container('powershell') {
                 stage('Package') {
                     sh """
-                        pwsh -command "&./Deployment/Zip.ps1 -Destination $zipName -PublishFolder $functionsProject/$publishFolder"
+                        pwsh -command "Compress-Archive -DestinationPath $zipName -Path $functionsProject/$publishFolder/* -Force"
                     """
                 }
 
