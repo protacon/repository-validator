@@ -97,29 +97,25 @@ podTemplate(label: pod.label,
                     }
                 }
                 if (isMaster(branch)){
-                    withCredentials([azureServicePrincipal('PTCG_Azure_SP')]){
-                        stage('Login to production'){
+                    toAzureEnv("PTCG_Azure_SP") {
+                        withCredentials([
+                            string(credentialsId: 'hjni_github_token', variable: 'GH_TOKEN')
+                        ]){
+                            stage('Create production environment') {
+                                sh """
+                                    pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -environment Development"
+                                """
+                            }
+                        }
+                        stage('Publish to production environment') {
                             sh """
-                                pwsh -command "./Deployment/Login.ps1 -ApplicationId '$AZURE_CLIENT_ID' -ApplicationKey '$AZURE_CLIENT_SECRET' -TenantId '$AZURE_TENANT_ID' -SubscriptionId $AZURE_SUBSCRIPTION_ID"
+                                pwsh -command "Publish-AzWebApp -ResourceGroupName $resourceGroup -Name $appName -ArchivePath $zipName -Force"
+                                pwsh -command "&./Deployment/Configure-Alarms.ps1 -MonitoredWebAppResourceGroup $resourceGroup -MonitoredWebAppName $appName -AlertHandlingResourceGroup 'protacon-slack-alarm-service' -AlertSlackChannel 'hjni-testi'"
                             """
                         }
-                    }
-                    withCredentials([
-                        string(credentialsId: 'hjni_github_token', variable: 'GH_TOKEN')
-                    ]){
-                        stage('Create production environment') {
-                            sh """
-                                pwsh -command "New-AzResourceGroupDeployment -Name github-validator -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $appName -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force) -gitHubOrganization $gitHubOrganization -environment Development"
-                            """
-                        }
-                    }
-                    stage('Publish to production environment') {
-                        sh """
-                            pwsh -command "Publish-AzWebApp -ResourceGroupName $resourceGroup -Name $appName -ArchivePath $zipName -Force"
-                        """
                     }
                 }
             }
         }
     }
-  }
+}
