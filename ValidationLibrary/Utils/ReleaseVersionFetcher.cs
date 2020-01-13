@@ -16,17 +16,11 @@ namespace ValidationLibrary.Utils
             _name = name;
         }
 
-        public async Task<string> GetLatest()
+        public async Task<Octokit.Release> GetLatest()
         {
             // Per documentation, this should not return prerelease or draft-releases.
             var result = await _client.Repository.Release.GetLatest(_owner, _name);
-            return result.TagName;
-        }
-
-        public async Task<string> GetLatestUrl()
-        {
-            var result = await _client.Repository.Release.GetLatest(_owner, _name);
-            return result.HtmlUrl;
+            return result;
         }
     }
 }
