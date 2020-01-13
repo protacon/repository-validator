@@ -31,6 +31,7 @@ namespace ValidationLibrary.Rules
         private readonly ILogger<HasNewestPtcsJenkinsLibRule> _logger;
         private readonly GitUtils _gitUtils;
         private string _expectedVersion;
+        private string _latestReleaseUrl;
 
         public HasNewestPtcsJenkinsLibRule(ILogger<HasNewestPtcsJenkinsLibRule> logger, GitUtils gitUtils)
         {
@@ -41,7 +42,9 @@ namespace ValidationLibrary.Rules
         public async Task Init(IGitHubClient ghClient)
         {
             var versionFetcher = new ReleaseVersionFetcher(ghClient, "protacon", LibraryName);
-            _expectedVersion = await versionFetcher.GetLatest();
+            var release = await versionFetcher.GetLatest();
+            _expectedVersion = release.TagName;
+            _latestReleaseUrl = release.HtmlUrl;
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Newest version: {expectedVersion}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, _expectedVersion);
         }
 
@@ -171,7 +174,9 @@ namespace ValidationLibrary.Rules
                         Environment.NewLine +
                         "To prevent automatic validation, see documentation from [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
                         Environment.NewLine +
-                        "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation." + Environment.NewLine
+                        "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation." + Environment.NewLine +
+                        Environment.NewLine +
+                        "The latest release can be found here: " + _latestReleaseUrl + Environment.NewLine
             };
             await client.PullRequest.Create(repository.Owner.Login, repository.Name, pullRequest);
         }
