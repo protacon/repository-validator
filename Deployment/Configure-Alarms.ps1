@@ -30,8 +30,8 @@ param(
     [Parameter(Mandatory)][string]$MonitoredWebAppResourceGroup,
     [Parameter(Mandatory)][string]$MonitoredWebAppName,
     [Parameter(Mandatory)][string]$AlertHandlingResourceGroup,
-    [Parameter(Mandatory)][string]$AlertHandlingWebAppName = $AlertHandlingResourceGroup,
-    [Parameter(Mandatory)][string]$AlertHandlingFunction = 'AlertEndpoint',
+    [Parameter()][string]$AlertHandlingWebAppName = $AlertHandlingResourceGroup,
+    [Parameter()][string]$AlertHandlingFunction = 'AlertEndpoint',
     [Parameter(Mandatory)][string]$AlertSlackChannel
 )
 $ErrorActionPreference = "Stop"
