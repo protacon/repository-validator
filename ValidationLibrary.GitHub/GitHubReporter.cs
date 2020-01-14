@@ -21,9 +21,14 @@ namespace ValidationLibrary.GitHub
             _config = config;
         }
 
-        public async Task Report(params ValidationReport[] reports)
+        public async Task Report(IEnumerable<ValidationReport> reports)
         {
-            _logger.LogTrace("Reporting {count} reports to GitHub.", reports.Length);
+            if (reports is null)
+            {
+                throw new ArgumentNullException(nameof(reports));
+            }
+
+            _logger.LogTrace("Reporting {count} reports to GitHub.", reports.Count());
             var current = await _client.User.Current().ConfigureAwait(false);
             foreach (var report in reports)
             {

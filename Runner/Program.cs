@@ -31,7 +31,7 @@ namespace Runner
                 "DO NOT change the name of this issue. Names are used to identify the issues created by automation." + Environment.NewLine
         };
 
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
@@ -44,23 +44,25 @@ namespace Runner
             var ghClient = di.GetService<IGitHubClient>();
             var repositoryValidator = di.GetService<RepositoryValidator>();
             var client = di.GetService<ValidationClient>();
-            client.Init().Wait();
+            await client.Init();
 
-            void scanner(IEnumerable<string> repositories, Options options)
+            async Task scanner(IEnumerable<string> repositories, Options options)
             {
                 var start = DateTime.UtcNow;
-                var results = repositories.Select(repo =>
+
+                var results = new List<ValidationReport>();
+                foreach (var repo in repositories)
                 {
-                    // This sleeps used to avoid hitting GitHub API limits
-                    Thread.Sleep(TimeSpan.FromSeconds(3));
-                    return client.ValidateRepository(githubConfig.Organization, repo, options.IgnoreRepositoryRules).ConfigureAwait(false).GetAwaiter().GetResult();
-                }).ToArray();
+                    await Task.Delay(TimeSpan.FromSeconds(3));
+                    var result = await client.ValidateRepository(githubConfig.Organization, repo, options.IgnoreRepositoryRules).ConfigureAwait(false);
+                    results.Add(result);
+                }
 
                 ReportToConsole(logger, results);
 
                 if (options.AutoFix)
                 {
-                    PerformAutofixes(ghClient, results);
+                    await PerformAutofixes(ghClient, results);
                 }
                 if (!string.IsNullOrWhiteSpace(options.CsvFile))
                 {
@@ -68,7 +70,7 @@ namespace Runner
                 }
                 if (options.ReportToGithub)
                 {
-                    ReportToGitHub(ghClient, GitHubReporterConfig, di.GetService<ILogger<GitHubReporter>>(), results).Wait();
+                    await ReportToGitHub(ghClient, GitHubReporterConfig, di.GetService<ILogger<GitHubReporter>>(), results);
                 }
                 if (options.ReportToSlack)
                 {
@@ -77,47 +79,47 @@ namespace Runner
                     {
                         var slackConfig = new SlackConfiguration();
                         slackSection.Bind(slackConfig);
-                        ReportToSlack(slackConfig, logger, results).Wait();
+                        await ReportToSlack(slackConfig, logger, results);
                     }
                 }
                 logger.LogInformation("Duration {duration}", (DateTime.UtcNow - start).TotalSeconds);
             }
 
-            Parser.Default.ParseArguments<ScanSelectedOptions, ScanAllOptions, DebugTestOptions>(args)
-            .WithParsed<ScanSelectedOptions>(options =>
-            {
-                scanner(options.Repositories, options);
-            })
-            .WithParsed<ScanAllOptions>(options =>
-            {
-                var allNonArchivedRepositories = ghClient
-                    .Repository
-                    .GetAllForOrg(githubConfig.Organization)
-                    .Result
-                    .Where(repository => !repository.Archived);
-                scanner(allNonArchivedRepositories.Select(r => r.Name).ToArray(), options);
-            })
-            .WithParsed<DebugTestOptions>(options =>
-            {
-                var utils = di.GetService<GitUtils>();
-                var pr = ghClient.PullRequest.Get(githubConfig.Organization, options.Repository, options.PullRequestNumber).ConfigureAwait(false).GetAwaiter().GetResult();
-                var result = utils.PullRequestHasLiveBranch(ghClient, pr).Result;
-                logger.LogInformation("PR '{title}' has live branch: {result}", pr.Title, result);
-            });
+            await Parser.Default
+                .ParseArguments<ScanSelectedOptions, ScanAllOptions, DebugTestOptions>(args)
+                .MapResult(
+                    async (ScanSelectedOptions options) => await scanner(options.Repositories, options),
+                    async (ScanAllOptions options) =>
+                    {
+                        var allNonArchivedRepositories = ghClient
+                            .Repository
+                            .GetAllForOrg(githubConfig.Organization)
+                            .Result
+                            .Where(repository => !repository.Archived);
+                        await scanner(allNonArchivedRepositories.Select(r => r.Name).ToArray(), options);
+                    },
+                    async (DebugTestOptions options) =>
+                    {
+                        var utils = di.GetService<GitUtils>();
+                        var pr = await ghClient.PullRequest.Get(githubConfig.Organization, options.Repository, options.PullRequestNumber);
+                        var result = await utils.PullRequestHasLiveBranch(ghClient, pr);
+                        logger.LogInformation("PR '{title}' has live branch: {result}", pr.Title, result);
+                    },
+                    async errors => await Task.CompletedTask);
         }
 
-        private static void PerformAutofixes(IGitHubClient ghClient, ValidationReport[] results)
+        private static async Task PerformAutofixes(IGitHubClient ghClient, IEnumerable<ValidationReport> results)
         {
             foreach (var repositoryResult in results)
             {
                 foreach (var ruleResult in repositoryResult.Results.Where(r => !r.IsValid))
                 {
-                    ruleResult.Fix(ghClient, repositoryResult.Repository).Wait();
+                    await ruleResult.Fix(ghClient, repositoryResult.Repository);
                 }
             }
         }
 
-        private static void ReportToConsole(ILogger logger, params ValidationReport[] reports)
+        private static void ReportToConsole(ILogger logger, IEnumerable<ValidationReport> reports)
         {
             foreach (var report in reports)
             {
@@ -129,20 +131,20 @@ namespace Runner
             }
         }
 
-        private static async Task ReportToGitHub(IGitHubClient client, GitHubReportConfig config, ILogger<GitHubReporter> logger, params ValidationReport[] reports)
+        private static async Task ReportToGitHub(IGitHubClient client, GitHubReportConfig config, ILogger<GitHubReporter> logger, IEnumerable<ValidationReport> reports)
         {
             var reporter = new GitHubReporter(logger, client, config);
             await reporter.Report(reports);
         }
 
-        private static void ReportToCsv(ILogger<CsvReporter> logger, string fileName, params ValidationReport[] reports)
+        private static void ReportToCsv(ILogger<CsvReporter> logger, string fileName, IEnumerable<ValidationReport> reports)
         {
             var file = new FileInfo(fileName);
             var reporter = new CsvReporter(logger, file);
             reporter.Report(reports);
         }
 
-        private static async Task ReportToSlack(SlackConfiguration config, ILogger logger, params ValidationReport[] reports)
+        private static async Task ReportToSlack(SlackConfiguration config, ILogger logger, IEnumerable<ValidationReport> reports)
         {
             var slackClient = new SlackClient(config);
             using var response = await slackClient.SendMessageAsync(reports);
