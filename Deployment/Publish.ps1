@@ -19,7 +19,7 @@
     .\Publish.ps1 -ResourceGroup "github-test" -WebAppName "hjni-test"
 #>
 param(
-    [Parameter(Mandatory = $true)][string]$ResourceGroup,
+    [Parameter(Mandatory)][string]$ResourceGroup,
     [Parameter()][string]$WebAppName = $ResourceGroup,
     [Parameter()][string]$VersionSuffx = "DEV")
 
@@ -34,28 +34,12 @@ if (Test-path $publishFolder) { Remove-Item -Recurse -Force $publishFolder }
 dotnet publish -c Release -o $publishFolder $azureFunctionProject --version-suffix $VersionSuffx
 
 $destination = "publish.zip"
-if (Test-path $destination) { Remove-item $destination }
-Add-Type -assembly "system.io.compression.filesystem"
-
-$fullSourcePath = (Resolve-Path "$azureFunctionProject\$publishFolder").Path
+$fullSourcePath = (Resolve-Path "$publishFolder").Path
 $fullTargetPath = (Resolve-Path ".\").Path
 $fullZipTarget = "$fullTargetPath\$destination"
-[io.compression.zipfile]::CreateFromDirectory($fullSourcePath, $fullZipTarget)
 
-Write-Host 'Fetching publishing profiles...'
-# Get publishing profile for the web app
-$xml = [xml](Get-AzWebAppPublishingProfile -Name $WebAppName `
-        -ResourceGroupName $ResourceGroup `
-        -OutputFile $null)
+Compress-Archive -DestinationPath $fullZipTarget -Path "$fullSourcePath/*" -Force
 
-# Extract connection information from publishing profile
-$username = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userName").value
-$password = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@userPWD").value
-$url = $xml.SelectNodes("//publishProfile[@publishMethod=`"MSDeploy`"]/@publishUrl").value
-$apiUrl = "https://$url/api/zipdeploy"
-$base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username, $password)))
-$userAgent = "powershell/1.0"
-
-Write-Host 'Deploying new version...'
-Invoke-RestMethod -Uri $apiUrl -Headers @{Authorization = ("Basic {0}" -f $base64AuthInfo) } -UserAgent $userAgent -Method POST -InFile $fullZipTarget -ContentType "multipart/form-data"
+Write-Host "Deploying new version."
+Publish-AzWebApp -ResourceGroupName $ResourceGroup -Name $WebAppName -ArchivePath $fullZipTarget -Force
 Write-Host 'Version deployed'

@@ -15,10 +15,10 @@
     Subscription Id
 #>
 param(
-    [Parameter(Mandatory = $true)][string]$ApplicationId,
-    [Parameter(Mandatory = $true)][string]$ApplicationKey,
-    [Parameter(Mandatory = $true)][string]$TenantId,
-    [Parameter(Mandatory = $true)][string]$SubscriptionId
+    [Parameter(Mandatory)][string]$ApplicationId,
+    [Parameter(Mandatory)][string]$ApplicationKey,
+    [Parameter(Mandatory)][string]$TenantId,
+    [Parameter(Mandatory)][string]$SubscriptionId
 )
 
 $ErrorActionPreference = "Stop"

@@ -19,13 +19,13 @@ namespace ValidationLibrary
 
         public async Task Init()
         {
-            await _validator.Init();
+            await _validator.Init().ConfigureAwait(false);
         }
 
         public async Task<ValidationReport> ValidateRepository(string organization, string repositoryName, bool overrideRuleIgnore)
         {
-            var repository = await _client.Repository.Get(organization, repositoryName);
-            var result = await _validator.Validate(repository, overrideRuleIgnore);
+            var repository = await _client.Repository.Get(organization, repositoryName).ConfigureAwait(false);
+            var result = await _validator.Validate(repository, overrideRuleIgnore).ConfigureAwait(false);
             return result;
         }
     }

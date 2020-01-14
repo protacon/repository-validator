@@ -92,6 +92,7 @@ replace configuration values with personal values
 and use `setx ASPNETCORE_ENVIRONMENT "Development"` to set environment
 
 #### Azure Functions
+
 For Azure functions, configurations are read from Web site config.
 See `Deployment/azuredeploy.json` and `Deployment`-section for configuration.
 
@@ -134,6 +135,7 @@ lead to extra trafic and events when we don't want to perform validation, like p
 Read [GitHub developer guide](https://developer.github.com/webhooks/) for more information about webhooks.
 
 ## Deployment
+
 Project ValidationLibrary.AzureFunctions can be deployed to Azure as Azure Function.
 This function periodically validates repositories and reports to configured channel
 
@@ -177,9 +179,9 @@ Create Zip file for deployment
 ./Deployment/Zip.ps1 -Destination "publish.zip" -PublishFolder "ValidationLibrary.AzureFunctions/my-publish-directory"
 ```
 
-Use Deployment/Deploy.ps1
+Use [Publish-AzWebApp](https://docs.microsoft.com/en-us/powershell/module/az.websites/publish-azwebapp)
 ```
-./Deployment/Deploy.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-app-name" -ZipFilePath "publish.zip"
+Publish-AzWebApp -ResourceGroupName $ResourceGroup -Name $WebAppName -ArchivePath $fullZipTarget -Force
 ```
 
 ## License

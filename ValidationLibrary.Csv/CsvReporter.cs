@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CsvHelper;
@@ -17,7 +18,7 @@ namespace ValidationLibrary.Csv
             _destinationFile = destinationFile;
         }
 
-        public void Report(params ValidationReport[] reports)
+        public void Report(IEnumerable<ValidationReport> reports)
         {
             _logger.LogTrace("Reporting {count} reports to CSV {destinationFile}", reports.Count(), _destinationFile.FullName);
             var flatten = from report in reports

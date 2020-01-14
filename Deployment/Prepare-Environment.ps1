@@ -3,7 +3,7 @@
     Creates environment in Azure from given settings file
 
     .DESCRIPTION
-    Creates and prepares and environmnet for development and testing.
+    Creates and prepares and environment for development and testing.
     SettingsFile (default developer-settings.json) should contain all
     relat
 
@@ -35,3 +35,19 @@ New-AzResourceGroupDeployment `
 
 Write-Host 'Publishing...'
 .\Deployment\Publish.ps1 -ResourceGroup $settingsJson.ResourceGroupName
+
+if ($settingsJson.AzureAlarmHandlerUrl) {
+    Write-Host 'Creating action group'
+    .\Deployment\Set-ActionGroup.ps1 `
+        -AlertUrl $settingsJson.AzureAlarmHandlerUrl `
+        -ActionGroupResourceGroup $settingsJson.ResourceGroupName `
+        -ActionGroupName 'repo-alerts'
+
+    .\Deployment\Add-Alerts.ps1 `
+        -ResourceGroup $settingsJson.ResourceGroupName `
+        -AlertTargetResourceGroup $settingsJson.ResourceGroupName `
+        -AlertTargetGroupName 'repo-alerts'
+}
+else {
+    Write-Host 'No Azure Alarm Webhook specified, not creating alarm group'
+}

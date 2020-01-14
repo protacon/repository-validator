@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -30,8 +31,8 @@ namespace ValidationLibrary.Slack
             _config = config;
             _webhookUrl = new Uri(_config.WebHookUrl);
         }
-    
-        public async Task<HttpResponseMessage> SendMessageAsync(params ValidationReport[] report)
+
+        public async Task<HttpResponseMessage> SendMessageAsync(IEnumerable<ValidationReport> report)
         {
             var problemRepositories = report.Where(repo => repo.Results.Any(result => !result.IsValid)).Select(Format).Take(_config.ReportLimit);
 
@@ -42,7 +43,7 @@ namespace ValidationLibrary.Slack
             var serializedPayload = JsonConvert.SerializeObject(payload);
             var response = await _httpClient.PostAsync(_webhookUrl,
                 new StringContent(serializedPayload, Encoding.UTF8, "application/json"));
-    
+
             return response;
         }
 
@@ -51,11 +52,12 @@ namespace ValidationLibrary.Slack
             var errors = report.Results.Where(r => !r.IsValid).Select(r => $"{r.RuleName}: Failed");
             var message = string.Join("\n", errors);
 
-            return new {
+            return new
+            {
                 title = $"{report.Owner}/{report.RepositoryName}",
                 title_link = report.RepositoryUrl,
                 text = message,
-                mrkdwn_in = new []{"text"}
+                mrkdwn_in = new[] { "text" }
             };
         }
     }
