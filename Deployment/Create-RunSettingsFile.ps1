@@ -17,8 +17,10 @@ Set-StrictMode -Version Latest
 
 . "./Deployment/FunctionUtil.ps1"
 
+$webApp = Get-AzWebApp -ResourceGroupName $ResourceGroup -Name $WebAppName
+
 Write-Host "Fetch credentials..."
-$kuduCreds = Get-KuduCredentials $WebAppName $ResourceGroup
+$kuduCreds = Get-KuduCredentials $webApp
 $code = Get-DefaultCode -AppName $WebAppName -EncodedCreds $kuduCreds
 
 [xml]$document = New-Object System.Xml.XmlDocument
