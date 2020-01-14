@@ -53,6 +53,6 @@ $address = $addressTemplate -Replace '{channel}', $AlertSlackChannel
     -ActionGroupName 'repo-alerts'
 
 .\Deployment\Add-Alerts.ps1 `
-    -ResourceGroup $MonitoredWebAppResourceGroupe `
+    -ResourceGroup $MonitoredWebAppResourceGroup `
     -AlertTargetResourceGroup $MonitoredWebAppResourceGroup `
     -AlertTargetGroupName 'repo-alerts'
