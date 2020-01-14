@@ -1,11 +1,9 @@
 function Get-KuduCredentials() {
     param(
-        [Parameter(Mandatory = $true)][string]$AppName,
-        [Parameter(Mandatory = $true)][string]$ResourceGroup
+        [Parameter(Mandatory)][Microsoft.Azure.Commands.WebApps.Models.PSSite]$App
     )
 
-    $xml = [xml](Get-AzWebAppPublishingProfile -Name $AppName `
-            -ResourceGroupName $ResourceGroup `
+    $xml = [xml](Get-AzWebAppPublishingProfile -WebApp $App `
             -OutputFile $null)
 
     # Extract connection information from publishing profile
@@ -18,8 +16,8 @@ function Get-KuduCredentials() {
 
 function Get-Token() {
     param(
-        [Parameter(Mandatory = $true)][string]$AppName,
-        [Parameter(Mandatory = $true)][string]$EncodedCreds
+        [Parameter(Mandatory)][string]$AppName,
+        [Parameter(Mandatory)][string]$EncodedCreds
     )
     $jwt = Invoke-RestMethod -Uri "https://$AppName.scm.azurewebsites.net/api/functions/admin/token" `
         -Headers @{Authorization = ("Basic {0}" -f $EncodedCreds) } `
@@ -30,9 +28,9 @@ function Get-Token() {
 
 function Get-FunctionKey() {
     param(
-        [Parameter(Mandatory = $true)][string]$AppName,
-        [Parameter(Mandatory = $true)][string]$FunctionName,
-        [Parameter(Mandatory = $true)][string]$EncodedCreds
+        [Parameter(Mandatory)][string]$AppName,
+        [Parameter(Mandatory)][string]$FunctionName,
+        [Parameter(Mandatory)][string]$EncodedCreds
     )
 
     $jwt = Get-Token -AppName $AppName -EncodedCreds $EncodedCreds
@@ -43,10 +41,27 @@ function Get-FunctionKey() {
     $code = $keys.keys[0].value
     return $code
 }
+
+function Get-InvokeUrl() {
+    param(
+        [Parameter(Mandatory)][string]$AppName,
+        [Parameter(Mandatory)][string]$FunctionName,
+        [Parameter(Mandatory)][string]$EncodedCreds
+    )
+
+    $jwt = Get-Token -AppName $AppName -EncodedCreds $EncodedCreds
+
+    $response = Invoke-RestMethod -Method GET -Headers @{Authorization = ("Bearer {0}" -f $jwt) } `
+        -Uri "https://$AppName.azurewebsites.net/admin/functions/$FunctionName"
+
+    $url = $response.invoke_url_template
+    return $url
+}
+
 function Get-DefaultCode() {
     param(
-        [Parameter(Mandatory = $true)][string]$AppName,
-        [Parameter(Mandatory = $true)][string]$EncodedCreds
+        [Parameter(Mandatory)][string]$AppName,
+        [Parameter(Mandatory)][string]$EncodedCreds
     )
     $jwt = Get-Token -AppName $AppName -EncodedCreds $EncodedCreds
 

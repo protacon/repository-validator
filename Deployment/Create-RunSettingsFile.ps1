@@ -9,7 +9,7 @@
     Name of the target web app. If not set, resource group name is used.
 #>
 param(
-    [Parameter(Mandatory = $true)][string]$ResourceGroup,
+    [Parameter(Mandatory)][string]$ResourceGroup,
     [Parameter()][string]$WebAppName = $ResourceGroup)
 
 $ErrorActionPreference = "Stop"

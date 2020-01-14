@@ -39,6 +39,11 @@ namespace ValidationLibrary.AzureFunctions
 
         public void Configure(IWebJobsBuilder builder)
         {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             IConfiguration config = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .Build();

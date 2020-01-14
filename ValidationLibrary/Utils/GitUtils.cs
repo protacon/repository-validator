@@ -26,11 +26,21 @@ namespace ValidationLibrary.Utils
         /// <returns>True if branch is alive, false if not.</returns>
         public async Task<bool> PullRequestHasLiveBranch(IGitHubClient client, PullRequest pullRequest)
         {
+            if (client is null)
+            {
+                throw new System.ArgumentNullException(nameof(client));
+            }
+
+            if (pullRequest is null)
+            {
+                throw new System.ArgumentNullException(nameof(pullRequest));
+            }
+
             _logger.LogTrace("Pull request head: {ref} {sha} from repostitory {owner}/{name}", pullRequest.Head.Ref, pullRequest.Head.Sha, pullRequest.Head.Repository.Owner.Login, pullRequest.Head.Repository.Name);
             var owner = pullRequest.Head.Repository.Owner.Login;
             var repositoryName = pullRequest.Head.Repository.Name;
 
-            var branch = await client.Repository.Branch.Get(owner, repositoryName, pullRequest.Head.Ref);
+            var branch = await client.Repository.Branch.Get(owner, repositoryName, pullRequest.Head.Ref).ConfigureAwait(false);
             _logger.LogTrace("Refence SHA {sha}", branch.Commit.Sha, branch.Commit.Ref);
 
             return string.Equals(branch.Commit.Sha, pullRequest.Head.Sha, System.StringComparison.InvariantCulture);

@@ -23,11 +23,16 @@ namespace ValidationLibrary.Rules
         public Task Init(IGitHubClient ghClient)
         {
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Initialized", nameof(HasLicenseRule), RuleName);
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public Task<ValidationResult> IsValid(IGitHubClient client, Repository repository)
         {
+            if (repository is null)
+            {
+                throw new System.ArgumentNullException(nameof(repository));
+            }
+
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasLicenseRule), RuleName, repository.FullName);
             if (repository.Private)
             {
@@ -45,7 +50,7 @@ namespace ValidationLibrary.Rules
         private Task DoNothing(IGitHubClient client, Repository repository)
         {
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, No fix.", nameof(HasLicenseRule), RuleName);
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
     }
 }

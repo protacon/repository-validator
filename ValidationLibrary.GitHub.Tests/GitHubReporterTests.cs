@@ -67,7 +67,7 @@ namespace ValidationLibrary.GitHub.Tests
             };
 
             _mockRepositoryClient.Get(Arg.Any<string>(), Arg.Any<string>()).Returns((args) => Task.FromResult(CreateRepository((string)args[0], (string)args[1], false)));
-            await _reporter.Report(report);
+            await _reporter.Report(new ValidationReport[] { report });
             await _mockIssuesClient.DidNotReceive().Create(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<NewIssue>());
         }
 
@@ -84,7 +84,7 @@ namespace ValidationLibrary.GitHub.Tests
                 }
             };
 
-            await _reporter.Report(report);
+            await _reporter.Report(new ValidationReport[] { report });
 
 
             await _mockIssuesClient.Received().Create(report.Owner, report.RepositoryName, Arg.Is<NewIssue>(i => i.Title.Contains("Rule") && i.Body.EndsWith(_config.GenericNotice + Environment.NewLine)));
@@ -106,7 +106,7 @@ namespace ValidationLibrary.GitHub.Tests
             var issue = CreateIssue(CreateIssueTitle("Rule"), ItemState.Open);
             _mockIssuesClient.GetAllForRepository(report.Owner, report.RepositoryName, Arg.Any<RepositoryIssueRequest>()).Returns(Task.FromResult((IReadOnlyList<Issue>)new List<Issue>() { issue }));
 
-            await _reporter.Report(report);
+            await _reporter.Report(new ValidationReport[] { report });
 
             await _mockIssuesClient.DidNotReceive().Create(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<NewIssue>());
             await _mockIssuesClient.DidNotReceive().Update(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<IssueUpdate>());
@@ -128,7 +128,7 @@ namespace ValidationLibrary.GitHub.Tests
             var issue = CreateIssue(CreateIssueTitle("Rule"), ItemState.Closed);
             _mockIssuesClient.GetAllForRepository(report.Owner, report.RepositoryName, Arg.Any<RepositoryIssueRequest>()).Returns(Task.FromResult((IReadOnlyList<Issue>)new List<Issue>() { issue }));
 
-            await _reporter.Report(report);
+            await _reporter.Report(new ValidationReport[] { report });
 
             await _mockIssuesClient.DidNotReceive().Create(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<NewIssue>());
             await _mockIssuesClient.Received().Update(report.Owner, report.RepositoryName, issue.Number, Arg.Is<IssueUpdate>(update => update.State == ItemState.Open));
@@ -153,7 +153,7 @@ namespace ValidationLibrary.GitHub.Tests
             }).ToList();
             _mockIssuesClient.GetAllForRepository(report.Owner, report.RepositoryName, Arg.Any<RepositoryIssueRequest>()).Returns(Task.FromResult((IReadOnlyList<Issue>)issues));
 
-            await _reporter.Report(report);
+            await _reporter.Report(new ValidationReport[] { report });
 
             foreach (var issue in issues)
             {

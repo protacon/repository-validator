@@ -24,14 +24,24 @@ namespace ValidationLibrary.Rules
         public Task Init(IGitHubClient ghClient)
         {
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Initialized", nameof(HasNotManyStaleBranchesRule), RuleName);
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public async Task<ValidationResult> IsValid(IGitHubClient client, Repository gitHubRepository)
         {
+            if (client is null)
+            {
+                throw new ArgumentNullException(nameof(client));
+            }
+
+            if (gitHubRepository is null)
+            {
+                throw new ArgumentNullException(nameof(gitHubRepository));
+            }
+
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasNotManyStaleBranchesRule), RuleName, gitHubRepository.FullName);
 
-            var branches = await client.Repository.Branch.GetAll(gitHubRepository.Owner.Login, gitHubRepository.Name);
+            var branches = await client.Repository.Branch.GetAll(gitHubRepository.Owner.Login, gitHubRepository.Name).ConfigureAwait(false);
 
             var staleCommitsMap = new Dictionary<string, bool>();
             var staleTreshold = DateTimeOffset.UtcNow - TimeSpan.FromDays(90);
@@ -41,7 +51,7 @@ namespace ValidationLibrary.Rules
             {
                 if (!staleCommitsMap.ContainsKey(branch.Commit.Sha))
                 {
-                    var commit = await client.Repository.Commit.Get(gitHubRepository.Id, branch.Commit.Sha);
+                    var commit = await client.Repository.Commit.Get(gitHubRepository.Id, branch.Commit.Sha).ConfigureAwait(false);
                     staleCommitsMap[branch.Commit.Sha] = commit.Commit.Author.Date < staleTreshold;
                 }
 
@@ -56,7 +66,7 @@ namespace ValidationLibrary.Rules
         private Task DoNothing(IGitHubClient client, Repository repository)
         {
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, No fix.", nameof(HasNotManyStaleBranchesRule), RuleName);
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
     }
 }
