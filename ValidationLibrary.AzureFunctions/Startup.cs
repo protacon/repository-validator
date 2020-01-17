@@ -75,7 +75,7 @@ namespace ValidationLibrary.AzureFunctions
                         provicer.GetService<HasReadmeRule>(),
                         provicer.GetService<HasNotManyStaleBranchesRule>(),
                         provicer.GetService<HasNewestPtcsJenkinsLibRule>(),
-                        provicer.GetService<HasLicenseRule>()
+                        provicer.GetService<HasLicenseRule>(),
                         provicer.GetService<HasCodeownersRule>()
                     };
                     return new ValidationLibrary.RepositoryValidator(
