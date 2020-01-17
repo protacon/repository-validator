@@ -187,7 +187,8 @@ namespace Runner
                         provider.GetService<HasReadmeRule>(),
                         provider.GetService<HasNewestPtcsJenkinsLibRule>(),
                         provider.GetService<HasNotManyStaleBranchesRule>(),
-                        provider.GetService<HasLicenseRule>()
+                        provider.GetService<HasLicenseRule>(),
+                        provider.GetService<HasCodeownersRule>()
                     };
                     return new RepositoryValidator(
                         provider.GetService<ILogger<RepositoryValidator>>(),
@@ -200,6 +201,7 @@ namespace Runner
                 .AddTransient<HasNewestPtcsJenkinsLibRule>()
                 .AddTransient<HasNotManyStaleBranchesRule>()
                 .AddTransient<HasReadmeRule>()
+                .AddTransient<HasCodeownersRule>()
                 .BuildServiceProvider();
 
         private static void ValidateConfig(GitHubConfiguration gitHubConfiguration)
