@@ -9,10 +9,16 @@
     endpoint returns correct answer
 
     .PARAMETER ResourceGroup
-    Json file containing environment settings.
+    Resource group name
 
-    .PARAMETER AlertFile
-    Alert json that is sent to alert endpoint
+    .PARAMETER WebAppName
+    Name of the web app
+
+    .PARAMETER Organization
+    Organization/user containing the repository (default protacon)
+
+    .PARAMETER Repository
+    Name of the repository to be validated  (default repository-validator)
 #>
 [CmdLetBinding()]
 param(
@@ -43,5 +49,5 @@ $params = @{
     }
 } | ConvertTo-Json
 
-Write-Host 'Send alert'
+Write-Host 'Send validation request'
 Invoke-RestMethod -Method POST -Uri $address -Body $params -ContentType 'application/json;charset=UTF-8'
