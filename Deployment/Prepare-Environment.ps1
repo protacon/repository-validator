@@ -20,8 +20,13 @@ Set-StrictMode -Version Latest
 Write-Host "Reading settings from file $SettingsFile"
 $settingsJson = Get-Content -Raw -Path $SettingsFile | ConvertFrom-Json
 
+$tagsHashtable = @{ }
+if ($settingsJson.Tags) {
+    $settingsJson.Tags.psobject.properties | ForEach-Object { $tagsHashtable[$_.Name] = $_.Value }
+}
+
 Write-Host "Creating resource group $($settingsJson.ResourceGroupName) to location $($settingsJson.Location)..."
-New-AzResourceGroup -Name $settingsJson.ResourceGroupName -Location $settingsJson.Location -Force
+New-AzResourceGroup -Name $settingsJson.ResourceGroupName -Location $settingsJson.Location -Tag $tagsHashtable -Force
 
 Write-Host 'Creating environment...'
 New-AzResourceGroupDeployment `
