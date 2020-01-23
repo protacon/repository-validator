@@ -12,7 +12,6 @@ podTemplate(label: pod.label,
 ) {
 
     def branch = (env.BRANCH_NAME)
-    def buildNumber = (env.BUILD_NUMBER)
     def resourceGroup = 'repository-validator-prod'
     def appName = 'ptcs-github-validator'
     def gitHubOrganization = 'protacon'
@@ -50,8 +49,9 @@ podTemplate(label: pod.label,
 
                 if (isTest(branch) || isDependabot(branch)){
                     toAzureTestEnv {
-                        def ciRg = 'repo-ci-' + buildNumber
-                        def ciAppName = 'repo-ci-' + buildNumber
+                        def now = new Date().getTime()
+                        def ciRg = 'repo-ci-' + now
+                        def ciAppName = 'repo-ci-' + now
 
                         stage('Create temporary Resource Group'){
                             sh """
