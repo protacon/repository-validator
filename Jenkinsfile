@@ -115,7 +115,7 @@ podTemplate(label: pod.label,
                         }
                         stage('Warmup and validate'){
                             sh """
-                                pwsh -command "&./Testing/Test-Validation.ps1 -ResourceGroup $resourceGroup"
+                                pwsh -command "&./Testing/Test-Validation.ps1 -ResourceGroup $resourceGroup -WebAppName $appName"
                             """
                         }
                     }
