@@ -25,7 +25,7 @@ dotnet test
 
 To run acceptances tests, create `.runsettings`-file with test parameters
 using following script
-```
+```powershell
 ./Deployment/Create-RunSettingsFile -ResourceGroup 'resource-group-name'
 ```
 
@@ -33,6 +33,8 @@ Testing development environment can be created by creating your own version of
 `developer-settings.example.json` as `developer-settings.json` and
 then running `.\Deployment\Prepare-Envrionment.ps1`. For more details,
 see the script.
+
+You can also use `.\Testing\Test-Validation.ps1` to test the Azure Function
 
 ## Usage
 
@@ -141,7 +143,12 @@ This function periodically validates repositories and reports to configured chan
 
 These deployment examples uses powershell, but this can also be done otherwise.
 
-NOTE: PowerShell needs to have an authenticated sessions. This can be done with `Connect-AzureRmAccount`.
+NOTE: PowerShell needs to have an authenticated sessions. This can be done with `Connect-AzAccount`.
+
+To quickly create & deploy to the environment, use `Prepare-Environment.ps1`. It reads the configurations from `developer-settings.json`
+```powershell
+./Deployment/Prepare-Environment.ps1
+```
 
 ### Creating environment
 
@@ -151,15 +158,15 @@ Read Deployment\azuredeploy.json for additional parameters and documentation.
 Handle secrets with care, following secure string example is just for convience.
 
 Azure PowerShell module
-```
+```powershell
 New-AzResourceGroupDeployment `
-    -Name deployment-name `
-    -TemplateFile Deployment/azuredeploy.json `
-    -ResourceGroupName my-resource-group `
-    -appName my-app-name `
+    -Name 'deployment-name' `
+    -TemplateFile 'Deployment/azuredeploy.json' `
+    -ResourceGroupName 'my-resource-group' `
+    -appName 'my-app-name' `
     -gitHubToken (ConvertTo-SecureString -String "your github token here" -AsPlainText -Force) `
-    -gitHubOrganization "your github organization here" `
-    -environment "Development"
+    -gitHubOrganization 'your github organization here' `
+    -environment 'Development'
 ```
 
 az cli
@@ -175,12 +182,12 @@ dotnet publish -c Release -o my-publish-directory ValidationLibrary.AzureFunctio
 ```
 
 Create Zip file for deployment
-```
+```powershell
 ./Deployment/Zip.ps1 -Destination "publish.zip" -PublishFolder "ValidationLibrary.AzureFunctions/my-publish-directory"
 ```
 
 Use [Publish-AzWebApp](https://docs.microsoft.com/en-us/powershell/module/az.websites/publish-azwebapp)
-```
+```powershell
 Publish-AzWebApp -ResourceGroupName $ResourceGroup -Name $WebAppName -ArchivePath $fullZipTarget -Force
 ```
 

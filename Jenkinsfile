@@ -113,6 +113,11 @@ podTemplate(label: pod.label,
                                 pwsh -command "&./Deployment/Configure-Alarms.ps1 -MonitoredWebAppResourceGroup $resourceGroup -MonitoredWebAppName $appName -AlertHandlingResourceGroup 'protacon-slack-alarm-service' -AlertSlackChannel 'hjni-testi'"
                             """
                         }
+                        stage('Warmup and validate'){
+                            sh """
+                                pwsh -command "&./Testing/Test-Validation.ps1 -ResourceGroup $resourceGroup"
+                            """
+                        }
                     }
                 }
             }
