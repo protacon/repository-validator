@@ -28,6 +28,8 @@ podTemplate(label: pod.label,
         container('dotnet') {
             stage('Build') {
                 sh """
+                    # Build the whole  system, but only publish Azure Functions project
+                    dotnet build
                     cd $functionsProject
                     dotnet publish -c Release -o $publishFolder --version-suffix ${env.BUILD_NUMBER}
                     cd ..
