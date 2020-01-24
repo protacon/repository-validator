@@ -138,58 +138,7 @@ Read [GitHub developer guide](https://developer.github.com/webhooks/) for more i
 
 ## Deployment
 
-Project ValidationLibrary.AzureFunctions can be deployed to Azure as Azure Function.
-This function periodically validates repositories and reports to configured channel
-
-These deployment examples uses powershell, but this can also be done otherwise.
-
-NOTE: PowerShell needs to have an authenticated sessions. This can be done with `Connect-AzAccount`.
-
-To quickly create & deploy to the environment, use `Prepare-Environment.ps1`. It reads the configurations from `developer-settings.json`
-```powershell
-./Deployment/Prepare-Environment.ps1
-```
-
-### Creating environment
-
-Deployment\azuredeploy.json contains definition of environment. It can be deployed in multiple ways, but here are few examples.
-Read Deployment\azuredeploy.json for additional parameters and documentation.
-
-Handle secrets with care, following secure string example is just for convience.
-
-Azure PowerShell module
-```powershell
-New-AzResourceGroupDeployment `
-    -Name 'deployment-name' `
-    -TemplateFile 'Deployment/azuredeploy.json' `
-    -ResourceGroupName 'my-resource-group' `
-    -appName 'my-app-name' `
-    -gitHubToken (ConvertTo-SecureString -String "your github token here" -AsPlainText -Force) `
-    -gitHubOrganization 'your github organization here' `
-    -environment 'Development'
-```
-
-az cli
-```
-az group deployment create -g "github-test" --template-file Deployment/azuredeploy.json --parameters appName=hjni-test --parameters gitHubToken=<tokenhere> --parameters gitHubOrganization=protacon --parameters Development
-```
-
-### Deploying site
-
-Pack ValidationLibrary.AzureFunctions into directory
-```
-dotnet publish -c Release -o my-publish-directory ValidationLibrary.AzureFunctions
-```
-
-Create Zip file for deployment
-```powershell
-./Deployment/Zip.ps1 -Destination "publish.zip" -PublishFolder "ValidationLibrary.AzureFunctions/my-publish-directory"
-```
-
-Use [Publish-AzWebApp](https://docs.microsoft.com/en-us/powershell/module/az.websites/publish-azwebapp)
-```powershell
-Publish-AzWebApp -ResourceGroupName $ResourceGroup -Name $WebAppName -ArchivePath $fullZipTarget -Force
-```
+See [Deployment guide](Documentation/deployment.md)
 
 ## License
 
