@@ -1,6 +1,16 @@
 # Development guide
 
-This document describes basics fro `repository-validator` development
+This document describes basics for `repository-validator` development
+
+## Development flow
+
+1. Create branch from `test`-branch with name `feature/my-feature-name-here` or
+`fix/my-fix-name-here`
+1. Make your changes to that branch
+1. Create pull request to `test`-branch
+1. Wait for review
+1. Make fixes and/or merge the pull request if it was accepted. If you don't
+ahve permission for that, wait for a person who does.
 
 ## Build
 

@@ -16,7 +16,9 @@ If you have received an *Issue* or a *Pull Request* created by this application,
 Reset of this documentation mainly describes how `repository-validator` can be
 used and developed
 
-## Development
+## Contributing
+
+If you want to help, see [contributing guidelines](CONTRIBUTING.md)
 
 To learn how `repository-validator` is built and tested, see [Development guide](Documentation/development.md)
 
