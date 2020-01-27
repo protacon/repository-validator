@@ -1,30 +1,36 @@
 using Octokit;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using ValidationLibrary.Utils;
 
 namespace ValidationLibrary.Rules
 {
     /// <summary>
     /// This rule checks that repository has a proper Readme.md
     /// </summary>
-    public class HasReadmeRule : IValidationRule
+    public class HasReadmeRule : GithubRuleBase<HasReadmeRule>, IValidationRule
     {
-        public string RuleName => "Missing Readme.md";
+        public override string RuleName => "Missing Readme.md";
 
         private readonly ILogger<HasReadmeRule> _logger;
 
-        public HasReadmeRule(ILogger<HasReadmeRule> logger)
+        public HasReadmeRule(ILogger<HasReadmeRule> logger, GitUtils gitUtils) : base(logger, gitUtils)
         {
             _logger = logger;
         }
 
-        public Task Init(IGitHubClient ghClient)
+        public override Task Init(IGitHubClient ghClient)
         {
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Initialized", nameof(HasReadmeRule), RuleName);
             return Task.CompletedTask;
         }
 
-        public async Task<ValidationResult> IsValid(IGitHubClient client, Repository gitHubRepository)
+        protected override Task<Commit> GetCommitAsBase(IGitHubClient client, Repository repository)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override async Task<ValidationResult> IsValid(IGitHubClient client, Repository gitHubRepository)
         {
             if (client is null)
             {
@@ -48,6 +54,16 @@ namespace ValidationLibrary.Rules
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, No Readme found, validation false.", nameof(HasReadmeRule), RuleName);
                 return new ValidationResult(RuleName, "Add Readme.md file to repository root.", false, DoNothing);
             }
+        }
+
+        /// <summary>
+        /// This fix creates a template request with updated Jenkinsfile
+        /// </summary>
+        /// <param name="client">Github client</param>
+        /// <param name="repository">Repository to be fixed</param>
+        private async Task Fix(IGitHubClient client, Repository repository)
+        {
+            throw new System.NotImplementedException();
         }
 
         private Task DoNothing(IGitHubClient client, Repository repository)
