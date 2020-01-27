@@ -8,7 +8,7 @@ namespace ValidationLibrary.Rules
     /// <summary>
     /// This rule checks that repository has a proper Readme.md
     /// </summary>
-    public class HasReadmeRule : GithubRuleBase<HasReadmeRule>, IValidationRule
+    public class HasReadmeRule : FixableRuleBase<HasReadmeRule>, IValidationRule
     {
         public override string RuleName => "Missing Readme.md";
 

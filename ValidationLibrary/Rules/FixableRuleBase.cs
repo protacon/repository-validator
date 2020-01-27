@@ -7,16 +7,16 @@ using ValidationLibrary.Utils;
 
 namespace ValidationLibrary.Rules
 {
-    public abstract class GithubRuleBase<T> : IValidationRule where T : IValidationRule
+    public abstract class FixableRuleBase<T> : IValidationRule where T : IValidationRule
     {
         public abstract string RuleName { get; }
         protected const string MainBranch = "master";
         protected static string FormatPrTitle(string message) => $"[Automatic Validation] {message}";
-        private readonly ILogger<GithubRuleBase<T>> _logger;
+        private readonly ILogger<FixableRuleBase<T>> _logger;
         private readonly GitUtils _gitUtils;
         private string _prTitle;
 
-        public GithubRuleBase(ILogger<GithubRuleBase<T>> logger, GitUtils gitUtils)
+        public FixableRuleBase(ILogger<FixableRuleBase<T>> logger, GitUtils gitUtils)
         {
             _logger = logger;
             _gitUtils = gitUtils;
