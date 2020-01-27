@@ -2,6 +2,7 @@ using Octokit;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ValidationLibrary.Utils;
+using System;
 
 namespace ValidationLibrary.Rules
 {
@@ -11,6 +12,12 @@ namespace ValidationLibrary.Rules
     public class HasReadmeRule : FixableRuleBase<HasReadmeRule>, IValidationRule
     {
         public override string RuleName => "Missing Readme.md";
+        protected override string PullRequestBody =>
+                        "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
+                        Environment.NewLine +
+                        "To prevent automatic validation, see documentation from [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
+                        Environment.NewLine +
+                        "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation.";
         private const string ReadmeFileName = "README.md";
         private const string FileMode = "100644";
         private readonly string _branchName = "feature/readme-autofix-template";

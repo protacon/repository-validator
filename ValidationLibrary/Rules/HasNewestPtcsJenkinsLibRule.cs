@@ -17,6 +17,14 @@ namespace ValidationLibrary.Rules
     public class HasNewestPtcsJenkinsLibRule : FixableRuleBase<HasNewestPtcsJenkinsLibRule>, IValidationRule
     {
         public override string RuleName => $"Old {LibraryName}";
+        protected override string PullRequestBody =>
+                        "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
+                        Environment.NewLine +
+                        "To prevent automatic validation, see documentation from [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
+                        Environment.NewLine +
+                        "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation." + Environment.NewLine +
+                        Environment.NewLine +
+                        "The latest release can be found here: " + _latestReleaseUrl + Environment.NewLine;
         private const string LibraryName = "jenkins-ptcs-library";
         private const string JenkinsFileName = "Jenkinsfile";
         private const string FileMode = "100644";

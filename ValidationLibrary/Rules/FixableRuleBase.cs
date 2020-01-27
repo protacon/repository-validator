@@ -10,6 +10,7 @@ namespace ValidationLibrary.Rules
     public abstract class FixableRuleBase<T> : IValidationRule where T : IValidationRule
     {
         public abstract string RuleName { get; }
+        protected abstract string PullRequestBody { get; }
         protected const string MainBranch = "master";
         protected static string FormatPrTitle(string message) => $"[Automatic Validation] {message}";
         private readonly ILogger<FixableRuleBase<T>> _logger;
@@ -91,11 +92,7 @@ namespace ValidationLibrary.Rules
             var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, $"heads/{MainBranch}").ConfigureAwait(false);
             var pullRequest = new NewPullRequest(FormatPrTitle(_prTitle), latest.Ref, master.Ref)
             {
-                Body = "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
-                        Environment.NewLine +
-                        "To prevent automatic validation, see documentation from [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
-                        Environment.NewLine +
-                        "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation."
+                Body = PullRequestBody
             };
             await client.PullRequest.Create(repository.Owner.Login, repository.Name, pullRequest).ConfigureAwait(false);
         }
