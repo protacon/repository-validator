@@ -11,6 +11,10 @@ namespace ValidationLibrary.Rules
     public class HasReadmeRule : FixableRuleBase<HasReadmeRule>, IValidationRule
     {
         public override string RuleName => "Missing Readme.md";
+        private const string ReadmeFileName = "README.md";
+        private const string FileMode = "100644";
+        private readonly string _branchName = "feature/readme-autofix-template";
+        private readonly string _prTitle = "Create README.md template.";
 
         private readonly ILogger<HasReadmeRule> _logger;
 
@@ -63,13 +67,51 @@ namespace ValidationLibrary.Rules
         /// <param name="repository">Repository to be fixed</param>
         private async Task Fix(IGitHubClient client, Repository repository)
         {
-            throw new System.NotImplementedException();
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
+            var latest = await GetCommitAsBase(client, repository).ConfigureAwait(false);
+            _logger.LogTrace("Latest commit {sha} with message {message}", latest.Sha, latest.Message);
+
+            var content = GetReadmeTemplateContent();
+            var reference = await PushFix(client, repository, latest, content).ConfigureAwait(false);
+            await CreateOrOpenPullRequest(_prTitle, client, repository, reference).ConfigureAwait(false);
+        }
+
+        private async Task<Reference> PushFix(IGitHubClient client, Repository repository, Commit latest, string jenkinsFile)
+        {
+            var oldTree = await client.Git.Tree.Get(repository.Owner.Login, repository.Name, latest.Sha).ConfigureAwait(false);
+            var newTree = new NewTree
+            {
+                BaseTree = oldTree.Sha
+            };
+
+            BlobReference blobReference = await CreateBlob(client, repository, jenkinsFile).ConfigureAwait(false);
+            var treeItem = new NewTreeItem()
+            {
+                Path = ReadmeFileName,
+                Mode = FileMode,
+                Type = TreeType.Blob,
+                Sha = blobReference.Sha
+            };
+            newTree.Tree.Add(treeItem);
+
+            var createdTree = await client.Git.Tree.Create(repository.Owner.Login, repository.Name, newTree).ConfigureAwait(false);
+            var commit = new NewCommit($"Create README.md template file.", createdTree.Sha, new[] { latest.Sha });
+            var commitResponse = await client.Git.Commit.Create(repository.Owner.Login, repository.Name, commit).ConfigureAwait(false);
+
+            var refUpdate = new ReferenceUpdate(commitResponse.Sha);
+            return await client.Git.Reference.Update(repository.Owner.Login, repository.Name, $"heads/{_branchName}", refUpdate).ConfigureAwait(false);
         }
 
         private Task DoNothing(IGitHubClient client, Repository repository)
         {
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, No fix.", nameof(HasReadmeRule), RuleName);
             return Task.CompletedTask;
+        }
+
+        private static string GetReadmeTemplateContent()
+        {
+            // TODO: Proper contents
+            return "# Project name\nContent text here...";
         }
     }
 }

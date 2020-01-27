@@ -172,19 +172,6 @@ namespace ValidationLibrary.Rules
             return string.Equals(fixedContent, jenkinsContent.Content, StringComparison.InvariantCulture) ? null : fixedContent;
         }
 
-        private async Task<BlobReference> CreateBlob(IGitHubClient client, Repository repository, string fixedContent)
-        {
-            var blob = new NewBlob()
-            {
-                Content = fixedContent,
-                Encoding = EncodingType.Utf8
-            };
-            var blobReference = await client.Git.Blob.Create(repository.Owner.Login, repository.Name, blob).ConfigureAwait(false);
-            _logger.LogTrace("Created blob SHA {sha}", blobReference.Sha);
-            return blobReference;
-        }
-
-
         private async Task<RepositoryContent> GetJenkinsFileContent(IGitHubClient client, Repository repository, string branch)
         {
             _logger.LogTrace("Retrieving JenkinsFile for {repositoryName} from branch {branch}", repository.FullName, branch);

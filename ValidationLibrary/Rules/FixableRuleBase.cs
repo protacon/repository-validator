@@ -58,6 +58,21 @@ namespace ValidationLibrary.Rules
             await CreateNewPullRequest(client, repository, latest).ConfigureAwait(false);
         }
 
+        protected async Task<BlobReference> CreateBlob(IGitHubClient client, Repository repository, string fixedContent)
+        {
+            if (client == null) throw new ArgumentNullException(nameof(client));
+            if (repository == null) throw new ArgumentNullException(nameof(repository));
+
+            var blob = new NewBlob()
+            {
+                Content = fixedContent,
+                Encoding = EncodingType.Utf8
+            };
+            var blobReference = await client.Git.Blob.Create(repository.Owner.Login, repository.Name, blob).ConfigureAwait(false);
+            _logger.LogTrace("Created blob SHA {sha}", blobReference.Sha);
+            return blobReference;
+        }
+
         private async Task OpenOldPullRequest(IGitHubClient client, Repository repository, PullRequest oldPullRequest)
         {
             _logger.LogInformation("Rule {ruleClass} / {ruleName}: Opening pull request #{number}", nameof(T), RuleName, oldPullRequest.Number);
