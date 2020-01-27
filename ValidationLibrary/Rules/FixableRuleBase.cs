@@ -25,6 +25,7 @@ namespace ValidationLibrary.Rules
 
         public abstract Task Init(IGitHubClient ghClient);
         public abstract Task<ValidationResult> IsValid(IGitHubClient client, Repository repository);
+        protected abstract Task Fix(IGitHubClient client, Repository repository);
         protected abstract Task<Commit> GetCommitAsBase(IGitHubClient client, Repository repository);
 
         protected async Task CreateOrOpenPullRequest(string prTitle, IGitHubClient client, Repository repository, Reference latest)

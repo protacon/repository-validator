@@ -43,37 +43,35 @@ namespace ValidationLibrary.Rules
 
         public override async Task<ValidationResult> IsValid(IGitHubClient client, Repository gitHubRepository)
         {
-            if (client is null)
-            {
-                throw new System.ArgumentNullException(nameof(client));
-            }
-
-            if (gitHubRepository is null)
-            {
-                throw new System.ArgumentNullException(nameof(gitHubRepository));
-            }
+            if (client is null) throw new ArgumentNullException(nameof(client));
+            if (gitHubRepository is null) throw new ArgumentNullException(nameof(gitHubRepository));
 
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
             try
             {
                 var readme = await client.Repository.Content.GetReadme(gitHubRepository.Owner.Login, gitHubRepository.Name).ConfigureAwait(false);
-                _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, !string.IsNullOrWhiteSpace(readme.Content));
-                return new ValidationResult(RuleName, "Add Readme.md file to repository root with content describing this repository.", !string.IsNullOrWhiteSpace(readme.Content), DoNothing);
+                var isValid = !string.IsNullOrWhiteSpace(readme?.Content);
+                var fix = isValid ? (Func<IGitHubClient, Repository, Task>)DoNothing : Fix;
+                _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, isValid);
+                return new ValidationResult(RuleName, "Add README.md file to repository root with content describing this repository.", isValid, fix);
             }
             catch (NotFoundException)
             {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, No Readme found, validation false.", nameof(HasReadmeRule), RuleName);
-                return new ValidationResult(RuleName, "Add Readme.md file to repository root.", false, DoNothing);
+                return new ValidationResult(RuleName, "Add README.md file to repository root.", false, Fix);
             }
         }
 
         /// <summary>
-        /// This fix creates a template request with updated Jenkinsfile
+        /// This fix creates a request with README.md template.
         /// </summary>
         /// <param name="client">Github client</param>
         /// <param name="repository">Repository to be fixed</param>
-        private async Task Fix(IGitHubClient client, Repository repository)
+        protected override async Task Fix(IGitHubClient client, Repository repository)
         {
+            if (client == null) throw new ArgumentNullException(nameof(client));
+            if (repository == null) throw new ArgumentNullException(nameof(repository));
+
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
             var latest = await GetCommitAsBase(client, repository).ConfigureAwait(false);
             _logger.LogTrace("Latest commit {sha} with message {message}", latest.Sha, latest.Message);

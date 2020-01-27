@@ -55,15 +55,8 @@ namespace ValidationLibrary.Rules
 
         public override async Task<ValidationResult> IsValid(IGitHubClient client, Repository repository)
         {
-            if (client is null)
-            {
-                throw new ArgumentNullException(nameof(client));
-            }
-
-            if (repository is null)
-            {
-                throw new ArgumentNullException(nameof(repository));
-            }
+            if (client is null) throw new ArgumentNullException(nameof(client));
+            if (repository is null) throw new ArgumentNullException(nameof(repository));
 
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.FullName);
 
@@ -121,8 +114,11 @@ namespace ValidationLibrary.Rules
         /// </summary>
         /// <param name="client">Github client</param>
         /// <param name="repository">Repository to be fixed</param>
-        private async Task Fix(IGitHubClient client, Repository repository)
+        protected override async Task Fix(IGitHubClient client, Repository repository)
         {
+            if (client == null) throw new ArgumentNullException(nameof(client));
+            if (repository == null) throw new ArgumentNullException(nameof(repository));
+
             // This method should be refactored when we have a better general idea how we want to fix things
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
             var latest = await GetCommitAsBase(client, repository).ConfigureAwait(false);
