@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ValidationLibrary.Utils;
 using System;
+using System.Net.Http;
+using System.Linq;
+using Octokit.Helpers;
 
 namespace ValidationLibrary.Rules
 {
@@ -13,6 +16,8 @@ namespace ValidationLibrary.Rules
     {
         public override string RuleName => "Missing Readme.md";
         protected override string PullRequestBody =>
+                        "This Pull Request provides only a template README.md file for guidance. You should edit the file according to your project needs." +
+                        Environment.NewLine + Environment.NewLine +
                         "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
                         Environment.NewLine +
                         "To prevent automatic validation, see documentation from [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
@@ -22,12 +27,13 @@ namespace ValidationLibrary.Rules
         private const string FileMode = "100644";
         private readonly string _branchName = "feature/readme-autofix-template";
         private readonly string _prTitle = "Create README.md template.";
-
+        private readonly Uri _templateFileUrl;
         private readonly ILogger<HasReadmeRule> _logger;
 
-        public HasReadmeRule(ILogger<HasReadmeRule> logger, GitUtils gitUtils) : base(logger, gitUtils)
+        public HasReadmeRule(ILogger<HasReadmeRule> logger, GitUtils gitUtils, Uri templateFileUrl = null) : base(logger, gitUtils)
         {
             _logger = logger;
+            _templateFileUrl = templateFileUrl ?? new Uri("https://raw.githubusercontent.com/palvaroni/Best-README-Template/master/BLANK_README.md");
         }
 
         public override Task Init(IGitHubClient ghClient)
@@ -36,9 +42,24 @@ namespace ValidationLibrary.Rules
             return Task.CompletedTask;
         }
 
-        protected override Task<Commit> GetCommitAsBase(IGitHubClient client, Repository repository)
+        protected override async Task<Commit> GetCommitAsBase(IGitHubClient client, Repository repository)
         {
-            throw new System.NotImplementedException();
+            if (client == null) throw new ArgumentNullException(nameof(client));
+            if (repository == null) throw new ArgumentNullException(nameof(client));
+
+            var branches = await client.Repository.Branch.GetAll(repository.Owner.Login, repository.Name).ConfigureAwait(false);
+            var existingBranch = branches.FirstOrDefault(branch => branch.Name == _branchName);
+            if (existingBranch == null)
+            {
+                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} did not exists, creating branch.",
+                     nameof(HasReadmeRule), RuleName, _branchName);
+                var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, _branchName).ConfigureAwait(false);
+                return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha).ConfigureAwait(false);
+            }
+
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} already exists, using existing branch.",
+                            nameof(HasReadmeRule), RuleName, _branchName);
+            return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, existingBranch.Commit.Sha).ConfigureAwait(false);
         }
 
         public override async Task<ValidationResult> IsValid(IGitHubClient client, Repository gitHubRepository)
@@ -72,11 +93,11 @@ namespace ValidationLibrary.Rules
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (repository == null) throw new ArgumentNullException(nameof(repository));
 
-            _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasReadmeRule), RuleName);
             var latest = await GetCommitAsBase(client, repository).ConfigureAwait(false);
             _logger.LogTrace("Latest commit {sha} with message {message}", latest.Sha, latest.Message);
 
-            var content = GetReadmeTemplateContent();
+            var content = await GetReadmeTemplateContent().ConfigureAwait(false);
             var reference = await PushFix(client, repository, latest, content).ConfigureAwait(false);
             await CreateOrOpenPullRequest(_prTitle, client, repository, reference).ConfigureAwait(false);
         }
@@ -113,10 +134,22 @@ namespace ValidationLibrary.Rules
             return Task.CompletedTask;
         }
 
-        private static string GetReadmeTemplateContent()
+        private async Task<string> GetReadmeTemplateContent()
         {
-            // TODO: Proper contents
-            return "# Project name\nContent text here...";
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    var response = await client.GetAsync(_templateFileUrl).ConfigureAwait(false);
+                    return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                }
+                catch (HttpRequestException ex)
+                {
+                    _logger.LogError("Error", ex);
+                }
+            }
+
+            return "";
         }
     }
 }

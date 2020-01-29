@@ -35,7 +35,7 @@ namespace ValidationLibrary.Csv
                           };
 
             using (var writer = new StreamWriter(_destinationFile.FullName, true))
-            using (var csv = new CsvWriter(writer))
+            using (var csv = new CsvWriter(writer, System.Globalization.CultureInfo.InvariantCulture))
             {
                 csv.WriteRecords(flatten.ToList());
             }
