@@ -12,11 +12,6 @@ namespace ValidationLibrary.Tests.Rules
 {
     public class HasReadmeRuleTests
     {
-        /// <summary>
-        /// By default, master is checked for Jenkinsfile if there is no branch
-        /// </summary>
-        private const string MasterBranch = "master";
-
         private HasReadmeRule _rule;
 
         private User _owner;
