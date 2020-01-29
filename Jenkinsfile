@@ -28,6 +28,8 @@ podTemplate(label: pod.label,
         container('dotnet') {
             stage('Build') {
                 sh """
+                    # Build the whole  system, but only publish Azure Functions project
+                    dotnet build
                     cd $functionsProject
                     dotnet publish -c Release -o $publishFolder --version-suffix ${env.BUILD_NUMBER}
                     cd ..
@@ -43,7 +45,7 @@ podTemplate(label: pod.label,
             container('powershell') {
                 stage('Package') {
                     sh """
-                        pwsh -command "Compress-Archive -DestinationPath $zipName -Path $functionsProject/$publishFolder/* -Force"
+                        pwsh -command "Compress-Archive -DestinationPath $zipName -Path $functionsProject/$publishFolder/*"
                     """
                 }
 
