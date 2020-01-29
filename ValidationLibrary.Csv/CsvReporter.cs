@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using CsvHelper;
@@ -35,7 +36,7 @@ namespace ValidationLibrary.Csv
                           };
 
             using (var writer = new StreamWriter(_destinationFile.FullName, true))
-            using (var csv = new CsvWriter(writer, System.Globalization.CultureInfo.InvariantCulture))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
                 csv.WriteRecords(flatten.ToList());
             }
