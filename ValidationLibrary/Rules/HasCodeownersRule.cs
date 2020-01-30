@@ -13,6 +13,8 @@ namespace ValidationLibrary.Rules
     public class HasCodeownersRule : IValidationRule
     {
         public string RuleName => "Missing CODEOWNERS";
+
+        private const string MainBranch = "master";
         
         private readonly ILogger<HasCodeownersRule> _logger;
 
@@ -32,12 +34,12 @@ namespace ValidationLibrary.Rules
 
             if (client is null)
             {
-                throw new System.ArgumentNullException(nameof(client));
+                throw new ArgumentNullException(nameof(client));
             }
 
             if (repo is null)
             {
-                throw new System.ArgumentNullException(nameof(repo));
+                throw new ArgumentNullException(nameof(repo));
             }
 
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasCodeownersRule), RuleName, repo.FullName);
@@ -49,7 +51,7 @@ namespace ValidationLibrary.Rules
             }
             
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. CODEOWNERS exists: {codeownersExist}", nameof(HasCodeownersRule), RuleName, repo.FullName, !string.IsNullOrWhiteSpace(codeownersContent.Content));
-            return new ValidationResult(RuleName, "Add CODEOWNERS file to repository root & add atleast one owner.", !string.IsNullOrWhiteSpace(codeownersContent.Content), DoNothing);
+            return new ValidationResult(RuleName, "Add CODEOWNERS file to repository root & add at least one owner.", !string.IsNullOrWhiteSpace(codeownersContent.Content), DoNothing);
         }
 
         private Task DoNothing(IGitHubClient client, Repository repository)
@@ -59,7 +61,7 @@ namespace ValidationLibrary.Rules
 
         private async Task<RepositoryContent> GetCodeownersContent(IGitHubClient client, Repository repository)
         {
-            var contents = await GetContents(client, repository, "master").ConfigureAwait(false);
+            var contents = await GetContents(client, repository, MainBranch).ConfigureAwait(false);
             var codeownersFile = contents.FirstOrDefault(content => content.Name.Equals("CODEOWNERS", StringComparison.InvariantCultureIgnoreCase));
 
             if (codeownersFile == null)
@@ -67,7 +69,7 @@ namespace ValidationLibrary.Rules
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, No CODEOWNERS found in root.", nameof(HasCodeownersRule), RuleName);
                 return null;
             }
-            var matchingFile = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, codeownersFile.Name, "master").ConfigureAwait(false);
+            var matchingFile = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, codeownersFile.Name, MainBranch).ConfigureAwait(false);
             return matchingFile[0];
         }
 

@@ -19,6 +19,8 @@ namespace ValidationLibrary.Tests.Rules
         private IRepositoriesClient _mockRepositoryClient;
         private IRepositoryContentsClient _mockRepositoryContentClient;
 
+        private const string MainBranch = "master";
+
         [SetUp]
         public void Setup()
         {
@@ -36,7 +38,7 @@ namespace ValidationLibrary.Tests.Rules
         public async Task IsValid_ReturnsFalseIfNoCodeownersFile()
         {
             var repository = CreateRepository("repo");
-            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, "master")
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MainBranch)
             .Returns(Task.FromResult((IReadOnlyList<RepositoryContent>)new List<RepositoryContent>()));
             
             var result = await _rule.IsValid(_mockClient, repository);
@@ -51,11 +53,11 @@ namespace ValidationLibrary.Tests.Rules
             IReadOnlyList<RepositoryContent> contents = new[] { content };
             
             var repository = CreateRepository("repo");
-            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, "master").Returns(Task.FromResult(contents));
-            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, "master").Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MainBranch).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MainBranch).Returns(Task.FromResult(contents));
             
             var result = await _rule.IsValid(_mockClient, repository);
-            StringAssert.AreEqualIgnoringCase(result.HowToFix, "Add CODEOWNERS file to repository root & add atleast one owner.");
+            StringAssert.AreEqualIgnoringCase(result.HowToFix, "Add CODEOWNERS file to repository root & add at least one owner.");
             Assert.IsFalse(result.IsValid);
         }
 
@@ -66,8 +68,8 @@ namespace ValidationLibrary.Tests.Rules
             IReadOnlyList<RepositoryContent> contents = new[] { content };
             
             var repository = CreateRepository("repo");
-            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, "master").Returns(Task.FromResult(contents));
-            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, "master").Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MainBranch).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MainBranch).Returns(Task.FromResult(contents));
             
             var result = await _rule.IsValid(_mockClient, repository);
             Assert.IsTrue(result.IsValid);
