@@ -42,7 +42,7 @@ namespace ValidationLibrary.Rules
             var openPullRequests = pullRequests.Where(pr => pr.Title == FormatPrTitle(prTitle) && pr.State == ItemState.Open);
             if (openPullRequests.Any())
             {
-                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Open pull request already exists. Skipping.", nameof(T), RuleName);
+                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Open pull request already exists. Skipping.", typeof(T).Name, RuleName);
                 return;
             }
 
@@ -82,19 +82,19 @@ namespace ValidationLibrary.Rules
             if (existingBranch == null)
             {
                 _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} did not exists, creating branch.",
-                     nameof(T), RuleName, branchName);
+                     typeof(T).Name, RuleName, branchName);
                 var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, branchName).ConfigureAwait(false);
                 return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha).ConfigureAwait(false);
             }
 
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} already exists, using existing branch.",
-                            nameof(T), RuleName, branchName);
+                            typeof(T).Name, RuleName, branchName);
             return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, existingBranch.Commit.Sha).ConfigureAwait(false);
         }
 
         private async Task OpenOldPullRequest(string prTitle, IGitHubClient client, Repository repository, PullRequest oldPullRequest)
         {
-            _logger.LogInformation("Rule {ruleClass} / {ruleName}: Opening pull request #{number}", nameof(T), RuleName, oldPullRequest.Number);
+            _logger.LogInformation("Rule {ruleClass} / {ruleName}: Opening pull request #{number}", typeof(T).Name, RuleName, oldPullRequest.Number);
             var pullRequest = new PullRequestUpdate()
             {
                 Title = FormatPrTitle(prTitle),
