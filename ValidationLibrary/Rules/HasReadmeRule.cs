@@ -29,37 +29,18 @@ namespace ValidationLibrary.Rules
         private readonly string _prTitle = "Create README.md template.";
         private readonly Uri _templateFileUrl;
         private readonly ILogger<HasReadmeRule> _logger;
+        private string _content;
 
         public HasReadmeRule(ILogger<HasReadmeRule> logger, GitUtils gitUtils, Uri templateFileUrl = null) : base(logger, gitUtils)
         {
             _logger = logger;
-            _templateFileUrl = templateFileUrl ?? new Uri("https://raw.githubusercontent.com/palvaroni/Best-README-Template/master/BLANK_README.md");
+            _templateFileUrl = templateFileUrl ?? new Uri("https://raw.githubusercontent.com/protacon/repository-validator/master/README_TEMPLATE.md");
         }
 
-        public override Task Init(IGitHubClient ghClient)
+        public override async Task Init(IGitHubClient ghClient)
         {
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, Initialized", nameof(HasReadmeRule), RuleName);
-            return Task.CompletedTask;
-        }
-
-        protected override async Task<Commit> GetCommitAsBase(IGitHubClient client, Repository repository)
-        {
-            if (client == null) throw new ArgumentNullException(nameof(client));
-            if (repository == null) throw new ArgumentNullException(nameof(client));
-
-            var branches = await client.Repository.Branch.GetAll(repository.Owner.Login, repository.Name).ConfigureAwait(false);
-            var existingBranch = branches.FirstOrDefault(branch => branch.Name == _branchName);
-            if (existingBranch == null)
-            {
-                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} did not exists, creating branch.",
-                     nameof(HasReadmeRule), RuleName, _branchName);
-                var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, _branchName).ConfigureAwait(false);
-                return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha).ConfigureAwait(false);
-            }
-
-            _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} already exists, using existing branch.",
-                            nameof(HasReadmeRule), RuleName, _branchName);
-            return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, existingBranch.Commit.Sha).ConfigureAwait(false);
+            _content = await GetReadmeTemplateContent().ConfigureAwait(false);
         }
 
         public override async Task<ValidationResult> IsValid(IGitHubClient client, Repository gitHubRepository)
@@ -94,11 +75,10 @@ namespace ValidationLibrary.Rules
             if (repository == null) throw new ArgumentNullException(nameof(repository));
 
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasReadmeRule), RuleName);
-            var latest = await GetCommitAsBase(client, repository).ConfigureAwait(false);
+            var latest = await GetCommitAsBase(_branchName, client, repository).ConfigureAwait(false);
             _logger.LogTrace("Latest commit {sha} with message {message}", latest.Sha, latest.Message);
 
-            var content = await GetReadmeTemplateContent().ConfigureAwait(false);
-            var reference = await PushFix(client, repository, latest, content).ConfigureAwait(false);
+            var reference = await PushFix(client, repository, latest, _content).ConfigureAwait(false);
             await CreateOrOpenPullRequest(_prTitle, client, repository, reference).ConfigureAwait(false);
         }
 
@@ -145,7 +125,7 @@ namespace ValidationLibrary.Rules
                 }
                 catch (HttpRequestException ex)
                 {
-                    _logger.LogError("Error", ex);
+                    _logger.LogError(ex, "Error fetching README template.");
                 }
             }
 

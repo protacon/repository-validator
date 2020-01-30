@@ -63,7 +63,6 @@ namespace ValidationLibrary.Rules
             var jenkinsContent = await GetJenkinsFileContent(client, repository, MainBranch).ConfigureAwait(false);
             if (jenkinsContent == null)
             {
-                // This is unlikely to happen.
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, no {jenkinsFileName} found. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
                 return OkResult();
             }
@@ -87,29 +86,6 @@ namespace ValidationLibrary.Rules
         }
 
         /// <summary>
-        /// This takes either the latest commit from master or latest from updated branch if it exists.
-        /// </summary>
-        protected override async Task<Commit> GetCommitAsBase(IGitHubClient client, Repository repository)
-        {
-            if (client == null) throw new ArgumentNullException(nameof(client));
-            if (repository == null) throw new ArgumentNullException(nameof(client));
-
-            var branches = await client.Repository.Branch.GetAll(repository.Owner.Login, repository.Name).ConfigureAwait(false);
-            var existingBranch = branches.FirstOrDefault(branch => branch.Name == _branchName);
-            if (existingBranch == null)
-            {
-                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} did not exists, creating branch.",
-                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, _branchName);
-                var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, _branchName).ConfigureAwait(false);
-                return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha).ConfigureAwait(false);
-            }
-
-            _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} already exists, using existing branch.",
-                            nameof(HasNewestPtcsJenkinsLibRule), RuleName, _branchName);
-            return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, existingBranch.Commit.Sha).ConfigureAwait(false);
-        }
-
-        /// <summary>
         /// This fix creates a pull request with updated Jenkinsfile
         /// </summary>
         /// <param name="client">Github client</param>
@@ -121,7 +97,7 @@ namespace ValidationLibrary.Rules
 
             // This method should be refactored when we have a better general idea how we want to fix things
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
-            var latest = await GetCommitAsBase(client, repository).ConfigureAwait(false);
+            var latest = await GetCommitAsBase(_branchName, client, repository).ConfigureAwait(false);
             _logger.LogTrace("Latest commit {sha} with message {message}", latest.Sha, latest.Message);
 
             string fixedContent = await GetFixedContent(client, repository, latest.Sha).ConfigureAwait(false);
