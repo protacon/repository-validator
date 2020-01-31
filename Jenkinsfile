@@ -12,7 +12,6 @@ podTemplate(label: pod.label,
 ) {
 
     def branch = (env.BRANCH_NAME)
-    def buildNumber = (env.BUILD_NUMBER)
     def resourceGroup = 'repository-validator-prod'
     def appName = 'ptcs-github-validator'
     def gitHubOrganization = 'protacon'
@@ -29,6 +28,8 @@ podTemplate(label: pod.label,
         container('dotnet') {
             stage('Build') {
                 sh """
+                    # Build the whole  system, but only publish Azure Functions project
+                    dotnet build
                     cd $functionsProject
                     dotnet publish -c Release -o $publishFolder --version-suffix ${env.BUILD_NUMBER}
                     cd ..
@@ -44,14 +45,15 @@ podTemplate(label: pod.label,
             container('powershell') {
                 stage('Package') {
                     sh """
-                        pwsh -command "Compress-Archive -DestinationPath $zipName -Path $functionsProject/$publishFolder/* -Force"
+                        pwsh -command "Compress-Archive -DestinationPath $zipName -Path $functionsProject/$publishFolder/*"
                     """
                 }
 
                 if (isTest(branch) || isDependabot(branch)){
                     toAzureTestEnv {
-                        def ciRg = 'repo-ci-' + buildNumber
-                        def ciAppName = 'repo-ci-' + buildNumber
+                        def now = new Date().getTime()
+                        def ciRg = 'repo-ci-' + now
+                        def ciAppName = 'repo-ci-' + now
 
                         stage('Create temporary Resource Group'){
                             sh """
@@ -111,6 +113,11 @@ podTemplate(label: pod.label,
                             sh """
                                 pwsh -command "Publish-AzWebApp -ResourceGroupName $resourceGroup -Name $appName -ArchivePath $zipName -Force"
                                 pwsh -command "&./Deployment/Configure-Alarms.ps1 -MonitoredWebAppResourceGroup $resourceGroup -MonitoredWebAppName $appName -AlertHandlingResourceGroup 'protacon-slack-alarm-service' -AlertSlackChannel 'hjni-testi'"
+                            """
+                        }
+                        stage('Warmup and validate'){
+                            sh """
+                                pwsh -command "&./Testing/Test-Validation.ps1 -ResourceGroup $resourceGroup -WebAppName $appName"
                             """
                         }
                     }
