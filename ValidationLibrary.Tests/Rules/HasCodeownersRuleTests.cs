@@ -35,37 +35,34 @@ namespace ValidationLibrary.Tests.Rules
         }
 
         [Test]
-        public async Task IsValid_ReturnsFalseIfNoCodeownersFileOrGithubDirectory()
+        public async Task IsValid_ReturnsFalseIfNoCodeownersFile()
         {
             var repository = CreateRepository("repo");
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MainBranch)
             .Returns(Task.FromResult((IReadOnlyList<RepositoryContent>)new List<RepositoryContent>()));
             
             var result = await _rule.IsValid(_mockClient, repository);
-            StringAssert.AreEqualIgnoringCase(result.HowToFix, "Add CODEOWNERS file to .github directory.");
+            StringAssert.AreEqualIgnoringCase(result.HowToFix, "Add CODEOWNERS file.");
             Assert.IsFalse(result.IsValid);
         }
 
         [Test]
         public async Task IsValid_ReturnsFalseIfCodeownersFileEmpty()
         {
-            var directory = CreateRepositoryDirectory(".github");
-            IReadOnlyList<RepositoryContent> rootContents = new[] { directory };
             var content = CreateContent("CODEOWNERS", "");
             IReadOnlyList<RepositoryContent> contents = new[] { content };
             
             var repository = CreateRepository("repo");
-            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MainBranch).Returns(Task.FromResult(rootContents));
-            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, rootContents[0].Name, MainBranch).Returns(Task.FromResult(contents));
-            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, rootContents[0].Name + "/" + contents[0].Name, MainBranch).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MainBranch).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MainBranch).Returns(Task.FromResult(contents));
             
             var result = await _rule.IsValid(_mockClient, repository);
-            StringAssert.AreEqualIgnoringCase(result.HowToFix, "Add CODEOWNERS file to .github directory & add at least one owner.");
+            StringAssert.AreEqualIgnoringCase(result.HowToFix, "Add CODEOWNERS file & add at least one owner.");
             Assert.IsFalse(result.IsValid);
         }
 
         [Test]
-        public async Task IsValid_ReturnsTrueIfCodeownersFileExistsAndHasAtleastOneEntry()
+        public async Task IsValid_ReturnsTrueIfCodeownersFileExistsInGithubDirectoryAndHasAtleastOneEntry()
         {
             var directory = CreateRepositoryDirectory(".github");
             IReadOnlyList<RepositoryContent> rootContents = new[] { directory };
@@ -75,6 +72,26 @@ namespace ValidationLibrary.Tests.Rules
             
             var repository = CreateRepository("repo");
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MainBranch).Returns(Task.FromResult(rootContents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, rootContents[0].Name, MainBranch).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, rootContents[0].Name + "/" + contents[0].Name, MainBranch).Returns(Task.FromResult(contents));
+            
+            var result = await _rule.IsValid(_mockClient, repository);
+            Assert.IsTrue(result.IsValid);
+        }
+
+        [Test]
+        public async Task IsValid_ReturnsTrueIfCodeownersFileExistsInDocsDirectoryAndHasAtleastOneEntryAndGithubDirectoryExists()
+        {
+            var docsDir = CreateRepositoryDirectory("docs");
+            var githubDir = CreateRepositoryDirectory(".github");
+            IReadOnlyList<RepositoryContent> rootContents = new[] { docsDir, githubDir };
+
+            var content = CreateContent("CODEOWNERS", "devguy");
+            IReadOnlyList<RepositoryContent> contents = new[] { content };
+            
+            var repository = CreateRepository("repo");
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MainBranch).Returns(Task.FromResult(rootContents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, rootContents[0].Name, MainBranch).Returns(Task.FromResult((IReadOnlyList<RepositoryContent>)new List<RepositoryContent>()));
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, rootContents[0].Name, MainBranch).Returns(Task.FromResult(contents));
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, rootContents[0].Name + "/" + contents[0].Name, MainBranch).Returns(Task.FromResult(contents));
             

@@ -47,11 +47,11 @@ namespace ValidationLibrary.Rules
             if(codeownersContent == null)
             {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, No CODEOWNERS found, validation false.", nameof(HasReadmeRule), RuleName);
-                return new ValidationResult(RuleName, "Add CODEOWNERS file to .github directory.", false, DoNothing);
+                return new ValidationResult(RuleName, "Add CODEOWNERS file.", false, DoNothing);
             }
             
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. CODEOWNERS exists: {codeownersExist}", nameof(HasCodeownersRule), RuleName, repo.FullName, !string.IsNullOrWhiteSpace(codeownersContent.Content));
-            return new ValidationResult(RuleName, "Add CODEOWNERS file to .github directory & add at least one owner.", !string.IsNullOrWhiteSpace(codeownersContent.Content), DoNothing);
+            return new ValidationResult(RuleName, "Add CODEOWNERS file & add at least one owner.", !string.IsNullOrWhiteSpace(codeownersContent.Content), DoNothing);
         }
 
         private Task DoNothing(IGitHubClient client, Repository repository)
@@ -62,17 +62,27 @@ namespace ValidationLibrary.Rules
         private async Task<RepositoryContent> GetCodeownersContent(IGitHubClient client, Repository repository)
         {
             var contents = await GetContents(client, repository, MainBranch).ConfigureAwait(false);
-            var githubDir = contents.FirstOrDefault(content => content.Name.Equals(".github", StringComparison.InvariantCultureIgnoreCase));
+            var codeownersFile = contents.FirstOrDefault(content => content.Name.Equals("CODEOWNERS", StringComparison.InvariantCultureIgnoreCase));
+            var path = "CODEOWNERS";
 
-            if(githubDir == null)
-            {
-                _logger.LogDebug("Rule {ruleClass} / {ruleName}, No .github directory found.", nameof(HasCodeownersRule), RuleName);
-                return null;
+            if(codeownersFile == null) {
+                var directory = contents.FirstOrDefault(content => content.Name.Equals(".github", StringComparison.InvariantCultureIgnoreCase));
+                if(directory != null) {
+                    var directoryContents = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, directory.Name, MainBranch).ConfigureAwait(false);
+                    codeownersFile = directoryContents.FirstOrDefault(content => content.Name.Equals("CODEOWNERS", StringComparison.InvariantCultureIgnoreCase));
+                    path = ".github/CODEOWNERS";
+                }
             }
 
-            var file = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, githubDir.Name, MainBranch).ConfigureAwait(false);
-            var codeownersFile = file.FirstOrDefault(content => content.Name.Equals("CODEOWNERS", StringComparison.InvariantCultureIgnoreCase));
-            var path = ".github/CODEOWNERS";
+            if(codeownersFile == null) {
+                var directory = contents.FirstOrDefault(content => content.Name.Equals("docs", StringComparison.InvariantCultureIgnoreCase));
+                if(directory != null) {
+                    var directoryContents = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, directory.Name, MainBranch).ConfigureAwait(false);
+                    codeownersFile = directoryContents.FirstOrDefault(content => content.Name.Equals("CODEOWNERS", StringComparison.InvariantCultureIgnoreCase));
+                    path = "docs/CODEOWNERS";
+                }
+            }
+            
 
             if(codeownersFile == null) {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, No CODEOWNERS found.", nameof(HasCodeownersRule), RuleName);
