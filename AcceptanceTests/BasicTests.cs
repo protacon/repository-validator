@@ -71,7 +71,7 @@ namespace AcceptanceTests
             request.AddQueryParameter("code", _code);
             request.AddJsonBody(obj);
 
-            return await client.ExecuteTaskAsync(request);
+            return await client.ExecuteAsync(request);
         }
     }
 }

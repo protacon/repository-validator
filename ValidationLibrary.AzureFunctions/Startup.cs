@@ -65,6 +65,7 @@ namespace ValidationLibrary.AzureFunctions
                 .AddTransient<HasNewestPtcsJenkinsLibRule>()
                 .AddTransient<HasReadmeRule>()
                 .AddTransient<HasNotManyStaleBranchesRule>()
+                .AddTransient<HasCodeownersRule>()
                 .AddTransient<IValidationClient, ValidationClient>()
                 .AddSingleton(provicer =>
                 {
@@ -74,7 +75,8 @@ namespace ValidationLibrary.AzureFunctions
                         provicer.GetService<HasReadmeRule>(),
                         provicer.GetService<HasNotManyStaleBranchesRule>(),
                         provicer.GetService<HasNewestPtcsJenkinsLibRule>(),
-                        provicer.GetService<HasLicenseRule>()
+                        provicer.GetService<HasLicenseRule>(),
+                        provicer.GetService<HasCodeownersRule>()
                     };
                     return new ValidationLibrary.RepositoryValidator(
                         provicer.GetService<ILogger<ValidationLibrary.RepositoryValidator>>(),
