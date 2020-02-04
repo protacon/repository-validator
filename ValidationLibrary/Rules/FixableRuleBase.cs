@@ -118,20 +118,9 @@ namespace ValidationLibrary.Rules
 
         protected async Task<IReadOnlyList<RepositoryContent>> GetContents(IGitHubClient client, Repository repository, string branch)
         {
-            if (client is null)
-            {
-                throw new ArgumentNullException(nameof(client));
-            }
-
-            if (repository is null)
-            {
-                throw new ArgumentNullException(nameof(repository));
-            }
-
-            if (string.IsNullOrEmpty(branch))
-            {
-                throw new ArgumentException("branch is missing", nameof(branch));
-            }
+            if (client is null) throw new ArgumentNullException(nameof(client));
+            if (repository is null) throw new ArgumentNullException(nameof(repository));
+            if (string.IsNullOrEmpty(branch)) throw new ArgumentException("branch is missing", nameof(branch));
 
             try
             {
