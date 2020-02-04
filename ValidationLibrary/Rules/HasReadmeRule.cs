@@ -48,20 +48,13 @@ namespace ValidationLibrary.Rules
             if (client is null) throw new ArgumentNullException(nameof(client));
             if (gitHubRepository is null) throw new ArgumentNullException(nameof(gitHubRepository));
 
-            _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
-            try
-            {
-                var readme = await client.Repository.Content.GetReadme(gitHubRepository.Owner.Login, gitHubRepository.Name).ConfigureAwait(false);
-                var isValid = !string.IsNullOrWhiteSpace(readme?.Content);
-                var fix = isValid ? (Func<IGitHubClient, Repository, Task>)DoNothing : Fix;
-                _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, isValid);
-                return new ValidationResult(RuleName, "Add README.md file to repository root with content describing this repository.", isValid, fix);
-            }
-            catch (NotFoundException)
-            {
-                _logger.LogDebug("Rule {ruleClass} / {ruleName}, No Readme found, validation false.", nameof(HasReadmeRule), RuleName);
-                return new ValidationResult(RuleName, "Add README.md file to repository root.", false, Fix);
-            }
+            _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}",
+                nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
+            bool HasReadmeWithContent = await this.HasReadmeWithContent(client, gitHubRepository, MainBranch).ConfigureAwait(false);
+
+            _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}",
+                nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, HasReadmeWithContent);
+            return new ValidationResult(RuleName, "Add README.md file to repository root with content describing this repository.", HasReadmeWithContent, Fix);
         }
 
         /// <summary>
@@ -114,12 +107,6 @@ namespace ValidationLibrary.Rules
 
             var refUpdate = new ReferenceUpdate(commitResponse.Sha);
             return await client.Git.Reference.Update(repository.Owner.Login, repository.Name, $"heads/{_branchName}", refUpdate).ConfigureAwait(false);
-        }
-
-        private Task DoNothing(IGitHubClient client, Repository repository)
-        {
-            _logger.LogInformation("Rule {ruleClass} / {ruleName}, No fix.", nameof(HasReadmeRule), RuleName);
-            return Task.CompletedTask;
         }
 
         private async Task<bool> HasReadmeWithContent(IGitHubClient client, Repository repository, string branchName)

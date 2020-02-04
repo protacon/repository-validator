@@ -60,29 +60,37 @@ namespace ValidationLibrary.Rules
 
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.FullName);
 
-            var jenkinsContent = await GetJenkinsFileContent(client, repository, MainBranch).ConfigureAwait(false);
+            var isValid = IsValid(await GetJenkinsFileContent(client, repository, MainBranch).ConfigureAwait(false));
+
+            return new ValidationResult(RuleName, $"Update {LibraryName} to newest version. Newest version can be found in https://github.com/protacon/{LibraryName}/releases",
+                isValid, Fix);
+        }
+
+        private bool IsValid(RepositoryContent jenkinsContent)
+        {
             if (jenkinsContent == null)
             {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, no {jenkinsFileName} found. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
-                return OkResult();
+                return true;
             }
+            var content = jenkinsContent.Content;
 
-            MatchCollection matches = _regex.Matches(jenkinsContent.Content);
+            MatchCollection matches = _regex.Matches(content);
             var match = matches.OfType<Match>().FirstOrDefault();
             if (match == null)
             {
                 _logger.LogTrace("Rule {ruleClass} / {ruleName}, no jenkins-ptcs-library matches found. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
-                return OkResult();
+                return true;
             }
 
             var group = match.Groups.OfType<Group>().LastOrDefault();
             if (group == null)
             {
                 _logger.LogTrace("Rule {ruleClass} / {ruleName}, no jenkins-ptcs-library groups found. Skipping.", nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
-                return OkResult();
+                return true;
             }
 
-            return new ValidationResult(RuleName, $"Update {LibraryName} to newest version.", group.Value == _expectedVersion, Fix);
+            return group.Value == _expectedVersion;
         }
 
         /// <summary>
@@ -99,17 +107,19 @@ namespace ValidationLibrary.Rules
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasNewestPtcsJenkinsLibRule), RuleName);
             var latest = await GetCommitAsBase(_branchName, client, repository).ConfigureAwait(false);
             _logger.LogTrace("Latest commit {sha} with message {message}", latest.Sha, latest.Message);
-
-            string fixedContent = await GetFixedContent(client, repository, latest.Sha).ConfigureAwait(false);
-            if (fixedContent == null)
+            var jenkinsContent = await GetJenkinsFileContent(client, repository, latest.Sha).ConfigureAwait(false);
+            if (IsValid(jenkinsContent))
             {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, Branch {branchName} already had latest version fix or it didn't have Jenkinsfile, skipping updating existing branch.",
-                     nameof(HasNewestPtcsJenkinsLibRule), RuleName, _branchName);
+                    nameof(HasNewestPtcsJenkinsLibRule), RuleName, _branchName);
                 return;
             }
-
-            var reference = await PushFix(client, repository, latest, fixedContent).ConfigureAwait(false);
-            await CreateOrOpenPullRequest(_prTitle, client, repository, reference).ConfigureAwait(false);
+            else
+            {
+                var fixedContent = _regex.Replace(jenkinsContent.Content, $"'{LibraryName}@{_expectedVersion}'");
+                var reference = await PushFix(client, repository, latest, fixedContent).ConfigureAwait(false);
+                await CreateOrOpenPullRequest(_prTitle, client, repository, reference).ConfigureAwait(false);
+            }
         }
 
         private async Task<Reference> PushFix(IGitHubClient client, Repository repository, Commit latest, string jenkinsFile)
@@ -138,20 +148,6 @@ namespace ValidationLibrary.Rules
             return await client.Git.Reference.Update(repository.Owner.Login, repository.Name, $"heads/{_branchName}", refUpdate).ConfigureAwait(false);
         }
 
-        private async Task<string> GetFixedContent(IGitHubClient client, Repository repository, string branchName)
-        {
-            _logger.LogTrace("Rule {ruleClass} / {ruleName}: Retrieving fixed contents for JenkinsFile from branch {branch}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, branchName);
-            var jenkinsContent = await GetJenkinsFileContent(client, repository, branchName).ConfigureAwait(false);
-            if (jenkinsContent == null)
-            {
-                _logger.LogWarning("Rule {ruleClass} / {ruleName}, no {filename} found, unable to fix.",
-                    nameof(HasNewestPtcsJenkinsLibRule), RuleName, JenkinsFileName);
-                return null;
-            }
-            var fixedContent = _regex.Replace(jenkinsContent.Content, $"'{LibraryName}@{_expectedVersion}'");
-            return string.Equals(fixedContent, jenkinsContent.Content, StringComparison.InvariantCulture) ? null : fixedContent;
-        }
-
         private async Task<RepositoryContent> GetJenkinsFileContent(IGitHubClient client, Repository repository, string branch)
         {
             _logger.LogTrace("Retrieving JenkinsFile for {repositoryName} from branch {branch}", repository.FullName, branch);
@@ -168,16 +164,6 @@ namespace ValidationLibrary.Rules
 
             var matchingJenkinsFiles = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, jenkinsFile.Name, branch).ConfigureAwait(false);
             return matchingJenkinsFiles[0];
-        }
-
-        private ValidationResult OkResult()
-        {
-            return new ValidationResult(RuleName, $"Update {LibraryName} to newest version. Newest version can be found in https://github.com/protacon/{LibraryName}/releases", true, DoNothing);
-        }
-
-        private Task DoNothing(IGitHubClient client, Repository repository)
-        {
-            return Task.CompletedTask;
         }
     }
 }
