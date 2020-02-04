@@ -38,21 +38,35 @@ namespace ValidationLibrary.Rules
                 State = ItemStateFilter.All
             };
 
+            var pullRequestTitle = FormatPrTitle(prTitle);
             var pullRequests = await client.PullRequest.GetAllForRepository(repository.Owner.Login, repository.Name, pullRequest).ConfigureAwait(false);
-            var openPullRequests = pullRequests.Where(pr => pr.Title == FormatPrTitle(prTitle) && pr.State == ItemState.Open);
+            _logger.LogTrace("Rule {ruleClass} / {ruleName}, Checking if there is existing open pull request with name '{pullRequest}'.", typeof(T).Name, RuleName, pullRequestTitle);
+            var openPullRequests = pullRequests.Where(pr => pr.Title == pullRequestTitle && pr.State == ItemState.Open);
             if (openPullRequests.Any())
             {
-                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Open pull request already exists. Skipping.", typeof(T).Name, RuleName);
+                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Open pull request already exists with name '{pullRequest}'. Skipping..", typeof(T).Name, RuleName, pullRequestTitle);
                 return;
             }
 
-            var closed = pullRequests.FirstOrDefault(pr => pr.Title == FormatPrTitle(prTitle) && pr.State == ItemState.Closed && !pr.Merged);
+            _logger.LogTrace("Rule {ruleClass} / {ruleName}, No open pull request with name '{pullRequest}' found. Checking if there is existing closed pull request.", typeof(T).Name, RuleName, pullRequestTitle);
+            var closed = pullRequests.FirstOrDefault(pr => pr.Title == pullRequestTitle && pr.State == ItemState.Closed && !pr.Merged);
             if (closed != null && await _gitUtils.PullRequestHasLiveBranch(client, closed).ConfigureAwait(false))
             {
-                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Closed pull request with active branch found. Reopening pull request.");
-                await OpenOldPullRequest(prTitle, client, repository, closed).ConfigureAwait(false);
-                return;
+                _logger.LogDebug("Rule {ruleClass} / {ruleName}, Closed pull request '{pullRequest}' found. Checking if branch is live.", typeof(T).Name, RuleName, pullRequestTitle);
+                if (await _gitUtils.PullRequestHasLiveBranch(client, closed).ConfigureAwait(false))
+                {
+                    _logger.LogInformation("Rule {ruleClass} / {ruleName}, Pull request '{pullRequest}' with has active branch. Reopening pull request.", typeof(T).Name, RuleName, pullRequestTitle);
+                    await OpenOldPullRequest(prTitle, client, repository, closed).ConfigureAwait(false);
+                    return;
+                }
+
+                _logger.LogInformation("Rule {ruleClass} / {ruleName}, Closed pull request '{pullRequest}' doesn't have active branch. Creating new pull request.", typeof(T).Name, RuleName, pullRequestTitle);
             }
+            else
+            {
+                _logger.LogInformation("Rule {ruleClass} / {ruleName}, No pull request '{pullRequest}' found. Creating new pull request.", typeof(T).Name, RuleName, pullRequestTitle);
+            }
+
 
             await CreateNewPullRequest(prTitle, client, repository, latest).ConfigureAwait(false);
         }
