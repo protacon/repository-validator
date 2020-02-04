@@ -50,7 +50,7 @@ namespace ValidationLibrary.Rules
 
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, No open pull request with name '{pullRequest}' found. Checking if there is existing closed pull request.", typeof(T).Name, RuleName, pullRequestTitle);
             var closed = pullRequests.FirstOrDefault(pr => pr.Title == pullRequestTitle && pr.State == ItemState.Closed && !pr.Merged);
-            if (closed != null && await _gitUtils.PullRequestHasLiveBranch(client, closed).ConfigureAwait(false))
+            if (closed != null)
             {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, Closed pull request '{pullRequest}' found. Checking if branch is live.", typeof(T).Name, RuleName, pullRequestTitle);
                 if (await _gitUtils.PullRequestHasLiveBranch(client, closed).ConfigureAwait(false))
