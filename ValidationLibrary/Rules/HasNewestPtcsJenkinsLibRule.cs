@@ -170,25 +170,6 @@ namespace ValidationLibrary.Rules
             return matchingJenkinsFiles[0];
         }
 
-        private async Task<IReadOnlyList<RepositoryContent>> GetContents(IGitHubClient client, Repository repository, string branch)
-        {
-            try
-            {
-                return await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, branch).ConfigureAwait(false);
-            }
-            catch (NotFoundException exception)
-            {
-                /* 
-                 * NOTE: Repository that was just created (empty repository) doesn't have content this causes
-                 * Octokit.NotFoundException. This same thing would probably be throw if the whole repository
-                 * was missing, but we don't care for that case (no point to validate if repository doesn't exist.)
-                 */
-                _logger.LogWarning(exception, "Rule {ruleClass} / {ruleName}, Repository {repositoryName} caused {exceptionClass}. This may be a new repository, but if this persists, repository should be removed.",
-                 nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.Name, nameof(NotFoundException));
-                return Array.Empty<RepositoryContent>();
-            }
-        }
-
         private ValidationResult OkResult()
         {
             return new ValidationResult(RuleName, $"Update {LibraryName} to newest version. Newest version can be found in https://github.com/protacon/{LibraryName}/releases", true, DoNothing);
