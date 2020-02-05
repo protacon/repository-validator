@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -127,6 +128,29 @@ namespace ValidationLibrary.Rules
                 Body = PullRequestBody
             };
             await client.PullRequest.Create(repository.Owner.Login, repository.Name, pullRequest).ConfigureAwait(false);
+        }
+
+        protected async Task<IReadOnlyList<RepositoryContent>> GetContents(IGitHubClient client, Repository repository, string branch)
+        {
+            if (client is null) throw new ArgumentNullException(nameof(client));
+            if (repository is null) throw new ArgumentNullException(nameof(repository));
+            if (string.IsNullOrEmpty(branch)) throw new ArgumentException("branch is missing", nameof(branch));
+
+            try
+            {
+                return await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, branch).ConfigureAwait(false);
+            }
+            catch (NotFoundException exception)
+            {
+                /*
+                 * NOTE: Repository that was just created (empty repository) doesn't have content this causes
+                 * Octokit.NotFoundException. This same thing would probably be throw if the whole repository
+                 * was missing, but we don't care for that case (no point to validate if repository doesn't exist.)
+                 */
+                _logger.LogWarning(exception, "Rule {ruleClass} / {ruleName}, Repository {repositoryName} caused {exceptionClass}. This may be a new repository, but if this persists, repository should be removed.",
+                 nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.Name, nameof(NotFoundException));
+                return Array.Empty<RepositoryContent>();
+            }
         }
     }
 }

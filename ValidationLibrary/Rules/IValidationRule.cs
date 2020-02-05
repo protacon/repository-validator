@@ -12,7 +12,7 @@ namespace ValidationLibrary.Rules
         string RuleName { get; }
 
         Task Init(IGitHubClient ghClient);
-        
+
         Task<ValidationResult> IsValid(IGitHubClient client, Repository repository);
     }
 }
