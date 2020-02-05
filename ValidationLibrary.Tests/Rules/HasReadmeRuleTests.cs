@@ -13,7 +13,7 @@ namespace ValidationLibrary.Tests.Rules
     public class HasReadmeRuleTests
     {
         /// <summary>
-        /// By default, master is checked for Jenkinsfile if there is no branch
+        /// By default, master is checked for README.md if there is no branch
         /// </summary>
         private const string MasterBranch = "master";
 
