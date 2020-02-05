@@ -48,20 +48,13 @@ namespace ValidationLibrary.Rules
             if (client is null) throw new ArgumentNullException(nameof(client));
             if (gitHubRepository is null) throw new ArgumentNullException(nameof(gitHubRepository));
 
-            _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
-            try
-            {
-                var readme = await client.Repository.Content.GetReadme(gitHubRepository.Owner.Login, gitHubRepository.Name).ConfigureAwait(false);
-                var isValid = !string.IsNullOrWhiteSpace(readme?.Content);
-                var fix = isValid ? (Func<IGitHubClient, Repository, Task>)DoNothing : Fix;
-                _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}", nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, isValid);
-                return new ValidationResult(RuleName, "Add README.md file to repository root with content describing this repository.", isValid, fix);
-            }
-            catch (NotFoundException)
-            {
-                _logger.LogDebug("Rule {ruleClass} / {ruleName}, No Readme found, validation false.", nameof(HasReadmeRule), RuleName);
-                return new ValidationResult(RuleName, "Add README.md file to repository root.", false, Fix);
-            }
+            _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}",
+                nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
+            bool HasReadmeWithContent = await this.HasReadmeWithContent(client, gitHubRepository, MainBranch).ConfigureAwait(false);
+
+            _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}",
+                nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, HasReadmeWithContent);
+            return new ValidationResult(RuleName, "Add README.md file to repository root with content describing this repository.", HasReadmeWithContent, Fix);
         }
 
         /// <summary>
@@ -77,6 +70,14 @@ namespace ValidationLibrary.Rules
             _logger.LogInformation("Rule {ruleClass} / {ruleName}, performing auto fix.", nameof(HasReadmeRule), RuleName);
             var latest = await GetCommitAsBase(_branchName, client, repository).ConfigureAwait(false);
             _logger.LogTrace("Latest commit {sha} with message {message}", latest.Sha, latest.Message);
+
+            bool hasReadmeWithContent = await HasReadmeWithContent(client, repository, latest.Sha).ConfigureAwait(false);
+            if (hasReadmeWithContent)
+            {
+                _logger.LogDebug("Rule {ruleClass} / {ruleName}, Branch {branchName} already had readme, skipping updating existing branch.",
+                     nameof(HasReadmeRule), RuleName, _branchName);
+                return;
+            }
 
             var reference = await PushFix(client, repository, latest, _content).ConfigureAwait(false);
             await CreateOrOpenPullRequest(_prTitle, client, repository, reference).ConfigureAwait(false);
@@ -108,10 +109,29 @@ namespace ValidationLibrary.Rules
             return await client.Git.Reference.Update(repository.Owner.Login, repository.Name, $"heads/{_branchName}", refUpdate).ConfigureAwait(false);
         }
 
-        private Task DoNothing(IGitHubClient client, Repository repository)
+        private async Task<bool> HasReadmeWithContent(IGitHubClient client, Repository repository, string branchName)
         {
-            _logger.LogInformation("Rule {ruleClass} / {ruleName}, No fix.", nameof(HasReadmeRule), RuleName);
-            return Task.CompletedTask;
+            _logger.LogTrace("Rule {ruleClass} / {ruleName}: Retrieving fixed contents for JenkinsFile from branch {branch}", nameof(HasReadmeRule), RuleName, branchName);
+            var readme = await GetReadmeFromBranch(client, repository, branchName).ConfigureAwait(false);
+            return !string.IsNullOrWhiteSpace(readme?.Content);
+        }
+
+        private async Task<RepositoryContent> GetReadmeFromBranch(IGitHubClient client, Repository repository, string branch)
+        {
+            _logger.LogTrace("Retrieving JenkinsFile for {repositoryName} from branch {branch}", repository.FullName, branch);
+
+            // NOTE: rootContents doesn't contain actual contents, content is only fetched when we fetch the single file later.
+            var rootContents = await GetContents(client, repository, branch).ConfigureAwait(false);
+
+            var readmeFile = rootContents.FirstOrDefault(content => content.Name.Equals(ReadmeFileName, StringComparison.InvariantCultureIgnoreCase));
+            if (readmeFile == null)
+            {
+                _logger.LogDebug("Rule {ruleClass} / {ruleName}, No {readmeFileName} found in root.", nameof(HasReadmeRule), RuleName, ReadmeFileName);
+                return null;
+            }
+
+            var matchingFiles = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, readmeFile.Name, branch).ConfigureAwait(false);
+            return matchingFiles[0];
         }
 
         private async Task<string> GetReadmeTemplateContent()
