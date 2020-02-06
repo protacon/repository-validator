@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Octokit;
-using Octokit.Helpers;
 using ValidationLibrary.Utils;
 
 namespace ValidationLibrary.Rules
@@ -28,9 +26,7 @@ namespace ValidationLibrary.Rules
         private const string LibraryName = "jenkins-ptcs-library";
         private const string JenkinsFileName = "Jenkinsfile";
         private const string FileMode = "100644";
-
         private readonly string _branchName = $"feature/{LibraryName}-update";
-        private readonly string _prTitle = $"Update {LibraryName} to latest version.";
         private readonly Regex _regex = new Regex($@"[""']{LibraryName}@(\d+.\d+.\d+.*)[""']", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private readonly ILogger<HasNewestPtcsJenkinsLibRule> _logger;
@@ -38,7 +34,7 @@ namespace ValidationLibrary.Rules
         private string _expectedVersion;
         private string _latestReleaseUrl;
 
-        public HasNewestPtcsJenkinsLibRule(ILogger<HasNewestPtcsJenkinsLibRule> logger, GitUtils gitUtils) : base(logger, gitUtils)
+        public HasNewestPtcsJenkinsLibRule(ILogger<HasNewestPtcsJenkinsLibRule> logger, GitUtils gitUtils) : base(logger, gitUtils, $"[Automatic Validation] Update {LibraryName} to latest version")
         {
             _logger = logger;
             _gitUtils = gitUtils;
@@ -119,7 +115,7 @@ namespace ValidationLibrary.Rules
                 var fixedContent = _regex.Replace(jenkinsContent.Content, $"'{LibraryName}@{_expectedVersion}'");
                 var reference = await PushFix(client, repository, latest, fixedContent).ConfigureAwait(false);
 
-                await CreatePullRequestIfNeeded(_prTitle, client, repository, reference).ConfigureAwait(false);
+                await CreatePullRequestIfNeeded(client, repository, reference).ConfigureAwait(false);
             }
         }
 

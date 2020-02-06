@@ -14,29 +14,29 @@ namespace ValidationLibrary.Rules
         public abstract string RuleName { get; }
         protected abstract string PullRequestBody { get; }
         protected const string MainBranch = "master";
-        protected static string FormatPrTitle(string message) => $"[Automatic Validation] {message}";
         private readonly ILogger<FixableRuleBase<T>> _logger;
         private readonly GitUtils _gitUtils;
+        private readonly string _pullRequestTitle;
 
-        public FixableRuleBase(ILogger<FixableRuleBase<T>> logger, GitUtils gitUtils)
+        public FixableRuleBase(ILogger<FixableRuleBase<T>> logger, GitUtils gitUtils, string pullRequestTitle)
         {
             _logger = logger;
             _gitUtils = gitUtils;
+            _pullRequestTitle = pullRequestTitle;
         }
 
         public abstract Task Init(IGitHubClient ghClient);
         public abstract Task<ValidationResult> IsValid(IGitHubClient client, Repository repository);
         protected abstract Task Fix(IGitHubClient client, Repository repository);
 
-        protected async Task CreatePullRequestIfNeeded(string prTitle, IGitHubClient client, Repository repository, Reference latest)
+        protected async Task CreatePullRequestIfNeeded(IGitHubClient client, Repository repository, Reference latest)
         {
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (repository == null) throw new ArgumentNullException(nameof(repository));
             if (latest == null) throw new ArgumentNullException(nameof(latest));
 
-            var pullRequestTitle = FormatPrTitle(prTitle);
             _logger.LogTrace("Rule {ruleClass} / {ruleName}: Trying to create or open a pull request for reference {ref} with name '{pullRequest}'",
-                    typeof(T).Name, RuleName, latest.Ref, pullRequestTitle);
+                    typeof(T).Name, RuleName, latest.Ref, _pullRequestTitle);
 
             if (await _gitUtils.HasOpenPullRequest(client, repository, latest).ConfigureAwait(false))
             {
@@ -44,7 +44,7 @@ namespace ValidationLibrary.Rules
                 return;
             }
 
-            await CreateNewPullRequest(prTitle, client, repository, latest).ConfigureAwait(false);
+            await CreateNewPullRequest(client, repository, latest).ConfigureAwait(false);
         }
 
         protected async Task<BlobReference> CreateBlob(IGitHubClient client, Repository repository, string fixedContent)
@@ -82,10 +82,10 @@ namespace ValidationLibrary.Rules
             return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, existingBranch.Commit.Sha).ConfigureAwait(false);
         }
 
-        private async Task CreateNewPullRequest(string prTitle, IGitHubClient client, Repository repository, Reference latest)
+        private async Task CreateNewPullRequest(IGitHubClient client, Repository repository, Reference latest)
         {
             var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, $"heads/{MainBranch}").ConfigureAwait(false);
-            var pullRequest = new NewPullRequest(FormatPrTitle(prTitle), latest.Ref, master.Ref)
+            var pullRequest = new NewPullRequest(_pullRequestTitle, latest.Ref, master.Ref)
             {
                 Body = PullRequestBody
             };
