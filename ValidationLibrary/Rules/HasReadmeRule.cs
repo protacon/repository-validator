@@ -80,7 +80,7 @@ namespace ValidationLibrary.Rules
             }
 
             var reference = await PushFix(client, repository, latest, _content).ConfigureAwait(false);
-            await CreateOrOpenPullRequest(_prTitle, client, repository, reference).ConfigureAwait(false);
+            await CreatePullRequestIfNeeded(_prTitle, client, repository, reference).ConfigureAwait(false);
         }
 
         private async Task<Reference> PushFix(IGitHubClient client, Repository repository, Commit latest, string jenkinsFile)

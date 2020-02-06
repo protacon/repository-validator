@@ -118,7 +118,8 @@ namespace ValidationLibrary.Rules
             {
                 var fixedContent = _regex.Replace(jenkinsContent.Content, $"'{LibraryName}@{_expectedVersion}'");
                 var reference = await PushFix(client, repository, latest, fixedContent).ConfigureAwait(false);
-                await CreateOrOpenPullRequest(_prTitle, client, repository, reference).ConfigureAwait(false);
+
+                await CreatePullRequestIfNeeded(_prTitle, client, repository, reference).ConfigureAwait(false);
             }
         }
 
