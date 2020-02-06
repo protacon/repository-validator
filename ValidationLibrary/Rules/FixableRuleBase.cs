@@ -82,19 +82,6 @@ namespace ValidationLibrary.Rules
             return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, existingBranch.Commit.Sha).ConfigureAwait(false);
         }
 
-        private async Task OpenOldPullRequest(string prTitle, IGitHubClient client, Repository repository, PullRequest oldPullRequest)
-        {
-            _logger.LogInformation("Rule {ruleClass} / {ruleName}: Opening pull request #{number}", typeof(T).Name, RuleName, oldPullRequest.Number);
-            var pullRequest = new PullRequestUpdate()
-            {
-                Title = FormatPrTitle(prTitle),
-                State = ItemState.Open,
-                Body = oldPullRequest.Body,
-                Base = MainBranch
-            };
-            await client.PullRequest.Update(repository.Owner.Login, repository.Name, oldPullRequest.Number, pullRequest).ConfigureAwait(false);
-        }
-
         private async Task CreateNewPullRequest(string prTitle, IGitHubClient client, Repository repository, Reference latest)
         {
             var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, $"heads/{MainBranch}").ConfigureAwait(false);
