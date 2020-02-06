@@ -32,17 +32,6 @@ namespace ValidationLibrary.Tests.Utils
         }
 
         [Test]
-        public async Task PullRequestHasLiveBranch_ReturnTrueIfBranchReferredInPullRequestHasSameSha()
-        {
-            var pullRequest = CreatePullRequest("reference", "shasha");
-            var branch = CreateBranch("reference", "shasha");
-            _mockRepositoryBranchesClient.Get(Arg.Any<string>(), Arg.Any<string>(), "reference").Returns(branch);
-
-            var result = await _gitUtils.PullRequestHasLiveBranch(_mockClient, pullRequest);
-            Assert.True(result);
-        }
-
-        [Test]
         public async Task HasOpenPullRequest_CallClientWithCorrectParameters()
         {
             var repository = CreateRepository("test");
@@ -79,12 +68,6 @@ namespace ValidationLibrary.Tests.Utils
 
             var reference = CreateReference("refs/heads/feature/jenkins-ptcs-library-update");
             Assert.IsFalse(await _gitUtils.HasOpenPullRequest(_mockClient, CreateRepository("test"), reference));
-        }
-
-        private Branch CreateBranch(string reference, string sha)
-        {
-            var commit = CreateGitReference(reference, sha);
-            return new Branch("name", commit, false);
         }
 
         private PullRequest CreatePullRequest(string reference, string sha)
