@@ -8,10 +8,10 @@ namespace ValidationLibrary.MarkdownGenerator
 {
     public static class VisualStudioDocParser
     {
-        public static XmlDocumentComment[] ParseXmlComment(XDocument xDocument)
+        public static XmlDocumentComment[] GetTypeSummaries(XDocument xDocument, string namespaceMatch)
         {
             return xDocument.Descendants("member")
-                .Where(element => element.Attribute("name").Value.StartsWith("T:ValidationLibrary.Rules."))
+                .Where(element => element.Attribute("name").Value.StartsWith($"T:{namespaceMatch}."))
                 .Select(element =>
                 {
                     var match = Regex.Match(element.Attribute("name").Value, @"(.):(.+)\.([^.()]+)?(\(.+\)|$)");

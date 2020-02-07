@@ -5,24 +5,24 @@ namespace ValidationLibrary.MarkdownGenerator.Tests
 {
     public class VisualStudioDocParserTests
     {
+        private const string namespaceMatch = "ValidationLibrary.Rules";
+
         [Test]
         public void ParseXmlComment_ReturnsEmptyForNoComments()
         {
-            Assert.IsEmpty(VisualStudioDocParser.ParseXmlComment(XDocument.Parse("<?xml version =\"1.0\"?><doc/>")));
+            Assert.IsEmpty(VisualStudioDocParser.GetTypeSummaries(XDocument.Parse("<?xml version =\"1.0\"?><doc/>"), namespaceMatch));
 
             var xml = "<?xml version=\"1.0\"?>" +
                     "<doc>" +
                     "<members>" +
                     "</members>" +
                     "</doc>";
-            Assert.IsEmpty(VisualStudioDocParser.ParseXmlComment(XDocument.Parse(xml)));
+            Assert.IsEmpty(VisualStudioDocParser.GetTypeSummaries(XDocument.Parse(xml), namespaceMatch));
         }
 
         [Test]
         public void ParseXmlComment_ReturnsSummary()
         {
-            Assert.IsEmpty(VisualStudioDocParser.ParseXmlComment(XDocument.Parse("<?xml version =\"1.0\"?><doc/>")));
-
             var xml = "<?xml version=\"1.0\"?>" +
                     "<doc>" +
                     "<members>" +
@@ -33,7 +33,7 @@ namespace ValidationLibrary.MarkdownGenerator.Tests
                     "</member>" +
                     "</members>" +
                     "</doc>";
-            var result = VisualStudioDocParser.ParseXmlComment(XDocument.Parse(xml));
+            var result = VisualStudioDocParser.GetTypeSummaries(XDocument.Parse(xml), namespaceMatch);
             Assert.AreEqual(1, result.Length);
 
             Assert.AreEqual("HasLicenseRule", result[0].MemberName);
@@ -43,8 +43,6 @@ namespace ValidationLibrary.MarkdownGenerator.Tests
         [Test]
         public void ParseXmlComment_MissingSummaryDoesntBreak()
         {
-            Assert.IsEmpty(VisualStudioDocParser.ParseXmlComment(XDocument.Parse("<?xml version =\"1.0\"?><doc/>")));
-
             var xml = "<?xml version=\"1.0\"?>" +
                     "<doc>" +
                     "<members>" +
@@ -52,7 +50,7 @@ namespace ValidationLibrary.MarkdownGenerator.Tests
                     "</member>" +
                     "</members>" +
                     "</doc>";
-            var result = VisualStudioDocParser.ParseXmlComment(XDocument.Parse(xml));
+            var result = VisualStudioDocParser.GetTypeSummaries(XDocument.Parse(xml), namespaceMatch);
             Assert.AreEqual(1, result.Length);
 
             Assert.AreEqual("HasLicenseRule", result[0].MemberName);

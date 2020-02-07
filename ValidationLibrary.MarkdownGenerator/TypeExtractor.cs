@@ -13,34 +13,14 @@ namespace ValidationLibrary.MarkdownGenerator
         {
             var xmlPath = Path.Combine(Directory.GetParent(assembly.Location).FullName, Path.GetFileNameWithoutExtension(assembly.Location) + ".xml");
 
-            XmlDocumentComment[] comments = new XmlDocumentComment[0];
-            if (File.Exists(xmlPath))
-            {
-                comments = VisualStudioDocParser.ParseXmlComment(XDocument.Parse(File.ReadAllText(xmlPath)));
-            }
+            XmlDocumentComment[] comments = GetXmlDocumentComments(xmlPath, namespaceMatch);
             var commentsLookup = comments.ToLookup(x => x.MemberName);
 
-            var namespaceRegex =
-                !string.IsNullOrEmpty(namespaceMatch) ? new Regex(namespaceMatch) : null;
+            var namespaceRegex = !string.IsNullOrEmpty(namespaceMatch) ? new Regex(namespaceMatch) : null;
 
-            var markdownableTypes = new[] { assembly }
-                .SelectMany(x =>
-                {
-                    try
-                    {
-                        return x.GetTypes();
-                    }
-                    catch (ReflectionTypeLoadException ex)
-                    {
-                        return ex.Types.Where(t => t != null);
-                    }
-                    catch
-                    {
-                        return Type.EmptyTypes;
-                    }
-                })
-                .Where(x => x != null)
+            var markdownableTypes = assembly.GetTypes()
                 .Where(x =>
+                    x != null &&
                     x.IsPublic
                     && !typeof(Delegate).IsAssignableFrom(x) && !x.GetCustomAttributes<ObsoleteAttribute>().Any()
                     && !x.IsAbstract
@@ -49,8 +29,21 @@ namespace ValidationLibrary.MarkdownGenerator
                 .Select(x => new MarkdownableType(x, commentsLookup))
                 .ToArray();
 
-
             return markdownableTypes;
+        }
+
+        private static XmlDocumentComment[] GetXmlDocumentComments(string xmlFileLocation, string namespaceMatch)
+        {
+            try
+            {
+                var xmlComments = File.ReadAllText(xmlFileLocation);
+                var xmlDocument = XDocument.Parse(xmlComments);
+                return VisualStudioDocParser.GetTypeSummaries(xmlDocument, namespaceMatch);
+            }
+            catch
+            {
+                throw;
+            }
         }
 
         private static bool IsRequiredNamespace(Type type, Regex regex)
