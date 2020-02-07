@@ -86,7 +86,7 @@ namespace Runner
             }
 
             await Parser.Default
-                .ParseArguments<ScanSelectedOptions, ScanAllOptions, DebugTestOptions>(args)
+                .ParseArguments<ScanSelectedOptions, ScanAllOptions>(args)
                 .MapResult(
                     async (ScanSelectedOptions options) => await scanner(options.Repositories, options),
                     async (ScanAllOptions options) =>
@@ -97,13 +97,6 @@ namespace Runner
                             .Result
                             .Where(repository => !repository.Archived);
                         await scanner(allNonArchivedRepositories.Select(r => r.Name).ToArray(), options);
-                    },
-                    async (DebugTestOptions options) =>
-                    {
-                        var utils = di.GetService<GitUtils>();
-                        var pr = await ghClient.PullRequest.Get(githubConfig.Organization, options.Repository, options.PullRequestNumber);
-                        var result = await utils.PullRequestHasLiveBranch(ghClient, pr);
-                        logger.LogInformation("PR '{title}' has live branch: {result}", pr.Title, result);
                     },
                     async errors => await Task.CompletedTask);
         }

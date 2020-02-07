@@ -5,7 +5,6 @@ using ValidationLibrary.Utils;
 using System;
 using System.Net.Http;
 using System.Linq;
-using Octokit.Helpers;
 
 namespace ValidationLibrary.Rules
 {
@@ -26,12 +25,11 @@ namespace ValidationLibrary.Rules
         private const string ReadmeFileName = "README.md";
         private const string FileMode = "100644";
         private readonly string _branchName = "feature/readme-autofix-template";
-        private readonly string _prTitle = "Create README.md template.";
         private readonly Uri _templateFileUrl;
         private readonly ILogger<HasReadmeRule> _logger;
         private string _content;
 
-        public HasReadmeRule(ILogger<HasReadmeRule> logger, GitUtils gitUtils, Uri templateFileUrl = null) : base(logger, gitUtils)
+        public HasReadmeRule(ILogger<HasReadmeRule> logger, GitUtils gitUtils, Uri templateFileUrl = null) : base(logger, gitUtils, $"[Automatic Validation] Create {ReadmeFileName}")
         {
             _logger = logger;
             _templateFileUrl = templateFileUrl ?? new Uri("https://raw.githubusercontent.com/protacon/repository-validator/master/README_TEMPLATE.md");
@@ -50,11 +48,11 @@ namespace ValidationLibrary.Rules
 
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}",
                 nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
-            bool HasReadmeWithContent = await this.HasReadmeWithContent(client, gitHubRepository, MainBranch).ConfigureAwait(false);
+            bool hasReadmeWithContent = await HasReadmeWithContent(client, gitHubRepository, MainBranch).ConfigureAwait(false);
 
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}",
-                nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, HasReadmeWithContent);
-            return new ValidationResult(RuleName, "Add README.md file to repository root with content describing this repository.", HasReadmeWithContent, Fix);
+                nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, hasReadmeWithContent);
+            return new ValidationResult(RuleName, "Add README.md file to repository root with content describing this repository.", hasReadmeWithContent, Fix);
         }
 
         /// <summary>
@@ -80,7 +78,7 @@ namespace ValidationLibrary.Rules
             }
 
             var reference = await PushFix(client, repository, latest, _content).ConfigureAwait(false);
-            await CreateOrOpenPullRequest(_prTitle, client, repository, reference).ConfigureAwait(false);
+            await CreatePullRequestIfNeeded(client, repository, reference).ConfigureAwait(false);
         }
 
         private async Task<Reference> PushFix(IGitHubClient client, Repository repository, Commit latest, string jenkinsFile)
