@@ -11,12 +11,16 @@ namespace ValidationLibrary.MarkdownGenerator
     {
         public static MarkdownableType[] Load(Assembly assembly, string namespaceMatch)
         {
+            if (string.IsNullOrEmpty(namespaceMatch))
+            {
+                throw new ArgumentException("Namespace must be defined for assembly loading", nameof(namespaceMatch));
+            }
+            var namespaceRegex = new Regex(namespaceMatch);
+
             var xmlPath = Path.Combine(Directory.GetParent(assembly.Location).FullName, Path.GetFileNameWithoutExtension(assembly.Location) + ".xml");
 
             XmlDocumentComment[] comments = GetXmlDocumentComments(xmlPath, namespaceMatch);
             var commentsLookup = comments.ToLookup(x => x.MemberName);
-
-            var namespaceRegex = !string.IsNullOrEmpty(namespaceMatch) ? new Regex(namespaceMatch) : null;
 
             var markdownableTypes = assembly.GetTypes()
                 .Where(type =>
@@ -39,13 +43,7 @@ namespace ValidationLibrary.MarkdownGenerator
 
         private static bool IsRequiredNamespace(Type type, Regex regex)
         {
-            if (regex == null)
-            {
-                return true;
-            }
-            var result = regex.IsMatch(type.Namespace ?? string.Empty);
-
-            return result;
+            return regex.IsMatch(type.Namespace ?? string.Empty);
         }
     }
 }
