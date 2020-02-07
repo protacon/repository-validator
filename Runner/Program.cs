@@ -105,7 +105,7 @@ namespace Runner
                         var validationLibraryAssembly = Assembly.Load("ValidationLibrary");
                         var types = TypeExtractor.Load(validationLibraryAssembly, "ValidationLibrary.Rules");
 
-                        var dest = "Documentation\\Rules";
+                        var documentationRoot = "Documentation";
 
                         var homeBuilder = new MarkdownBuilder();
                         homeBuilder.Header(1, "References");
@@ -113,25 +113,22 @@ namespace Runner
 
                         foreach (var g in types.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
                         {
-                            if (!Directory.Exists(dest)) Directory.CreateDirectory(dest);
+                            if (!Directory.Exists(documentationRoot)) Directory.CreateDirectory(documentationRoot);
 
-                            homeBuilder.HeaderWithLink(2, g.Key, g.Key);
+                            homeBuilder.Header(2, g.Key);
                             homeBuilder.AppendLine();
 
-                            var sb = new StringBuilder();
                             foreach (var item in g.OrderBy(x => x.Name))
                             {
-                                homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.BeautifyName), g.Key + "#" + item.BeautifyName.Replace("<", "").Replace(">", "").Replace(",", "").Replace(" ", "-").ToLower());
-
-                                sb.Append(item.ToString());
+                                var name = item.BeautifyName.Replace("<", "").Replace(">", "").Replace(",", "").Replace(" ", "-").ToLower();
+                                homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.BeautifyName), $"\\Rules\\{name}");
+                                File.WriteAllText(Path.Combine(documentationRoot + "\\Rules", $"{name}.md"), item.ToString());
                             }
 
-                            File.WriteAllText(Path.Combine(dest, g.Key + ".md"), sb.ToString());
                             homeBuilder.AppendLine();
                         }
 
-                        // Gen Home
-                        File.WriteAllText(Path.Combine(dest, "Home.md"), homeBuilder.ToString());
+                        File.WriteAllText(Path.Combine(documentationRoot, "rules.md"), homeBuilder.ToString());
 
                         await Task.CompletedTask;
                     },

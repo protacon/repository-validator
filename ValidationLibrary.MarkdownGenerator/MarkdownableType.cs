@@ -21,7 +21,7 @@ namespace ValidationLibrary.MarkdownGenerator
 
         public override string ToString()
         {
-            var typeName = Beautifier.BeautifyType(type, false);
+            var typeName = Beautifier.BeautifyType(type);
 
             var mb = new MarkdownBuilder();
 

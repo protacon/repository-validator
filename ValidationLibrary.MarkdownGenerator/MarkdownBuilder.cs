@@ -12,11 +12,6 @@ namespace ValidationLibrary.MarkdownGenerator
             return "`" + code + "`";
         }
 
-        public void Append(string text)
-        {
-            _stringBuilder.Append(text);
-        }
-
         public void AppendLine()
         {
             _stringBuilder.AppendLine();
@@ -69,12 +64,6 @@ namespace ValidationLibrary.MarkdownGenerator
             _stringBuilder.Append(")");
         }
 
-        public void Image(string altText, string imageUrl)
-        {
-            _stringBuilder.Append("!");
-            Link(altText, imageUrl);
-        }
-
         public void Code(string language, string code)
         {
             _stringBuilder.Append("```");
@@ -88,44 +77,6 @@ namespace ValidationLibrary.MarkdownGenerator
             _stringBuilder.Append("`");
             _stringBuilder.Append(code);
             _stringBuilder.Append("`");
-        }
-
-        public void Table(string[] headers, IEnumerable<string[]> items)
-        {
-            _stringBuilder.Append("| ");
-            foreach (var item in headers)
-            {
-                _stringBuilder.Append(item);
-                _stringBuilder.Append(" | ");
-            }
-            _stringBuilder.AppendLine();
-
-            _stringBuilder.Append("| ");
-            foreach (var item in headers)
-            {
-                _stringBuilder.Append("---");
-                _stringBuilder.Append(" | ");
-            }
-            _stringBuilder.AppendLine();
-
-
-            foreach (var item in items)
-            {
-                _stringBuilder.Append("| ");
-                foreach (var item2 in item)
-                {
-                    _stringBuilder.Append(item2);
-                    _stringBuilder.Append(" | ");
-                }
-                _stringBuilder.AppendLine();
-            }
-            _stringBuilder.AppendLine();
-        }
-
-        public void List(string text) // nest zero
-        {
-            _stringBuilder.Append("- ");
-            _stringBuilder.AppendLine(text);
         }
 
         public void ListLink(string text, string url) // nest zero
