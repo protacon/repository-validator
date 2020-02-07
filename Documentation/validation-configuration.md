@@ -16,3 +16,5 @@ Example `repository-validator.json` file which ignores 4 rules.
     ]
 }
 ```
+
+[Rules](rules.md) contains specific details for each available rule.
