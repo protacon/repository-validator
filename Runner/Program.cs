@@ -120,8 +120,8 @@ namespace Runner
 
                             foreach (var item in g.OrderBy(x => x.Name))
                             {
-                                var name = item.BeautifyName.Replace("<", "").Replace(">", "").Replace(",", "").Replace(" ", "-").ToLower();
-                                homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.BeautifyName), $"\\Rules\\{name}");
+                                var name = item.Name.Replace("<", "").Replace(">", "").Replace(",", "").Replace(" ", "-").ToLower();
+                                homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.Name), $"\\Rules\\{name}");
                                 File.WriteAllText(Path.Combine(documentationRoot + "\\Rules", $"{name}.md"), item.ToString());
                             }
 

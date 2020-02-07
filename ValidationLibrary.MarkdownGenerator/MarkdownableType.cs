@@ -11,7 +11,6 @@ namespace ValidationLibrary.MarkdownGenerator
 
         public string Namespace => type.Namespace;
         public string Name => type.Name;
-        public string BeautifyName => Beautifier.BeautifyType(type);
 
         public MarkdownableType(Type type, ILookup<string, XmlDocumentComment> commentLookup)
         {
@@ -21,7 +20,7 @@ namespace ValidationLibrary.MarkdownGenerator
 
         public override string ToString()
         {
-            var typeName = Beautifier.BeautifyType(type);
+            var typeName = type.Name;
 
             var mb = new MarkdownBuilder();
 
