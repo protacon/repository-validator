@@ -41,7 +41,11 @@ namespace ValidationLibrary.MarkdownGenerator
                     }
                 })
                 .Where(x => x != null)
-                .Where(x => x.IsPublic && !typeof(Delegate).IsAssignableFrom(x) && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
+                .Where(x =>
+                    x.IsPublic
+                    && !typeof(Delegate).IsAssignableFrom(x) && !x.GetCustomAttributes<ObsoleteAttribute>().Any()
+                    && !x.IsAbstract
+                    && !x.IsInterface)
                 .Where(x => IsRequiredNamespace(x, namespaceRegex))
                 .Select(x => new MarkdownableType(x, commentsLookup))
                 .ToArray();

@@ -103,7 +103,7 @@ namespace Runner
                     async (GenerateDocumentationOptions options) =>
                     {
                         var validationLibraryAssembly = Assembly.Load("ValidationLibrary");
-                        var types = TypeExtractor.Load(validationLibraryAssembly, string.Empty);
+                        var types = TypeExtractor.Load(validationLibraryAssembly, "ValidationLibrary.Rules");
 
                         var dest = "Documentation\\Rules";
 
