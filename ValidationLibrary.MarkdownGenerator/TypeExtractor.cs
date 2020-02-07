@@ -32,16 +32,9 @@ namespace ValidationLibrary.MarkdownGenerator
 
         private static XmlDocumentComment[] GetXmlDocumentComments(string xmlFileLocation, string namespaceMatch)
         {
-            try
-            {
-                var xmlComments = File.ReadAllText(xmlFileLocation);
-                var xmlDocument = XDocument.Parse(xmlComments);
-                return VisualStudioDocParser.GetTypeSummaries(xmlDocument, namespaceMatch);
-            }
-            catch
-            {
-                throw;
-            }
+            var xmlComments = File.ReadAllText(xmlFileLocation);
+            var xmlDocument = XDocument.Parse(xmlComments);
+            return VisualStudioDocParser.GetTypeSummaries(xmlDocument, namespaceMatch);
         }
 
         private static bool IsRequiredNamespace(Type type, Regex regex)
