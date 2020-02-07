@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
+using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
 using Microsoft.Extensions.Configuration;
@@ -12,6 +13,7 @@ using Octokit;
 using ValidationLibrary;
 using ValidationLibrary.Csv;
 using ValidationLibrary.GitHub;
+using ValidationLibrary.MarkdownGenerator;
 using ValidationLibrary.Rules;
 using ValidationLibrary.Slack;
 using ValidationLibrary.Utils;
@@ -86,7 +88,7 @@ namespace Runner
             }
 
             await Parser.Default
-                .ParseArguments<ScanSelectedOptions, ScanAllOptions>(args)
+                .ParseArguments<ScanSelectedOptions, ScanAllOptions, GenerateDocumentationOptions>(args)
                 .MapResult(
                     async (ScanSelectedOptions options) => await scanner(options.Repositories, options),
                     async (ScanAllOptions options) =>
@@ -97,6 +99,41 @@ namespace Runner
                             .Result
                             .Where(repository => !repository.Archived);
                         await scanner(allNonArchivedRepositories.Select(r => r.Name).ToArray(), options);
+                    },
+                    async (GenerateDocumentationOptions options) =>
+                    {
+                        var validationLibraryAssembly = Assembly.Load("ValidationLibrary");
+                        var types = TypeExtractor.Load(validationLibraryAssembly, string.Empty);
+
+                        var dest = "Documentation\\Rules";
+
+                        var homeBuilder = new MarkdownBuilder();
+                        homeBuilder.Header(1, "References");
+                        homeBuilder.AppendLine();
+
+                        foreach (var g in types.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
+                        {
+                            if (!Directory.Exists(dest)) Directory.CreateDirectory(dest);
+
+                            homeBuilder.HeaderWithLink(2, g.Key, g.Key);
+                            homeBuilder.AppendLine();
+
+                            var sb = new StringBuilder();
+                            foreach (var item in g.OrderBy(x => x.Name))
+                            {
+                                homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.BeautifyName), g.Key + "#" + item.BeautifyName.Replace("<", "").Replace(">", "").Replace(",", "").Replace(" ", "-").ToLower());
+
+                                sb.Append(item.ToString());
+                            }
+
+                            File.WriteAllText(Path.Combine(dest, g.Key + ".md"), sb.ToString());
+                            homeBuilder.AppendLine();
+                        }
+
+                        // Gen Home
+                        File.WriteAllText(Path.Combine(dest, "Home.md"), homeBuilder.ToString());
+
+                        await Task.CompletedTask;
                     },
                     async errors => await Task.CompletedTask);
         }
