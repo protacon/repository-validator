@@ -28,7 +28,7 @@ namespace ValidationLibrary.MarkdownGenerator
             mb.HeaderWithCode(2, typeName);
             mb.AppendLine();
 
-            var desc = commentLookup[type.FullName].FirstOrDefault(x => x.MemberType == MemberType.Type)?.Summary ?? "";
+            var desc = commentLookup[type.Name].FirstOrDefault()?.Summary ?? "";
             if (desc != "")
             {
                 mb.AppendLine(desc);

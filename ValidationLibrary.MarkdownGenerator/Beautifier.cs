@@ -7,14 +7,14 @@ namespace ValidationLibrary.MarkdownGenerator
 {
     public static class Beautifier
     {
-        public static string BeautifyType(Type t)
+        public static string BeautifyType(Type type)
         {
-            if (t == null) return "";
-            if (t == typeof(void)) return "void";
-            if (!t.IsGenericType) return t.Name;
+            if (type == null) return "";
+            if (type == typeof(void)) return "void";
+            if (!type.IsGenericType) return type.Name;
 
-            var innerFormat = string.Join(", ", t.GetGenericArguments().Select(x => BeautifyType(x)));
-            return Regex.Replace(t.GetGenericTypeDefinition().Name, @"`.+$", "") + "<" + innerFormat + ">";
+            var innerFormat = string.Join(", ", type.GetGenericArguments().Select(x => BeautifyType(x)));
+            return Regex.Replace(type.GetGenericTypeDefinition().Name, @"`.+$", "") + "<" + innerFormat + ">";
         }
 
         public static string ToMarkdownMethodInfo(MethodInfo methodInfo)

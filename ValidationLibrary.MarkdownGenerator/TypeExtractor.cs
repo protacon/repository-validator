@@ -16,9 +16,9 @@ namespace ValidationLibrary.MarkdownGenerator
             XmlDocumentComment[] comments = new XmlDocumentComment[0];
             if (File.Exists(xmlPath))
             {
-                comments = VisualStudioDocParser.ParseXmlComment(XDocument.Parse(File.ReadAllText(xmlPath)), namespaceMatch);
+                comments = VisualStudioDocParser.ParseXmlComment(XDocument.Parse(File.ReadAllText(xmlPath)));
             }
-            var commentsLookup = comments.ToLookup(x => x.ClassName);
+            var commentsLookup = comments.ToLookup(x => x.MemberName);
 
             var namespaceRegex =
                 !string.IsNullOrEmpty(namespaceMatch) ? new Regex(namespaceMatch) : null;
