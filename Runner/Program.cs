@@ -102,37 +102,42 @@ namespace Runner
                     },
                     async (GenerateDocumentationOptions options) =>
                     {
-                        var validationLibraryAssembly = Assembly.Load("ValidationLibrary");
-                        var types = TypeExtractor.Load(validationLibraryAssembly, "ValidationLibrary.Rules");
-
-                        var documentationRoot = "Documentation";
-
-                        var homeBuilder = new MarkdownBuilder();
-                        homeBuilder.Header(1, "References");
-                        homeBuilder.AppendLine();
-
-                        foreach (var g in types.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
-                        {
-                            if (!Directory.Exists(documentationRoot)) Directory.CreateDirectory(documentationRoot);
-
-                            homeBuilder.Header(2, g.Key);
-                            homeBuilder.AppendLine();
-
-                            foreach (var item in g.OrderBy(x => x.Name))
-                            {
-                                var name = item.Name.Replace("<", "").Replace(">", "").Replace(",", "").Replace(" ", "-").ToLower();
-                                homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.Name), $"\\Rules\\{name}");
-                                File.WriteAllText(Path.Combine(documentationRoot + "\\Rules", $"{name}.md"), item.ToString());
-                            }
-
-                            homeBuilder.AppendLine();
-                        }
-
-                        File.WriteAllText(Path.Combine(documentationRoot, "rules.md"), homeBuilder.ToString());
+                        GenerateDocumentation(logger);
 
                         await Task.CompletedTask;
                     },
                     async errors => await Task.CompletedTask);
+        }
+
+        private static void GenerateDocumentation(ILogger<Program> logger)
+        {
+            var validationLibraryAssembly = Assembly.Load("ValidationLibrary");
+            var types = TypeExtractor.Load(validationLibraryAssembly, "ValidationLibrary.Rules");
+
+            var documentationFolder = "Documentation";
+
+            var homeBuilder = new MarkdownBuilder();
+            homeBuilder.Header(1, "References");
+            homeBuilder.AppendLine();
+
+            foreach (var g in types.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
+            {
+                if (!Directory.Exists(documentationFolder)) Directory.CreateDirectory(documentationFolder);
+
+                homeBuilder.Header(2, g.Key);
+                homeBuilder.AppendLine();
+
+                foreach (var item in g.OrderBy(x => x.Name))
+                {
+                    var name = item.Name.Replace("<", "").Replace(">", "").Replace(",", "").Replace(" ", "-").ToLower();
+                    homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.Name), $"\\Rules\\{name}");
+                    File.WriteAllText(Path.Combine(documentationFolder + "\\Rules", $"{name}.md"), item.ToString());
+                }
+
+                homeBuilder.AppendLine();
+            }
+
+            File.WriteAllText(Path.Combine(documentationFolder, "rules.md"), homeBuilder.ToString());
         }
 
         private static async Task PerformAutofixes(IGitHubClient ghClient, IEnumerable<ValidationReport> results)
