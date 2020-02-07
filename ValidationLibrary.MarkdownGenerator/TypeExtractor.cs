@@ -9,7 +9,6 @@ namespace ValidationLibrary.MarkdownGenerator
 {
     public class TypeExtractor
     {
-
         public static MarkdownableType[] Load(Assembly assembly, string namespaceMatch)
         {
             var xmlPath = Path.Combine(Directory.GetParent(assembly.Location).FullName, Path.GetFileNameWithoutExtension(assembly.Location) + ".xml");
@@ -54,7 +53,7 @@ namespace ValidationLibrary.MarkdownGenerator
             return markdownableTypes;
         }
 
-        static bool IsRequiredNamespace(Type type, Regex regex)
+        private static bool IsRequiredNamespace(Type type, Regex regex)
         {
             if (regex == null)
             {

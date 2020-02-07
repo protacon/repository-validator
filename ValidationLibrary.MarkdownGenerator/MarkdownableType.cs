@@ -21,14 +21,14 @@ namespace ValidationLibrary.MarkdownGenerator
             this.commentLookup = commentLookup;
         }
 
-        MethodInfo[] GetMethods()
+        private MethodInfo[] GetMethods()
         {
             return type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod)
                 .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any() && !x.IsPrivate)
                 .ToArray();
         }
 
-        PropertyInfo[] GetProperties()
+        private PropertyInfo[] GetProperties()
         {
             return type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.GetProperty | BindingFlags.SetProperty)
                 .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
@@ -56,28 +56,28 @@ namespace ValidationLibrary.MarkdownGenerator
                 .ToArray();
         }
 
-        FieldInfo[] GetFields()
+        private FieldInfo[] GetFields()
         {
             return type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.GetField | BindingFlags.SetField)
                 .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any() && !x.IsPrivate)
                 .ToArray();
         }
 
-        EventInfo[] GetEvents()
+        private EventInfo[] GetEvents()
         {
             return type.GetEvents(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
                 .ToArray();
         }
 
-        FieldInfo[] GetStaticFields()
+        private FieldInfo[] GetStaticFields()
         {
             return type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.GetField | BindingFlags.SetField)
                 .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any() && !x.IsPrivate)
                 .ToArray();
         }
 
-        PropertyInfo[] GetStaticProperties()
+        private PropertyInfo[] GetStaticProperties()
         {
             return type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.GetProperty | BindingFlags.SetProperty)
                 .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
@@ -105,20 +105,20 @@ namespace ValidationLibrary.MarkdownGenerator
                 .ToArray();
         }
 
-        MethodInfo[] GetStaticMethods()
+        private MethodInfo[] GetStaticMethods()
         {
             return type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod)
                 .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any() && !x.IsPrivate)
                 .ToArray();
         }
 
-        EventInfo[] GetStaticEvents()
+        private EventInfo[] GetStaticEvents()
         {
             return type.GetEvents(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Where(x => !x.IsSpecialName && !x.GetCustomAttributes<ObsoleteAttribute>().Any())
                 .ToArray();
         }
-        void BuildTable<T>(MarkdownBuilder mb, string label, T[] array, IEnumerable<XmlDocumentComment> docs, Func<T, string> type, Func<T, string> name, Func<T, string> finalName)
+        private void BuildTable<T>(MarkdownBuilder mb, string label, T[] array, IEnumerable<XmlDocumentComment> docs, Func<T, string> type, Func<T, string> name, Func<T, string> finalName)
         {
             if (array.Any())
             {
@@ -148,9 +148,11 @@ namespace ValidationLibrary.MarkdownGenerator
 
         public override string ToString()
         {
+            var typeName = Beautifier.BeautifyType(type, false);
+
             var mb = new MarkdownBuilder();
 
-            mb.HeaderWithCode(2, Beautifier.BeautifyType(type, false));
+            mb.HeaderWithCode(2, typeName);
             mb.AppendLine();
 
             var desc = commentLookup[type.FullName].FirstOrDefault(x => x.MemberType == MemberType.Type)?.Summary ?? "";
@@ -158,48 +160,22 @@ namespace ValidationLibrary.MarkdownGenerator
             {
                 mb.AppendLine(desc);
             }
-            {
-                var sb = new StringBuilder();
-
-                var stat = (type.IsAbstract && type.IsSealed) ? "static " : "";
-                var abst = (type.IsAbstract && !type.IsInterface && !type.IsSealed) ? "abstract " : "";
-                var classOrStructOrEnumOrInterface = type.IsInterface ? "interface" : type.IsEnum ? "enum" : type.IsValueType ? "struct" : "class";
-
-                sb.AppendLine($"public {stat}{abst}{classOrStructOrEnumOrInterface} {Beautifier.BeautifyType(type, true)}");
-                var impl = string.Join(", ", new[] { type.BaseType }.Concat(type.GetInterfaces()).Where(x => x != null && x != typeof(object) && x != typeof(ValueType)).Select(x => Beautifier.BeautifyType(x)));
-                if (impl != "")
-                {
-                    sb.AppendLine("    : " + impl);
-                }
-
-                mb.Code("csharp", sb.ToString());
-            }
 
             mb.AppendLine();
+            mb.AppendLine($"To ignore {typeName} validation, use following `repository-validator.json`");
+            mb.AppendLine();
 
-            if (type.IsEnum)
-            {
-                var underlyingEnumType = Enum.GetUnderlyingType(type);
+            var sb = new StringBuilder();
+            sb.AppendLine("{");
+            sb.AppendLine("    \"Version\":\"1\",");
+            sb.AppendLine("    \"IgnoredRules\": [");
+            sb.AppendLine($"        \"{typeName}\"");
+            sb.AppendLine("    ]");
+            sb.Append("}");
 
-                var enums = Enum.GetNames(type)
-                    .Select(x => new { Name = x, Value = (Convert.ChangeType(Enum.Parse(type, x), underlyingEnumType)) })
-                    .OrderBy(x => x.Value)
-                    .ToArray();
+            mb.Code("json", sb.ToString());
 
-                BuildTable(mb, "Enum", enums, commentLookup[type.FullName], x => x.Value.ToString(), x => x.Name, x => x.Name);
-            }
-            else
-            {
-                BuildTable(mb, "Fields", GetFields(), commentLookup[type.FullName], x => Beautifier.BeautifyType(x.FieldType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Properties", GetProperties(), commentLookup[type.FullName], x => Beautifier.BeautifyType(x.PropertyType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Events", GetEvents(), commentLookup[type.FullName], x => Beautifier.BeautifyType(x.EventHandlerType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Methods", GetMethods(), commentLookup[type.FullName], x => Beautifier.BeautifyType(x.ReturnType), x => x.Name, x => Beautifier.ToMarkdownMethodInfo(x));
-                BuildTable(mb, "Static Fields", GetStaticFields(), commentLookup[type.FullName], x => Beautifier.BeautifyType(x.FieldType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Static Properties", GetStaticProperties(), commentLookup[type.FullName], x => Beautifier.BeautifyType(x.PropertyType), x => x.Name, x => x.Name);
-                BuildTable(mb, "Static Methods", GetStaticMethods(), commentLookup[type.FullName], x => Beautifier.BeautifyType(x.ReturnType), x => x.Name, x => Beautifier.ToMarkdownMethodInfo(x));
-                BuildTable(mb, "Static Events", GetStaticEvents(), commentLookup[type.FullName], x => Beautifier.BeautifyType(x.EventHandlerType), x => x.Name, x => x.Name);
-            }
-
+            mb.AppendLine();
             return mb.ToString();
         }
     }
