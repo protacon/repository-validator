@@ -19,14 +19,12 @@ namespace ValidationLibrary.MarkdownGenerator
             var namespaceRegex = !string.IsNullOrEmpty(namespaceMatch) ? new Regex(namespaceMatch) : null;
 
             var markdownableTypes = assembly.GetTypes()
-                .Where(x =>
-                    x != null &&
-                    x.IsPublic
-                    && !typeof(Delegate).IsAssignableFrom(x) && !x.GetCustomAttributes<ObsoleteAttribute>().Any()
-                    && !x.IsAbstract
-                    && !x.IsInterface)
-                .Where(x => IsRequiredNamespace(x, namespaceRegex))
-                .Select(x => new MarkdownableType(x, commentsLookup))
+                .Where(type =>
+                    type.IsPublic
+                    && !type.IsAbstract
+                    && !type.IsInterface
+                    && IsRequiredNamespace(type, namespaceRegex))
+                .Select(type => new MarkdownableType(type, commentsLookup))
                 .ToArray();
 
             return markdownableTypes;
@@ -52,7 +50,9 @@ namespace ValidationLibrary.MarkdownGenerator
             {
                 return true;
             }
-            return regex.IsMatch(type.Namespace ?? string.Empty);
+            var result = regex.IsMatch(type.Namespace ?? string.Empty);
+
+            return result;
         }
     }
 }
