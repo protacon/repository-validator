@@ -6,14 +6,20 @@ using ValidationLibrary.MarkdownGenerator;
 
 namespace Runner
 {
-    public static class DocumentationUtils
+    public class DocumentationFileCreator
     {
         private const string DocumentationFolder = "Documentation";
         private const string RulesFolder = "Rules";
+        private readonly ILogger<DocumentationFileCreator> _logger;
 
-        public static void GenerateDocumentation(ILogger<Program> logger)
+        public DocumentationFileCreator(ILogger<DocumentationFileCreator> logger)
         {
-            var types = GetRuleTypes(logger);
+            _logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
+        }
+
+        public void GenerateDocumentation()
+        {
+            var types = GetRuleTypes();
 
             var homeBuilder = new MarkdownBuilder();
             homeBuilder.Header(1, "References");
@@ -21,31 +27,32 @@ namespace Runner
 
             MakeSureFolderStructureExists();
 
-            foreach (var g in types.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
+            foreach (var group in types.GroupBy(type => type.Namespace).OrderBy(group => group.Key))
             {
-
-
-                homeBuilder.Header(2, g.Key);
+                homeBuilder.Header(2, group.Key);
                 homeBuilder.AppendLine();
 
-                foreach (var item in g.OrderBy(x => x.Name))
+                foreach (var item in group.OrderBy(type => type.Name))
                 {
-                    var name = item.Name.Replace("<", "").Replace(">", "").Replace(",", "").Replace(" ", "-").ToLower();
+                    var name = item.Name.ToLower();
+                    var path = Path.Combine(DocumentationFolder + "\\" + RulesFolder, $"{name}.md");
+                    _logger.LogTrace("Creating file to path {path}", path);
+
                     homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.Name), $"\\{RulesFolder}\\{name}");
-                    File.WriteAllText(Path.Combine(DocumentationFolder + "\\" + RulesFolder, $"{name}.md"), item.ToString());
+                    File.WriteAllText(path, item.ToString());
                 }
 
                 homeBuilder.AppendLine();
             }
 
             File.WriteAllText(Path.Combine(DocumentationFolder, "rules.md"), homeBuilder.ToString());
-            logger.LogInformation("Documentation rules generated");
+            _logger.LogInformation("Documentation rules generated");
         }
 
-        private static MarkdownableType[] GetRuleTypes(ILogger<Program> logger)
+        private MarkdownableType[] GetRuleTypes()
         {
             string rulesNamespace = "ValidationLibrary.Rules";
-            logger.LogInformation("Generating documentation files for rules in namespace {namespace}", rulesNamespace);
+            _logger.LogInformation("Generating documentation files for rules in namespace {namespace}", rulesNamespace);
             var validationLibraryAssembly = Assembly.Load(rulesNamespace);
             var types = TypeExtractor.Load(validationLibraryAssembly, rulesNamespace);
             return types;

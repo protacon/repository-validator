@@ -46,6 +46,7 @@ namespace Runner
             var ghClient = di.GetService<IGitHubClient>();
             var repositoryValidator = di.GetService<RepositoryValidator>();
             var client = di.GetService<ValidationClient>();
+            var documentCreator = di.GetService<DocumentationFileCreator>();
             await client.Init();
 
             async Task scanner(IEnumerable<string> repositories, Options options)
@@ -102,7 +103,7 @@ namespace Runner
                     },
                     async (GenerateDocumentationOptions options) =>
                     {
-                        DocumentationUtils.GenerateDocumentation(logger);
+                        documentCreator.GenerateDocumentation();
 
                         await Task.CompletedTask;
                     },
@@ -197,6 +198,7 @@ namespace Runner
                         rules);
                 })
                 .AddTransient<GitUtils>()
+                .AddTransient<DocumentationFileCreator>()
                 .AddTransient<HasDescriptionRule>()
                 .AddTransient<HasLicenseRule>()
                 .AddTransient<HasNewestPtcsJenkinsLibRule>()
