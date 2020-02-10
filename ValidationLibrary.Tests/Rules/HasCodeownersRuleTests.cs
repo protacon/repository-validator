@@ -40,7 +40,7 @@ namespace ValidationLibrary.Tests.Rules
             var repository = CreateRepository("repo");
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MainBranch)
             .Returns(Task.FromResult((IReadOnlyList<RepositoryContent>)new List<RepositoryContent>()));
-            
+
             var result = await _rule.IsValid(_mockClient, repository);
             StringAssert.AreEqualIgnoringCase(result.HowToFix, "Add CODEOWNERS file.");
             Assert.IsFalse(result.IsValid);
@@ -51,11 +51,11 @@ namespace ValidationLibrary.Tests.Rules
         {
             var content = CreateContent("CODEOWNERS", "");
             IReadOnlyList<RepositoryContent> contents = new[] { content };
-            
+
             var repository = CreateRepository("repo");
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MainBranch).Returns(Task.FromResult(contents));
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MainBranch).Returns(Task.FromResult(contents));
-            
+
             var result = await _rule.IsValid(_mockClient, repository);
             StringAssert.AreEqualIgnoringCase(result.HowToFix, "Add CODEOWNERS file & add at least one owner.");
             Assert.IsFalse(result.IsValid);
@@ -69,12 +69,12 @@ namespace ValidationLibrary.Tests.Rules
 
             var content = CreateContent("CODEOWNERS", "devguy");
             IReadOnlyList<RepositoryContent> contents = new[] { content };
-            
+
             var repository = CreateRepository("repo");
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MainBranch).Returns(Task.FromResult(rootContents));
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, rootContents[0].Name, MainBranch).Returns(Task.FromResult(contents));
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, rootContents[0].Name + "/" + contents[0].Name, MainBranch).Returns(Task.FromResult(contents));
-            
+
             var result = await _rule.IsValid(_mockClient, repository);
             Assert.IsTrue(result.IsValid);
         }
@@ -88,13 +88,13 @@ namespace ValidationLibrary.Tests.Rules
 
             var content = CreateContent("CODEOWNERS", "devguy");
             IReadOnlyList<RepositoryContent> contents = new[] { content };
-            
+
             var repository = CreateRepository("repo");
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MainBranch).Returns(Task.FromResult(rootContents));
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, rootContents[0].Name, MainBranch).Returns(Task.FromResult((IReadOnlyList<RepositoryContent>)new List<RepositoryContent>()));
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, rootContents[0].Name, MainBranch).Returns(Task.FromResult(contents));
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, rootContents[0].Name + "/" + contents[0].Name, MainBranch).Returns(Task.FromResult(contents));
-            
+
             var result = await _rule.IsValid(_mockClient, repository);
             Assert.IsTrue(result.IsValid);
         }
@@ -113,7 +113,7 @@ namespace ValidationLibrary.Tests.Rules
 
         private Repository CreateRepository(string name)
         {
-            return new Repository(null, null, null, null, null, null, null, 0, null, _owner, name, null, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, false, false, false, false, 0, 0, null, null, null, false);
+            return new Repository(null, null, null, null, null, null, null, 0, null, _owner, name, null, false, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, false, false, false, false, 0, 0, null, null, null, false);
         }
     }
 }

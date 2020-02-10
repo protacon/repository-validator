@@ -89,7 +89,7 @@ namespace ValidationLibrary.Tests.Utils
 
         private Repository CreateRepository(string name)
         {
-            return new Repository(null, null, null, null, null, null, null, 0, null, CreateUser(), name, null, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, false, false, false, false, 0, 0, null, null, null, false);
+            return new Repository(null, null, null, null, null, null, null, 0, null, CreateUser(), name, null, false, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, false, false, false, false, 0, 0, null, null, null, false);
         }
 
         private User CreateUser()
