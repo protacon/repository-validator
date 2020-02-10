@@ -23,5 +23,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ValidationLibrary.GitHub\ValidationLibrary.GitHub.csproj" />
+    <ProjectReference Include="..\ValidationLibrary.Rules\ValidationLibrary.Rules.csproj" />
   </ItemGroup>
 </Project>

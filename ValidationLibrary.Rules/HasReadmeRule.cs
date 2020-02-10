@@ -13,7 +13,6 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasReadmeRule : FixableRuleBase<HasReadmeRule>, IValidationRule
     {
-        public override string RuleName => "Missing Readme.md";
         protected override string PullRequestBody =>
                         "This Pull Request provides only a template README.md file for guidance. You should edit the file according to your project needs." +
                         Environment.NewLine + Environment.NewLine +
@@ -29,7 +28,7 @@ namespace ValidationLibrary.Rules
         private readonly ILogger<HasReadmeRule> _logger;
         private string _content;
 
-        public HasReadmeRule(ILogger<HasReadmeRule> logger, GitUtils gitUtils, Uri templateFileUrl = null) : base(logger, gitUtils, $"[Automatic Validation] Create {ReadmeFileName}")
+        public HasReadmeRule(ILogger<HasReadmeRule> logger, GitUtils gitUtils, Uri templateFileUrl = null) : base(logger, gitUtils, "Missing Readme.md", $"[Automatic Validation] Create {ReadmeFileName}")
         {
             _logger = logger;
             _templateFileUrl = templateFileUrl ?? new Uri("https://raw.githubusercontent.com/protacon/repository-validator/master/README_TEMPLATE.md");
@@ -60,7 +59,7 @@ namespace ValidationLibrary.Rules
         /// </summary>
         /// <param name="client">Github client</param>
         /// <param name="repository">Repository to be fixed</param>
-        protected override async Task Fix(IGitHubClient client, Repository repository)
+        private async Task Fix(IGitHubClient client, Repository repository)
         {
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (repository == null) throw new ArgumentNullException(nameof(repository));

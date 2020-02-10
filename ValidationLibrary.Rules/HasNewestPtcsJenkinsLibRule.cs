@@ -14,7 +14,6 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasNewestPtcsJenkinsLibRule : FixableRuleBase<HasNewestPtcsJenkinsLibRule>, IValidationRule
     {
-        public override string RuleName => $"Old {LibraryName}";
         protected override string PullRequestBody =>
                         "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
                         Environment.NewLine +
@@ -34,7 +33,7 @@ namespace ValidationLibrary.Rules
         private string _expectedVersion;
         private string _latestReleaseUrl;
 
-        public HasNewestPtcsJenkinsLibRule(ILogger<HasNewestPtcsJenkinsLibRule> logger, GitUtils gitUtils) : base(logger, gitUtils, $"[Automatic Validation] Update {LibraryName} to latest version")
+        public HasNewestPtcsJenkinsLibRule(ILogger<HasNewestPtcsJenkinsLibRule> logger, GitUtils gitUtils) : base(logger, gitUtils, $"Old {LibraryName}", $"[Automatic Validation] Update {LibraryName} to latest version")
         {
             _logger = logger;
             _gitUtils = gitUtils;
@@ -94,7 +93,7 @@ namespace ValidationLibrary.Rules
         /// </summary>
         /// <param name="client">Github client</param>
         /// <param name="repository">Repository to be fixed</param>
-        protected override async Task Fix(IGitHubClient client, Repository repository)
+        private async Task Fix(IGitHubClient client, Repository repository)
         {
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (repository == null) throw new ArgumentNullException(nameof(repository));

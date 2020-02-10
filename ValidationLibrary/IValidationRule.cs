@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Octokit;
 
-namespace ValidationLibrary.Rules
+namespace ValidationLibrary
 {
     /// <summary>
     /// Common interface for all validation rules
