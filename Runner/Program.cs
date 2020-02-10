@@ -111,9 +111,10 @@ namespace Runner
 
         private static void GenerateDocumentation(ILogger<Program> logger)
         {
-            logger.LogInformation("Generating documentation files for rules in namespace {namespace}", "ValidationLibrary.Rules");
-            var validationLibraryAssembly = Assembly.Load("ValidationLibrary");
-            var types = TypeExtractor.Load(validationLibraryAssembly, "ValidationLibrary.Rules");
+            string rulesNamespace = "ValidationLibrary.Rules";
+            logger.LogInformation("Generating documentation files for rules in namespace {namespace}", rulesNamespace);
+            var validationLibraryAssembly = Assembly.Load(rulesNamespace);
+            var types = TypeExtractor.Load(validationLibraryAssembly, rulesNamespace);
 
             var documentationFolder = "Documentation";
 
@@ -124,6 +125,7 @@ namespace Runner
             foreach (var g in types.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
             {
                 if (!Directory.Exists(documentationFolder)) Directory.CreateDirectory(documentationFolder);
+                if (!Directory.Exists(documentationFolder + "\\Rules")) Directory.CreateDirectory(documentationFolder + "\\Rules");
 
                 homeBuilder.Header(2, g.Key);
                 homeBuilder.AppendLine();
