@@ -111,6 +111,7 @@ namespace Runner
 
         private static void GenerateDocumentation(ILogger<Program> logger)
         {
+            logger.LogInformation("Generating documentation files for rules in namespace {namespace}", "ValidationLibrary.Rules");
             var validationLibraryAssembly = Assembly.Load("ValidationLibrary");
             var types = TypeExtractor.Load(validationLibraryAssembly, "ValidationLibrary.Rules");
 
@@ -138,6 +139,7 @@ namespace Runner
             }
 
             File.WriteAllText(Path.Combine(documentationFolder, "rules.md"), homeBuilder.ToString());
+            logger.LogInformation("Documentation rules generated");
         }
 
         private static async Task PerformAutofixes(IGitHubClient ghClient, IEnumerable<ValidationReport> results)
