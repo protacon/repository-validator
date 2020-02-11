@@ -11,14 +11,13 @@ jobs:
     name: Publish wiki
     # This job runs on Linux
     runs-on: ubuntu-latest
+    container: ptcos/multi-netcore-sdk:0.0.2
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       # This step uses GitHub's hello-world-javascript-action: https://github.com/actions/hello-world-javascript-action
       - name: Build
-        uses: docker://ptcos/multi-netcore-sdk:0.0.2
         run: dotnet build
-        id: hello
       # This step prints an output (time) from the previous step's action.
       - name: Echo the greeting's time
         run: echo 'The time was ${{ steps.hello.outputs.time }}.'
