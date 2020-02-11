@@ -103,7 +103,7 @@ namespace Runner
                     },
                     async (GenerateDocumentationOptions options) =>
                     {
-                        documentCreator.GenerateDocumentation();
+                        documentCreator.GenerateDocumentation(options.OutputFolder);
 
                         await Task.CompletedTask;
                     },

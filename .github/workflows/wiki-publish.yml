@@ -20,7 +20,4 @@ jobs:
         run: dotnet build
 
       - name: Build
-        run: dotnet run --project Runner -- generate-document
-
-      - name: Echo the greeting's time
-        run: echo 'The time was ${{ steps.hello.outputs.time }}.'
+        run: dotnet run --project Runner -- generate-document -o wiki

@@ -8,7 +8,7 @@ namespace Runner
 {
     public class DocumentationFileCreator
     {
-        private const string DocumentationFolder = "Documentation";
+        //private const string DocumentationFolder = "Documentation";
         private const string RulesFolder = "Rules";
         private readonly ILogger<DocumentationFileCreator> _logger;
 
@@ -17,7 +17,7 @@ namespace Runner
             _logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
         }
 
-        public void GenerateDocumentation()
+        public void GenerateDocumentation(string outputFolder)
         {
             var types = GetRuleTypes();
 
@@ -25,7 +25,7 @@ namespace Runner
             homeBuilder.Header(1, "References");
             homeBuilder.AppendLine();
 
-            MakeSureFolderStructureExists();
+            MakeSureFolderStructureExists(outputFolder);
 
             foreach (var group in types.GroupBy(type => type.Namespace).OrderBy(group => group.Key))
             {
@@ -35,7 +35,7 @@ namespace Runner
                 foreach (var item in group.OrderBy(type => type.Name))
                 {
                     var name = item.Name.ToLower();
-                    var path = Path.Combine(DocumentationFolder + "\\" + RulesFolder, $"{name}.md");
+                    var path = Path.Combine(outputFolder + "\\" + RulesFolder, $"{name}.md");
                     _logger.LogTrace("Creating file to path {path}", path);
 
                     homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.Name), $"\\{RulesFolder}\\{name}");
@@ -45,7 +45,7 @@ namespace Runner
                 homeBuilder.AppendLine();
             }
 
-            File.WriteAllText(Path.Combine(DocumentationFolder, "rules.md"), homeBuilder.ToString());
+            File.WriteAllText(Path.Combine(outputFolder, "rules.md"), homeBuilder.ToString());
             _logger.LogInformation("Documentation rules generated");
         }
 
@@ -58,10 +58,10 @@ namespace Runner
             return types;
         }
 
-        private static void MakeSureFolderStructureExists()
+        private static void MakeSureFolderStructureExists(string folder)
         {
-            if (!Directory.Exists(DocumentationFolder)) Directory.CreateDirectory(DocumentationFolder);
-            if (!Directory.Exists($"{DocumentationFolder}\\{RulesFolder}")) Directory.CreateDirectory($"{DocumentationFolder}\\{RulesFolder}");
+            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+            if (!Directory.Exists($"{folder}\\{RulesFolder}")) Directory.CreateDirectory($"{folder}\\{RulesFolder}");
         }
     }
 }
