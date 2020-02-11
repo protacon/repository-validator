@@ -15,8 +15,6 @@ Read more about [Rules](rules.md)
 If you have received an *Issue* or a *Pull Request* created by this application, see
 [repository validation configuration guide](Documentation/validation-configuration.md)
 
-
-
 Rest of this documentation mainly describes how `repository-validator` can be
 used and developed
 
