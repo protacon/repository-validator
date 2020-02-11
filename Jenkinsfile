@@ -41,18 +41,6 @@ podTemplate(label: pod.label,
                 """
             }
         }
-        if (branch == "feature/separate-rules-project")
-        {
-            stage('wiki') {
-                sh """
-                    git clone https://github.com/protacon/repository-validator.wiki.git
-                    cd repository-validator.wiki
-                    git commit --allow-empty -m "Trigger notification"
-                    git add *
-                    git push
-                """
-            }
-        }
         if (isTest(branch) || isMaster(branch) || isDependabot(branch)){
             container('powershell') {
                 stage('Package') {
