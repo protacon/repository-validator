@@ -32,18 +32,18 @@ namespace Runner
 
                 foreach (var item in group.OrderBy(type => type.Name))
                 {
-                    var name = item.Name.ToLower();
+                    var name = item.Name;
                     var path = Path.Combine(outputFolder, $"{name}.md");
                     _logger.LogTrace("Creating file to path {path}", path);
 
-                    homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.Name), $"\\{name}");
+                    homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.Name), $"{name}");
                     File.WriteAllText(path, item.ToString());
                 }
 
                 homeBuilder.AppendLine();
             }
 
-            File.WriteAllText(Path.Combine(outputFolder, "rules.md"), homeBuilder.ToString());
+            File.WriteAllText(Path.Combine(outputFolder, "Rules.md"), homeBuilder.ToString());
             _logger.LogInformation("Documentation rules generated");
         }
 
