@@ -8,7 +8,6 @@ namespace Runner
 {
     public class DocumentationFileCreator
     {
-        private const string RulesFolder = "Rules";
         private readonly ILogger<DocumentationFileCreator> _logger;
 
         public DocumentationFileCreator(ILogger<DocumentationFileCreator> logger)
@@ -34,10 +33,10 @@ namespace Runner
                 foreach (var item in group.OrderBy(type => type.Name))
                 {
                     var name = item.Name.ToLower();
-                    var path = Path.Combine(outputFolder + "\\" + RulesFolder, $"{name}.md");
+                    var path = Path.Combine(outputFolder, $"{name}.md");
                     _logger.LogTrace("Creating file to path {path}", path);
 
-                    homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.Name), $"\\{RulesFolder}\\{name}");
+                    homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.Name), $"\\{name}");
                     File.WriteAllText(path, item.ToString());
                 }
 
@@ -60,7 +59,6 @@ namespace Runner
         private static void MakeSureFolderStructureExists(string folder)
         {
             if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-            if (!Directory.Exists($"{folder}\\{RulesFolder}")) Directory.CreateDirectory($"{folder}\\{RulesFolder}");
         }
     }
 }
