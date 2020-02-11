@@ -16,7 +16,7 @@ namespace ValidationLibrary.Utils
             _name = name;
         }
 
-        public async Task<Octokit.Release> GetLatest()
+        public async Task<Release> GetLatest()
         {
             // Per documentation, this should not return prerelease or draft-releases.
             var result = await _client.Repository.Release.GetLatest(_owner, _name).ConfigureAwait(false);

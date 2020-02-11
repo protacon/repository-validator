@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
 using Microsoft.Extensions.Configuration;
@@ -13,7 +11,6 @@ using Octokit;
 using ValidationLibrary;
 using ValidationLibrary.Csv;
 using ValidationLibrary.GitHub;
-using ValidationLibrary.MarkdownGenerator;
 using ValidationLibrary.Rules;
 using ValidationLibrary.Slack;
 using ValidationLibrary.Utils;
@@ -47,10 +44,11 @@ namespace Runner
             var repositoryValidator = di.GetService<RepositoryValidator>();
             var client = di.GetService<ValidationClient>();
             var documentCreator = di.GetService<DocumentationFileCreator>();
-            await client.Init();
 
             async Task scanner(IEnumerable<string> repositories, Options options)
             {
+                await client.Init();
+
                 var start = DateTime.UtcNow;
 
                 var results = new List<ValidationReport>();
@@ -157,8 +155,11 @@ namespace Runner
         private static GitHubClient CreateClient(GitHubConfiguration configuration)
         {
             var client = new GitHubClient(new ProductHeaderValue("PTCS-Repository-Validator"));
-            var tokenAuth = new Credentials(configuration.Token);
-            client.Credentials = tokenAuth;
+            if (!string.IsNullOrWhiteSpace(configuration.Token))
+            {
+                var tokenAuth = new Credentials(configuration.Token);
+                client.Credentials = tokenAuth;
+            }
             return client;
         }
 

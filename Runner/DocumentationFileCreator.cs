@@ -8,7 +8,6 @@ namespace Runner
 {
     public class DocumentationFileCreator
     {
-        //private const string DocumentationFolder = "Documentation";
         private const string RulesFolder = "Rules";
         private readonly ILogger<DocumentationFileCreator> _logger;
 

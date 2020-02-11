@@ -19,5 +19,5 @@ jobs:
       - name: Build
         run: dotnet build
 
-      - name: Build
+      - name: Generate documentation
         run: dotnet run --project Runner -- generate-document -o wiki
