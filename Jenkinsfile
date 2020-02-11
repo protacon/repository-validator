@@ -46,6 +46,10 @@ podTemplate(label: pod.label,
             stage('wiki') {
                 sh """
                     git clone https://github.com/protacon/repository-validator.wiki.git
+                    cd repository-validator.wiki
+                    git commit --allow-empty -m "Trigger notification"
+                    git add *
+                    git push
                 """
             }
         }
