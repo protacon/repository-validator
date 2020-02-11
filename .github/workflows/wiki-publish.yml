@@ -21,3 +21,14 @@ jobs:
 
       - name: Generate documentation
         run: dotnet run --project Runner -- generate-document -o wiki
+      
+      - name: Upload Release Notes to Wiki
+        uses: docker://decathlon/wiki-page-creator-action:2.0.1
+        env:
+          ACTION_MAIL: noreply@protacon.com
+          ACTION_NAME: CI
+          GH_PAT: ${{ secrets.GH_PAT }}
+          MD_FOLDER: wiki
+          OWNER: protacon
+          REPO_NAME: repository-validator
+          SKIP_MD: README.md
