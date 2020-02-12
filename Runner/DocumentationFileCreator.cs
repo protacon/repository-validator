@@ -20,14 +20,14 @@ namespace Runner
             var types = GetRuleTypes();
 
             var homeBuilder = new MarkdownBuilder();
-            homeBuilder.Header(1, "References");
+            homeBuilder.Header(1, "Rules");
+            homeBuilder.AppendLine("This page lists all rules the Repository Validator can validate.");
             homeBuilder.AppendLine();
 
             MakeSureFolderStructureExists(outputFolder);
 
             foreach (var group in types.GroupBy(type => type.Namespace).OrderBy(group => group.Key))
             {
-                homeBuilder.Header(2, group.Key);
                 homeBuilder.AppendLine();
 
                 foreach (var item in group.OrderBy(type => type.Name))
