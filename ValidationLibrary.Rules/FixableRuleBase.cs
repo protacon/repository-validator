@@ -9,25 +9,31 @@ using ValidationLibrary.Utils;
 
 namespace ValidationLibrary.Rules
 {
+    /// <summary>
+    /// Base for rules that have a possible fix that can be automatcally generated
+    /// </summary>
     public abstract class FixableRuleBase<T> : IValidationRule where T : IValidationRule
     {
-        public abstract string RuleName { get; }
+        public string RuleName { get; }
+
         protected abstract string PullRequestBody { get; }
+
         protected const string MainBranch = "master";
         private readonly ILogger<FixableRuleBase<T>> _logger;
         private readonly GitUtils _gitUtils;
         private readonly string _pullRequestTitle;
 
-        public FixableRuleBase(ILogger<FixableRuleBase<T>> logger, GitUtils gitUtils, string pullRequestTitle)
+        protected FixableRuleBase(ILogger<FixableRuleBase<T>> logger, GitUtils gitUtils, string ruleName, string pullRequestTitle)
         {
+            RuleName = ruleName;
             _logger = logger;
             _gitUtils = gitUtils;
             _pullRequestTitle = pullRequestTitle;
         }
 
         public abstract Task Init(IGitHubClient ghClient);
+
         public abstract Task<ValidationResult> IsValid(IGitHubClient client, Repository repository);
-        protected abstract Task Fix(IGitHubClient client, Repository repository);
 
         protected async Task CreatePullRequestIfNeeded(IGitHubClient client, Repository repository, Reference latest)
         {
@@ -47,14 +53,14 @@ namespace ValidationLibrary.Rules
             await CreateNewPullRequest(client, repository, latest).ConfigureAwait(false);
         }
 
-        protected async Task<BlobReference> CreateBlob(IGitHubClient client, Repository repository, string fixedContent)
+        protected async Task<BlobReference> CreateBlob(IGitHubClient client, Repository repository, string content)
         {
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (repository == null) throw new ArgumentNullException(nameof(repository));
 
             var blob = new NewBlob()
             {
-                Content = fixedContent,
+                Content = content,
                 Encoding = EncodingType.Utf8
             };
             var blobReference = await client.Git.Blob.Create(repository.Owner.Login, repository.Name, blob).ConfigureAwait(false);

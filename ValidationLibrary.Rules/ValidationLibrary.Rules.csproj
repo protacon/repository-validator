@@ -2,11 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <CodeAnalysisRuleSet>ValidationLibrary.ruleset</CodeAnalysisRuleSet>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,8 +11,15 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Octokit" Version="0.40.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ValidationLibrary\ValidationLibrary.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <CodeAnalysisRuleSet>ValidationLibrary.Rules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
 
 </Project>

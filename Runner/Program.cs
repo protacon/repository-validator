@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
 using Microsoft.Extensions.Configuration;
@@ -13,7 +11,6 @@ using Octokit;
 using ValidationLibrary;
 using ValidationLibrary.Csv;
 using ValidationLibrary.GitHub;
-using ValidationLibrary.MarkdownGenerator;
 using ValidationLibrary.Rules;
 using ValidationLibrary.Slack;
 using ValidationLibrary.Utils;
@@ -46,10 +43,12 @@ namespace Runner
             var ghClient = di.GetService<IGitHubClient>();
             var repositoryValidator = di.GetService<RepositoryValidator>();
             var client = di.GetService<ValidationClient>();
-            await client.Init();
+            var documentCreator = di.GetService<DocumentationFileCreator>();
 
             async Task scanner(IEnumerable<string> repositories, Options options)
             {
+                await client.Init();
+
                 var start = DateTime.UtcNow;
 
                 var results = new List<ValidationReport>();
@@ -102,44 +101,11 @@ namespace Runner
                     },
                     async (GenerateDocumentationOptions options) =>
                     {
-                        GenerateDocumentation(logger);
+                        documentCreator.GenerateDocumentation(options.OutputFolder);
 
                         await Task.CompletedTask;
                     },
                     async errors => await Task.CompletedTask);
-        }
-
-        private static void GenerateDocumentation(ILogger<Program> logger)
-        {
-            logger.LogInformation("Generating documentation files for rules in namespace {namespace}", "ValidationLibrary.Rules");
-            var validationLibraryAssembly = Assembly.Load("ValidationLibrary");
-            var types = TypeExtractor.Load(validationLibraryAssembly, "ValidationLibrary.Rules");
-
-            var documentationFolder = "Documentation";
-
-            var homeBuilder = new MarkdownBuilder();
-            homeBuilder.Header(1, "References");
-            homeBuilder.AppendLine();
-
-            foreach (var g in types.GroupBy(x => x.Namespace).OrderBy(x => x.Key))
-            {
-                if (!Directory.Exists(documentationFolder)) Directory.CreateDirectory(documentationFolder);
-
-                homeBuilder.Header(2, g.Key);
-                homeBuilder.AppendLine();
-
-                foreach (var item in g.OrderBy(x => x.Name))
-                {
-                    var name = item.Name.Replace("<", "").Replace(">", "").Replace(",", "").Replace(" ", "-").ToLower();
-                    homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.Name), $"\\Rules\\{name}");
-                    File.WriteAllText(Path.Combine(documentationFolder + "\\Rules", $"{name}.md"), item.ToString());
-                }
-
-                homeBuilder.AppendLine();
-            }
-
-            File.WriteAllText(Path.Combine(documentationFolder, "rules.md"), homeBuilder.ToString());
-            logger.LogInformation("Documentation rules generated");
         }
 
         private static async Task PerformAutofixes(IGitHubClient ghClient, IEnumerable<ValidationReport> results)
@@ -189,8 +155,11 @@ namespace Runner
         private static GitHubClient CreateClient(GitHubConfiguration configuration)
         {
             var client = new GitHubClient(new ProductHeaderValue("PTCS-Repository-Validator"));
-            var tokenAuth = new Credentials(configuration.Token);
-            client.Credentials = tokenAuth;
+            if (!string.IsNullOrWhiteSpace(configuration.Token))
+            {
+                var tokenAuth = new Credentials(configuration.Token);
+                client.Credentials = tokenAuth;
+            }
             return client;
         }
 
@@ -230,6 +199,7 @@ namespace Runner
                         rules);
                 })
                 .AddTransient<GitUtils>()
+                .AddTransient<DocumentationFileCreator>()
                 .AddTransient<HasDescriptionRule>()
                 .AddTransient<HasLicenseRule>()
                 .AddTransient<HasNewestPtcsJenkinsLibRule>()
