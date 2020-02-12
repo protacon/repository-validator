@@ -6,6 +6,13 @@ namespace ValidationLibrary.Rules
 {
     /// <summary>
     /// This rule checks that a public repository has a license.
+    /// 
+    /// License describes how other people and organizations can use our open
+    /// source projects.
+    /// 
+    /// See https://help.github.com/en/articles/licensing-a-repository for guidance.
+    /// 
+    /// License existance is only checked for public repositories.
     /// </summary>
     public class HasLicenseRule : IValidationRule
     {

@@ -11,6 +11,14 @@ namespace ValidationLibrary.Rules
     /// <summary>
     /// Rule validates that Jenkinsfile has newest jenkins-ptcs-library is used if jenkins-ptcs-library is used at all.
     /// jenkins-ptcs-library is an internal company library that offers utilities for CI pipelines.
+    /// 
+    /// Newest version should be used for better support and possible bug fixes. With major releases the pipeline might break
+    /// if older version is used.
+    /// 
+    /// Automatic fix for this rule creates a Pull Request which updates jenkins-ptcs-library to latest version.
+    /// 
+    /// When to ignore
+    ///  * Repository is testing some specific version of jenkins-ptcs-library
     /// </summary>
     public class HasNewestPtcsJenkinsLibRule : FixableRuleBase<HasNewestPtcsJenkinsLibRule>, IValidationRule
     {

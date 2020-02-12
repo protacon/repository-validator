@@ -9,7 +9,16 @@ using System.Linq;
 namespace ValidationLibrary.Rules
 {
     /// <summary>
-    /// This rule checks that repository has a proper Readme.md
+    /// This rule checks that repository has a README.md defined
+    /// 
+    /// Readme file is used to improve the maintanability of our repositories. Readme should at least
+    /// describe what project does and how project can be built/developed
+    /// 
+    /// See https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-readmes for
+    /// more information about GitHub readmes
+    /// 
+    /// Automatic fix for this rule creates a pull request with a README.md template.
+    /// Template is based on https://raw.githubusercontent.com/protacon/repository-validator/master/README_TEMPLATE.md
     /// </summary>
     public class HasReadmeRule : FixableRuleBase<HasReadmeRule>, IValidationRule
     {

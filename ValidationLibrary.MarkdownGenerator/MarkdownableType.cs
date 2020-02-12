@@ -27,10 +27,10 @@ namespace ValidationLibrary.MarkdownGenerator
             mb.HeaderWithCode(2, typeName);
             mb.AppendLine();
 
-            var desc = commentLookup[type.Name].FirstOrDefault()?.Summary ?? "";
-            if (desc != "")
+
+            foreach (var summaryLine in commentLookup[type.Name].FirstOrDefault()?.Summary)
             {
-                mb.AppendLine(desc);
+                mb.AppendLine(summaryLine);
             }
 
             mb.AppendLine();

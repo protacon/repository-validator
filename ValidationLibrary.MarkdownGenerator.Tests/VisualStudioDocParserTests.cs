@@ -37,7 +37,7 @@ namespace ValidationLibrary.MarkdownGenerator.Tests
             Assert.AreEqual(1, result.Length);
 
             Assert.AreEqual("HasLicenseRule", result[0].MemberName);
-            Assert.AreEqual("Comment here", result[0].Summary);
+            Assert.AreEqual("Comment here", result[0].Summary[0]);
         }
 
         [Test]

@@ -18,12 +18,11 @@ namespace ValidationLibrary.MarkdownGenerator
                     if (!match.Groups[1].Success) return null;
 
                     var summary = element.Elements("summary").FirstOrDefault()?.Value ?? "";
-                    summary = string.Join("  ", summary.Split(new[] { "\r", "\n", "\t" }, StringSplitOptions.RemoveEmptyEntries).Select(y => y.Trim()));
 
                     return new XmlDocumentComment
                     {
                         MemberName = match.Groups[3].Value,
-                        Summary = summary.Trim()
+                        Summary = summary.Split(new[] { "\r", "\n", "\t" }, StringSplitOptions.RemoveEmptyEntries).Select(y => y.Trim()).ToArray()
                     };
                 })
                 .Where(x => x != null)
