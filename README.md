@@ -18,9 +18,6 @@ If you have received an *Issue* or a *Pull Request* created by this application,
 Read project [Wiki](https://github.com/protacon/repository-validator/wiki) for
 more information about project usage and development
 
-Rest of this documentation mainly describes how `repository-validator` can be
-used and developed
-
 ## Contributing
 
 If you want to help, see [contributing guidelines](CONTRIBUTING.md)
