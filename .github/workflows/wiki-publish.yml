@@ -3,7 +3,7 @@ name: Publish automatically generated documentation to wiki
 on:
   push:
     branches:
-      - feature/separate-rules-project
+      - master
 
 jobs:
   build:
