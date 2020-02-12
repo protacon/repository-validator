@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace ValidationLibrary.Rules
 {
     /// <summary>
-    /// This rule checks that repository has CODEOWNERS defined
+    /// This rule checks that repository has CODEOWNERS defined in .github folder
     /// 
     /// Code owners should be defined for 2 reasons
     ///  1. Pull request reviewers are automatically added

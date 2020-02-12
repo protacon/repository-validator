@@ -6,6 +6,12 @@ namespace ValidationLibrary.Rules
 {
     /// <summary>
     /// This rule checks that repository has a description with something in it.
+    /// 
+    /// Description helps other people in our organization to see what the
+    /// repository contains. Description should be a short summary about the
+    /// project domain.
+    /// 
+    /// This rule doesn't have an automatic fix.
     /// </summary>
     public class HasDescriptionRule : IValidationRule
     {
