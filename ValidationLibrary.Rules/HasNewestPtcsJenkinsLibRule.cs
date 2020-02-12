@@ -16,6 +16,9 @@ namespace ValidationLibrary.Rules
     /// if older version is used.
     /// 
     /// Automatic fix for this rule creates a Pull Request which updates jenkins-ptcs-library to latest version.
+    /// 
+    /// When to ignore
+    ///  * Repository is testing some specific version of jenkins-ptcs-library
     /// </summary>
     public class HasNewestPtcsJenkinsLibRule : FixableRuleBase<HasNewestPtcsJenkinsLibRule>, IValidationRule
     {
