@@ -31,4 +31,3 @@ jobs:
           MD_FOLDER: wiki
           OWNER: protacon
           REPO_NAME: repository-validator
-          SKIP_MD: README.md
