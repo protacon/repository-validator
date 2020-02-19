@@ -67,20 +67,20 @@ namespace ValidationLibrary.AzureFunctions
                 .AddTransient<HasNotManyStaleBranchesRule>()
                 .AddTransient<HasCodeownersRule>()
                 .AddTransient<IValidationClient, ValidationClient>()
-                .AddSingleton(provicer =>
+                .AddSingleton(provider =>
                 {
                     var rules = new IValidationRule[]
                     {
-                        provicer.GetService<HasDescriptionRule>(),
-                        provicer.GetService<HasReadmeRule>(),
-                        provicer.GetService<HasNotManyStaleBranchesRule>(),
-                        provicer.GetService<HasNewestPtcsJenkinsLibRule>(),
-                        provicer.GetService<HasLicenseRule>(),
-                        provicer.GetService<HasCodeownersRule>()
+                        provider.GetService<HasDescriptionRule>(),
+                        provider.GetService<HasReadmeRule>(),
+                        provider.GetService<HasNotManyStaleBranchesRule>(),
+                        provider.GetService<HasNewestPtcsJenkinsLibRule>(),
+                        provider.GetService<HasLicenseRule>(),
+                        provider.GetService<HasCodeownersRule>()
                     };
                     return new ValidationLibrary.RepositoryValidator(
-                        provicer.GetService<ILogger<ValidationLibrary.RepositoryValidator>>(),
-                        provicer.GetService<IGitHubClient>(),
+                        provider.GetService<ILogger<ValidationLibrary.RepositoryValidator>>(),
+                        provider.GetService<IGitHubClient>(),
                         rules);
                 })
                 .AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>()
