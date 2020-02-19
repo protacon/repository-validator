@@ -20,7 +20,7 @@ namespace ValidationLibrary.Rules
     /// When to ignore
     ///  * Repository is testing some specific version of jenkins-ptcs-library
     /// </summary>
-    public class HasNewestPtcsJenkinsLibRule : FixableRuleBase<HasNewestPtcsJenkinsLibRule>, IValidationRule
+    public class HasNewestPtcsJenkinsLibRule : FixableRuleBase<HasNewestPtcsJenkinsLibRule>
     {
         protected override string PullRequestBody =>
                         "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
