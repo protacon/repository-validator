@@ -121,6 +121,20 @@ namespace ValidationLibrary.Tests.Rules
             Assert.IsTrue(result.IsValid);
         }
 
+        [Test]
+        public async Task IsValid_IgnoresCommentedLibraryVersions()
+        {
+            var content = CreateContent("JENKINSFILE","//library 'jenkins-ptcs-library@0.3.0'" + Environment.NewLine + $"library 'jenkins-ptcs-library@{ExpectedJenkinsPtcsLibrary}'");
+            
+            IReadOnlyList<RepositoryContent> contents = new[] { content };
+            var repository = CreateRepository("repo");
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MasterBranch).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MasterBranch).Returns(Task.FromResult(contents));
+
+            var result = await _rule.IsValid(_mockClient, repository);
+            Assert.IsTrue(result.IsValid);
+        }
+
         private RepositoryContent CreateContent(string name, string content)
         {
             var bytes = System.Text.Encoding.UTF8.GetBytes(content);
