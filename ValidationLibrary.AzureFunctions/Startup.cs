@@ -50,7 +50,7 @@ namespace ValidationLibrary.AzureFunctions
 
             // Get all rule classes.
             var assembly = Assembly.Load("ValidationLibrary.Rules, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
-            var validationRules = assembly.GetExportedTypes().Where(c => c.GetInterfaces().Contains(typeof(IValidationRule)));
+            var validationRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null);
 
             // Remove those rules defined by the configuration and the environment variables which should be disabled.
             validationRules = validationRules.Where(r => config.GetValue<string>("Rules:" + r.Name) != "disable");
