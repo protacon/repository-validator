@@ -7,4 +7,4 @@ Basics
 1. Add tests when possible
 1. If something is unclear, don't be afraid to ask
 
-For development flow specific technical details, see [Development guide](Documentation/development.md)
+For development flow specific technical details, see [Development guide](https://github.com/protacon/repository-validator/wiki/Development)
