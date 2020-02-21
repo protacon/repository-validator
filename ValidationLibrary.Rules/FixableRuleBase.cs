@@ -116,7 +116,7 @@ namespace ValidationLibrary.Rules
                  * was missing, but we don't care for that case (no point to validate if repository doesn't exist.)
                  */
                 _logger.LogWarning(exception, "Rule {ruleClass} / {ruleName}, Repository {repositoryName} caused {exceptionClass}. This may be a new repository, but if this persists, repository should be removed.",
-                nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.Name, nameof(NotFoundException));
+                typeof(T).Name, RuleName, repository.Name, nameof(NotFoundException));
                 return Array.Empty<RepositoryContent>();
             }
         }
