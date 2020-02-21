@@ -34,7 +34,7 @@ namespace ValidationLibrary.Rules
         private const string JenkinsFileName = "Jenkinsfile";
         private const string FileMode = "100644";
         private readonly string _branchName = $"feature/{LibraryName}-update";
-        private readonly Regex _regex = new Regex($@"^(library)[\s][""']{LibraryName}@(\d+.\d+.\d+.*)[""']", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private readonly Regex _regex = new Regex($@"^(library)[\s][""']{LibraryName}@(\d+.\d+.\d+.*)[""']", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
         private readonly ILogger<HasNewestPtcsJenkinsLibRule> _logger;
         private readonly GitUtils _gitUtils;
