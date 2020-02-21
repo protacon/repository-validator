@@ -75,7 +75,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
         }
 
         [Test]
-        public void Configure_CheckRuleConfiguration()
+        public void Configure_CheckExplicitRuleConfiguration()
         {
             // Environment variables for the configuration.
             Environment.SetEnvironmentVariable("Rules:HasLicenseRule", "disable");

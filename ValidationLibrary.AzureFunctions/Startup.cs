@@ -53,7 +53,7 @@ namespace ValidationLibrary.AzureFunctions
             var validationRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null);
 
             // Remove those rules defined by the configuration and the environment variables which should be disabled.
-            validationRules = validationRules.Where(r => config.GetValue<string>("Rules:" + r.Name) != "disable");
+            validationRules = validationRules.Where(r => !string.Equals(config.GetValue<string>($"Rules:{r.Name}"), "disable", StringComparison.InvariantCultureIgnoreCase));
 
             // Add each rule as available for the dependancy injection.
             foreach (var rule in validationRules)
