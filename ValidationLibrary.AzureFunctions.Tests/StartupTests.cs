@@ -56,7 +56,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
         {
             // Get all rule classes.
             var assembly = Assembly.Load("ValidationLibrary.Rules, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
-            var expectedValidationRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null);
+            var expectedValidationRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
             var expectedValidationRuleNames = expectedValidationRules.Select(r =>
             {
                 var args = r.GetConstructors()[0].GetParameters().Select(p => (object)null).ToArray();
@@ -83,7 +83,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
 
             // Get all rule classes.
             var assembly = Assembly.Load("ValidationLibrary.Rules, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
-            var allValidationRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null);
+            var allValidationRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
 
             IHost host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
             var validator = (ValidationLibrary.RepositoryValidator)host.Services.GetService(typeof(ValidationLibrary.RepositoryValidator));
