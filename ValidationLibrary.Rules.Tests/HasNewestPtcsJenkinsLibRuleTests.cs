@@ -122,17 +122,17 @@ namespace ValidationLibrary.Tests.Rules
         }
 
         [Test]
-        public async Task IsValid_IgnoresCommentedLibraryVersions()
+        public async Task IsValid_IgnoresCommentedLibraryVersionButNotActual()
         {
-            var content = CreateContent("JENKINSFILE","//library 'jenkins-ptcs-library@0.3.0'" + Environment.NewLine + $"library 'jenkins-ptcs-library@{ExpectedJenkinsPtcsLibrary}'");
-            
+            var content = CreateContent("JENKINSFILE", "//Actual version may be library 'jenkins-ptcs-library@0.3.0'" + Environment.NewLine + $"library 'jenkins-ptcs-library@0.3.0'");
+
             IReadOnlyList<RepositoryContent> contents = new[] { content };
             var repository = CreateRepository("repo");
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MasterBranch).Returns(Task.FromResult(contents));
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MasterBranch).Returns(Task.FromResult(contents));
 
             var result = await _rule.IsValid(_mockClient, repository);
-            Assert.IsTrue(result.IsValid);
+            Assert.IsFalse(result.IsValid);
         }
 
         private RepositoryContent CreateContent(string name, string content)
