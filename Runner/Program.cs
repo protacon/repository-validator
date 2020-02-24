@@ -169,7 +169,7 @@ namespace Runner
             // Get all rule classes.
             var assembly = System.Reflection.Assembly.Load("ValidationLibrary.Rules, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
             var allValidationRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
-            var disabledRules = new System.Collections.Generic.List<string>();
+            var disabledRules = new List<string>();
 
             // Select those rules defined by the configuration and the environment variables which should be disabled.
             var selectedValidationRules = allValidationRules.Where(r =>
