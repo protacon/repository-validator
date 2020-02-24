@@ -215,7 +215,7 @@ namespace Runner
                     {
                         logger.LogInformation($"Ignoring rules: {disabledRules}");
                     }
-                    return new ValidationLibrary.RepositoryValidator(
+                    return new RepositoryValidator(
                         provider.GetService<ILogger<RepositoryValidator>>(),
                         provider.GetService<IGitHubClient>(),
                         rules);
