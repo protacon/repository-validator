@@ -16,7 +16,7 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasLicenseRule : IValidationRule
     {
-        public string RuleName => $"Missing License";
+        public string RuleName => "Missing License";
 
         private const string HowToFix = "Add a license for this repository. See [help](https://help.github.com/en/articles/licensing-a-repository) for guidance. Private repositories don't need a license.";
 

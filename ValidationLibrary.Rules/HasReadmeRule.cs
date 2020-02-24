@@ -20,7 +20,7 @@ namespace ValidationLibrary.Rules
     /// Automatic fix for this rule creates a pull request with a README.md template.
     /// Template is based on https://raw.githubusercontent.com/protacon/repository-validator/master/README_TEMPLATE.md
     /// </summary>
-    public class HasReadmeRule : FixableRuleBase<HasReadmeRule>, IValidationRule
+    public class HasReadmeRule : FixableRuleBase<HasReadmeRule>
     {
         protected override string PullRequestBody =>
                         "This Pull Request provides only a template README.md file for guidance. You should edit the file according to your project needs." +
