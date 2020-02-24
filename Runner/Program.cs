@@ -11,7 +11,6 @@ using Octokit;
 using ValidationLibrary;
 using ValidationLibrary.Csv;
 using ValidationLibrary.GitHub;
-using ValidationLibrary.Rules;
 using ValidationLibrary.Slack;
 using ValidationLibrary.Utils;
 
@@ -163,7 +162,33 @@ namespace Runner
             return client;
         }
 
-        private static ServiceProvider BuildDependencyInjection(IConfiguration config) => new ServiceCollection()
+        private static ServiceProvider BuildDependencyInjection(IConfiguration config)
+        {
+            var provider = new ServiceCollection();
+
+            // Get all rule classes.
+            var assembly = System.Reflection.Assembly.Load("ValidationLibrary.Rules, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+            var allValidationRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
+            var disabledRules = new System.Collections.Generic.List<string>();
+
+            // Select those rules defined by the configuration and the environment variables which should be disabled.
+            var selectedValidationRules = allValidationRules.Where(r =>
+            {
+                if (string.Equals(config.GetValue<string>($"Rules:{r.Name}"), "disable", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    disabledRules.Add(r.Name);
+                    return false;
+                }
+                return true;
+            }).ToArray();
+
+            // Add each rule as available for the dependancy injection.
+            foreach (var rule in selectedValidationRules)
+            {
+                provider.AddTransient(rule);
+            }
+
+            return new ServiceCollection()
                 .AddLogging(loggingBuilder =>
                 {
                     loggingBuilder.AddConfiguration(config.GetSection("Logging"));
@@ -184,29 +209,21 @@ namespace Runner
                 .AddTransient<ValidationClient>()
                 .AddSingleton(provider =>
                 {
-                    var rules = new IValidationRule[]
+                    var logger = provider.GetService<ILogger<Program>>();
+                    var rules = selectedValidationRules.Select(r => (IValidationRule)provider.GetService(r)).ToArray();
+                    if (disabledRules.Count != 0)
                     {
-                        provider.GetService<HasDescriptionRule>(),
-                        provider.GetService<HasReadmeRule>(),
-                        provider.GetService<HasNewestPtcsJenkinsLibRule>(),
-                        provider.GetService<HasNotManyStaleBranchesRule>(),
-                        provider.GetService<HasLicenseRule>(),
-                        provider.GetService<HasCodeownersRule>()
-                    };
-                    return new RepositoryValidator(
+                        logger.LogInformation($"Ignoring rules: {disabledRules}");
+                    }
+                    return new ValidationLibrary.RepositoryValidator(
                         provider.GetService<ILogger<RepositoryValidator>>(),
                         provider.GetService<IGitHubClient>(),
                         rules);
                 })
                 .AddTransient<GitUtils>()
                 .AddTransient<DocumentationFileCreator>()
-                .AddTransient<HasDescriptionRule>()
-                .AddTransient<HasLicenseRule>()
-                .AddTransient<HasNewestPtcsJenkinsLibRule>()
-                .AddTransient<HasNotManyStaleBranchesRule>()
-                .AddTransient<HasReadmeRule>()
-                .AddTransient<HasCodeownersRule>()
                 .BuildServiceProvider();
+        }
 
         private static void ValidateConfig(GitHubConfiguration gitHubConfiguration)
         {
