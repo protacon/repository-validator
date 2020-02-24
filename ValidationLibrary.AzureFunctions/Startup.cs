@@ -85,14 +85,14 @@ namespace ValidationLibrary.AzureFunctions
                 .AddTransient<IValidationClient, ValidationClient>()
                 .AddSingleton(provider =>
                 {
-                    var logger = provider.GetService<ILogger<ValidationLibrary.RepositoryValidator>>();
+                    var logger = provider.GetService<ILogger<Startup>>();
                     var rules = selectedValidationRules.Select(r => (IValidationRule)provider.GetService(r)).ToArray();
                     if (disabledRules.Count != 0)
                     {
                         logger.LogInformation($"Ignoring rules: {disabledRules}");
                     }
                     return new ValidationLibrary.RepositoryValidator(
-                        logger,
+                        provider.GetService<ILogger<ValidationLibrary.RepositoryValidator>>(),
                         provider.GetService<IGitHubClient>(),
                         rules);
                 })
