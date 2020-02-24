@@ -128,6 +128,10 @@
                         {
                             "name": "GitHub:Organization",
                             "value": "[parameters('gitHubOrganization')]"
+                        },
+                        {
+                            "name": "Rules:HasCodeownersRule",
+                            "value": "disable"
                         }
                     ]
                 }
