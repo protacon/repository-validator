@@ -81,5 +81,10 @@ namespace ValidationLibrary
                 return new ValidationConfiguration();
             }
         }
+
+        public IValidationRule[] GetRules()
+        {
+            return _rules;
+        }
     }
 }

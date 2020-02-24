@@ -10,8 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using ValidationLibrary.AzureFunctions;
-using ValidationLibrary.Rules;
 using ValidationLibrary.Utils;
+using System.Linq;
 
 [assembly: WebJobsStartup(typeof(Startup))]
 namespace ValidationLibrary.AzureFunctions
@@ -48,6 +48,19 @@ namespace ValidationLibrary.AzureFunctions
                 .AddEnvironmentVariables()
                 .Build();
 
+            // Get all rule classes.
+            var assembly = Assembly.Load("ValidationLibrary.Rules, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+            var validationRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
+
+            // Remove those rules defined by the configuration and the environment variables which should be disabled.
+            validationRules = validationRules.Where(r => !string.Equals(config.GetValue<string>($"Rules:{r.Name}"), "disable", StringComparison.InvariantCultureIgnoreCase));
+
+            // Add each rule as available for the dependancy injection.
+            foreach (var rule in validationRules)
+            {
+                builder.Services.AddTransient(rule);
+            }
+
             builder
                 .Services
                 .AddLogging()
@@ -60,27 +73,13 @@ namespace ValidationLibrary.AzureFunctions
                     return CreateClient(githubConfig);
                 })
                 .AddTransient<GitUtils>()
-                .AddTransient<HasDescriptionRule>()
-                .AddTransient<HasLicenseRule>()
-                .AddTransient<HasNewestPtcsJenkinsLibRule>()
-                .AddTransient<HasReadmeRule>()
-                .AddTransient<HasNotManyStaleBranchesRule>()
-                .AddTransient<HasCodeownersRule>()
                 .AddTransient<IValidationClient, ValidationClient>()
-                .AddSingleton(provicer =>
+                .AddSingleton(provider =>
                 {
-                    var rules = new IValidationRule[]
-                    {
-                        provicer.GetService<HasDescriptionRule>(),
-                        provicer.GetService<HasReadmeRule>(),
-                        provicer.GetService<HasNotManyStaleBranchesRule>(),
-                        provicer.GetService<HasNewestPtcsJenkinsLibRule>(),
-                        provicer.GetService<HasLicenseRule>(),
-                        provicer.GetService<HasCodeownersRule>()
-                    };
+                    var rules = validationRules.Select(r => (IValidationRule)provider.GetService(r)).ToArray();
                     return new ValidationLibrary.RepositoryValidator(
-                        provicer.GetService<ILogger<ValidationLibrary.RepositoryValidator>>(),
-                        provicer.GetService<IGitHubClient>(),
+                        provider.GetService<ILogger<ValidationLibrary.RepositoryValidator>>(),
+                        provider.GetService<IGitHubClient>(),
                         rules);
                 })
                 .AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>()
