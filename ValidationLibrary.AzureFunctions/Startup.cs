@@ -62,7 +62,7 @@ namespace ValidationLibrary.AzureFunctions
                     return false;
                 }
                 return true;
-            });
+            }).ToArray();
 
             // Add each rule as available for the dependancy injection.
             foreach (var rule in selectedValidationRules)
