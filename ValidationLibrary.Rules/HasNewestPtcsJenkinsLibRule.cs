@@ -34,7 +34,7 @@ namespace ValidationLibrary.Rules
         private const string JenkinsFileName = "Jenkinsfile";
         private const string FileMode = "100644";
         private readonly string _branchName = $"feature/{LibraryName}-update";
-        private readonly Regex _regex = new Regex($@"[""']{LibraryName}@(\d+.\d+.\d+.*)[""']", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private readonly Regex _regex = new Regex($@"^(library)[\s][""']{LibraryName}@(\d+.\d+.\d+.*)[""']", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
         private readonly ILogger<HasNewestPtcsJenkinsLibRule> _logger;
         private readonly GitUtils _gitUtils;
@@ -119,7 +119,7 @@ namespace ValidationLibrary.Rules
             }
             else
             {
-                var fixedContent = _regex.Replace(jenkinsContent.Content, $"'{LibraryName}@{_expectedVersion}'");
+                var fixedContent = _regex.Replace(jenkinsContent.Content, $"library '{LibraryName}@{_expectedVersion}'");
                 var reference = await PushFix(client, repository, latest, fixedContent).ConfigureAwait(false);
 
                 await CreatePullRequestIfNeeded(client, repository, reference).ConfigureAwait(false);
