@@ -86,10 +86,10 @@ namespace ValidationLibrary.AzureFunctions
                 .AddSingleton(provider =>
                 {
                     var logger = provider.GetService<ILogger<ValidationLibrary.RepositoryValidator>>();
-                    var rules = selectedValidationRules.Select(r => (IValidationRule)provider.GetService(r)).ToArray();                    
+                    var rules = selectedValidationRules.Select(r => (IValidationRule)provider.GetService(r)).ToArray();
                     if (disabledRules.Count != 0)
                     {
-                        logger.LogInformation($"Ignoring rules: {disabledRules}");                        
+                        logger.LogInformation($"Ignoring rules: {disabledRules}");
                     }
                     return new ValidationLibrary.RepositoryValidator(
                         logger,
