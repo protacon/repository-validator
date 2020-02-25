@@ -11,6 +11,7 @@ using Octokit;
 using ValidationLibrary;
 using ValidationLibrary.Csv;
 using ValidationLibrary.GitHub;
+using ValidationLibrary.Rules;
 using ValidationLibrary.Slack;
 using ValidationLibrary.Utils;
 
@@ -164,31 +165,10 @@ namespace Runner
 
         private static ServiceProvider BuildDependencyInjection(IConfiguration config)
         {
-            var provider = new ServiceCollection();
+            var collector = new ServiceCollection();
+            var selectedRules = collector.AddValidationRules(config);
 
-            // Get all rule classes.
-            var assembly = System.Reflection.Assembly.Load("ValidationLibrary.Rules, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
-            var allValidationRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
-            var disabledRules = new List<string>();
-
-            // Select those rules defined by the configuration and the environment variables which should be disabled.
-            var selectedValidationRules = allValidationRules.Where(r =>
-            {
-                if (string.Equals(config.GetValue<string>($"Rules:{r.Name}"), "disable", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    disabledRules.Add(r.Name);
-                    return false;
-                }
-                return true;
-            }).ToArray();
-
-            // Add each rule as available for the dependancy injection.
-            foreach (var rule in selectedValidationRules)
-            {
-                provider.AddTransient(rule);
-            }
-
-            return new ServiceCollection()
+            var provider = collector
                 .AddLogging(loggingBuilder =>
                 {
                     loggingBuilder.AddConfiguration(config.GetSection("Logging"));
@@ -209,12 +189,7 @@ namespace Runner
                 .AddTransient<ValidationClient>()
                 .AddSingleton(provider =>
                 {
-                    var logger = provider.GetService<ILogger<Program>>();
-                    var rules = selectedValidationRules.Select(r => (IValidationRule)provider.GetService(r)).ToArray();
-                    if (disabledRules.Count != 0)
-                    {
-                        logger.LogInformation($"Ignoring rules: {disabledRules}");
-                    }
+                    var rules = selectedRules.Select(r => (IValidationRule)provider.GetService(r)).ToArray();
                     return new RepositoryValidator(
                         provider.GetService<ILogger<RepositoryValidator>>(),
                         provider.GetService<IGitHubClient>(),
@@ -223,6 +198,11 @@ namespace Runner
                 .AddTransient<GitUtils>()
                 .AddTransient<DocumentationFileCreator>()
                 .BuildServiceProvider();
+
+            var logger = provider.GetService<ILogger<Program>>();
+            logger.LogInformation($"Selected validation rules: {selectedRules}");
+
+            return provider;
         }
 
         private static void ValidateConfig(GitHubConfiguration gitHubConfiguration)

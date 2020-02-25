@@ -12,6 +12,7 @@ using Octokit;
 using ValidationLibrary.AzureFunctions;
 using ValidationLibrary.Utils;
 using System.Linq;
+using ValidationLibrary.Rules;
 
 [assembly: WebJobsStartup(typeof(Startup))]
 namespace ValidationLibrary.AzureFunctions
@@ -48,27 +49,7 @@ namespace ValidationLibrary.AzureFunctions
                 .AddEnvironmentVariables()
                 .Build();
 
-            // Get all rule classes.
-            var assembly = Assembly.Load("ValidationLibrary.Rules, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
-            var allValidationRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
-            var disabledRules = new System.Collections.Generic.List<string>();
-
-            // Select those rules defined by the configuration and the environment variables which should be disabled.
-            var selectedValidationRules = allValidationRules.Where(r =>
-            {
-                if (string.Equals(config.GetValue<string>($"Rules:{r.Name}"), "disable", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    disabledRules.Add(r.Name);
-                    return false;
-                }
-                return true;
-            }).ToArray();
-
-            // Add each rule as available for the dependancy injection.
-            foreach (var rule in selectedValidationRules)
-            {
-                builder.Services.AddTransient(rule);
-            }
+            var selectedRules = builder.Services.AddValidationRules(config);
 
             builder
                 .Services
@@ -85,12 +66,9 @@ namespace ValidationLibrary.AzureFunctions
                 .AddTransient<IValidationClient, ValidationClient>()
                 .AddSingleton(provider =>
                 {
+                    var rules = selectedRules.Select(r => (IValidationRule)provider.GetService(r)).ToArray();
                     var logger = provider.GetService<ILogger<Startup>>();
-                    var rules = selectedValidationRules.Select(r => (IValidationRule)provider.GetService(r)).ToArray();
-                    if (disabledRules.Count != 0)
-                    {
-                        logger.LogInformation($"Ignoring rules: {disabledRules}");
-                    }
+                    logger.LogInformation($"selected validation rules: {selectedRules}");
                     return new ValidationLibrary.RepositoryValidator(
                         provider.GetService<ILogger<ValidationLibrary.RepositoryValidator>>(),
                         provider.GetService<IGitHubClient>(),
