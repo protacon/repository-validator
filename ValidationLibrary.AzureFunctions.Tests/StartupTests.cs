@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Reflection;
 using System.Linq;
+using ValidationLibrary.Rules;
 
 namespace ValidationLibrary.AzureFunctions.Tests
 {
@@ -56,8 +57,8 @@ namespace ValidationLibrary.AzureFunctions.Tests
         {
             // Get all rule classes.
             var assembly = Assembly.Load("ValidationLibrary.Rules, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
-            var expectedValidationRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
-            var expectedValidationRuleNames = expectedValidationRules.Select(r =>
+            var expectedRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
+            var expectedRuleNames = expectedRules.Select(r =>
             {
                 var args = r.GetConstructors()[0].GetParameters().Select(p => (object)null).ToArray();
                 return ((IValidationRule)Activator.CreateInstance(r, args)).RuleName;
@@ -65,12 +66,12 @@ namespace ValidationLibrary.AzureFunctions.Tests
 
             IHost host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
             var validator = (ValidationLibrary.RepositoryValidator)host.Services.GetService(typeof(ValidationLibrary.RepositoryValidator));
-            var actualValidationRules = validator.GetRules();
+            var actualRules = validator.GetRules();
 
-            Assert.AreEqual(expectedValidationRules.Count(), actualValidationRules.Length);
-            foreach (var ruleName in expectedValidationRuleNames)
+            Assert.AreEqual(expectedRules.Count(), actualRules.Length);
+            foreach (var ruleName in expectedRuleNames)
             {
-                Assert.AreEqual(true, actualValidationRules.Any(r => r.RuleName.Equals(ruleName)));
+                Assert.IsTrue(actualRules.Any(r => r.RuleName.Equals(ruleName)));
             }
         }
 
@@ -82,15 +83,17 @@ namespace ValidationLibrary.AzureFunctions.Tests
             Environment.SetEnvironmentVariable("Rules:HasDescriptionRule", "enable"); // Decoy.
 
             // Get all rule classes.
-            var assembly = Assembly.Load("ValidationLibrary.Rules, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
-            var allValidationRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
+            var ruleType = typeof(HasLicenseRule);
+            var expectedRules = ruleType.Assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
 
             IHost host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
             var validator = (ValidationLibrary.RepositoryValidator)host.Services.GetService(typeof(ValidationLibrary.RepositoryValidator));
-            var actualValidationRules = validator.GetRules();
+            var actualRules = validator.GetRules();
 
-            Assert.AreEqual(allValidationRules.Count() - 1, actualValidationRules.Length);
-            Assert.AreEqual(false, actualValidationRules.Any(r => r.RuleName.Equals("Missing License")));
+            Assert.AreEqual(expectedRules.Count() - 1, actualRules.Length);
+            Assert.IsTrue(expectedRules.Any(r => r.Equals(ruleType)));
+            Assert.IsFalse(actualRules.Any(r => r.RuleName.Equals("Missing License")));
+            Assert.IsTrue(actualRules.Any(r => r.RuleName.Equals("Missing description")));
 
             // Tear down environment variables.
             Environment.SetEnvironmentVariable("Rules:HasLicenseRule", null);
