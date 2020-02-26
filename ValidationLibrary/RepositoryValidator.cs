@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Octokit;
-using ValidationLibrary.Rules;
 
 namespace ValidationLibrary
 {
@@ -81,6 +80,11 @@ namespace ValidationLibrary
                 _logger.LogDebug("No {configFileName} found in {repositoryName}. Using default config.", ConfigFileName, gitHubRepository.FullName);
                 return new ValidationConfiguration();
             }
+        }
+
+        public IValidationRule[] GetRules()
+        {
+            return _rules;
         }
     }
 }

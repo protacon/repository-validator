@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Octokit;
 
-namespace ValidationLibrary.Rules
+namespace ValidationLibrary
 {
     /// <summary>
     /// Common interface for all validation rules
@@ -12,7 +12,7 @@ namespace ValidationLibrary.Rules
         string RuleName { get; }
 
         Task Init(IGitHubClient ghClient);
-        
+
         Task<ValidationResult> IsValid(IGitHubClient client, Repository repository);
     }
 }

@@ -19,7 +19,7 @@ namespace AcceptanceTests
             _code = TestContext.Parameters["FunctionAppCode"];
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(_code))
             {
-                Assert.Inconclusive("Function app name or code not defined. Skipping acceptance tests.");
+                Assert.Ignore("Function app name or code not defined. Skipping acceptance tests.");
             }
 
             _url = $"https://{name}.azurewebsites.net/api/RepositoryValidator";
@@ -71,7 +71,7 @@ namespace AcceptanceTests
             request.AddQueryParameter("code", _code);
             request.AddJsonBody(obj);
 
-            return await client.ExecuteTaskAsync(request);
+            return await client.ExecuteAsync(request);
         }
     }
 }

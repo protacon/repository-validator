@@ -121,6 +121,20 @@ namespace ValidationLibrary.Tests.Rules
             Assert.IsTrue(result.IsValid);
         }
 
+        [Test]
+        public async Task IsValid_IgnoresCommentedLibraryVersionButNotActual()
+        {
+            var content = CreateContent("JENKINSFILE", "//Actual version may be library 'jenkins-ptcs-library@0.3.0'" + Environment.NewLine + $"library 'jenkins-ptcs-library@0.3.0'");
+
+            IReadOnlyList<RepositoryContent> contents = new[] { content };
+            var repository = CreateRepository("repo");
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MasterBranch).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MasterBranch).Returns(Task.FromResult(contents));
+
+            var result = await _rule.IsValid(_mockClient, repository);
+            Assert.IsFalse(result.IsValid);
+        }
+
         private RepositoryContent CreateContent(string name, string content)
         {
             var bytes = System.Text.Encoding.UTF8.GetBytes(content);
@@ -130,7 +144,7 @@ namespace ValidationLibrary.Tests.Rules
 
         private Repository CreateRepository(string name)
         {
-            return new Repository(null, null, null, null, null, null, null, 0, null, _owner, name, null, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, false, false, false, false, 0, 0, null, null, null, false);
+            return new Repository(null, null, null, null, null, null, null, 0, null, _owner, name, null, false, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, false, false, false, false, 0, 0, null, null, null, false);
         }
     }
 }

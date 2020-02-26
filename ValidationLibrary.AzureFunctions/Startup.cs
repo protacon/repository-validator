@@ -10,8 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using ValidationLibrary.AzureFunctions;
-using ValidationLibrary.Rules;
 using ValidationLibrary.Utils;
+using System.Linq;
+using ValidationLibrary.Rules;
 
 [assembly: WebJobsStartup(typeof(Startup))]
 namespace ValidationLibrary.AzureFunctions
@@ -51,6 +52,7 @@ namespace ValidationLibrary.AzureFunctions
             builder
                 .Services
                 .AddLogging()
+                .AddValidationRules(config)
                 .AddTransient<IGitHubClient, GitHubClient>(services =>
                 {
                     var githubConfig = new GitHubConfiguration();
@@ -60,26 +62,13 @@ namespace ValidationLibrary.AzureFunctions
                     return CreateClient(githubConfig);
                 })
                 .AddTransient<GitUtils>()
-                .AddTransient<HasDescriptionRule>()
-                .AddTransient<HasLicenseRule>()
-                .AddTransient<HasNewestPtcsJenkinsLibRule>()
-                .AddTransient<HasReadmeRule>()
-                .AddTransient<HasNotManyStaleBranchesRule>()
                 .AddTransient<IValidationClient, ValidationClient>()
-                .AddSingleton(provicer =>
+                .AddSingleton(provider =>
                 {
-                    var rules = new IValidationRule[]
-                    {
-                        provicer.GetService<HasDescriptionRule>(),
-                        provicer.GetService<HasReadmeRule>(),
-                        provicer.GetService<HasNotManyStaleBranchesRule>(),
-                        provicer.GetService<HasNewestPtcsJenkinsLibRule>(),
-                        provicer.GetService<HasLicenseRule>()
-                    };
                     return new ValidationLibrary.RepositoryValidator(
-                        provicer.GetService<ILogger<ValidationLibrary.RepositoryValidator>>(),
-                        provicer.GetService<IGitHubClient>(),
-                        rules);
+                        provider.GetService<ILogger<ValidationLibrary.RepositoryValidator>>(),
+                        provider.GetService<IGitHubClient>(),
+                        provider.GetServices<IValidationRule>().ToArray());
                 })
                 .AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>()
                 .AddTransient<RepositoryValidator>();

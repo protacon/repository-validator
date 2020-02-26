@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
 using Microsoft.Extensions.Configuration;
@@ -44,10 +43,12 @@ namespace Runner
             var ghClient = di.GetService<IGitHubClient>();
             var repositoryValidator = di.GetService<RepositoryValidator>();
             var client = di.GetService<ValidationClient>();
-            await client.Init();
+            var documentCreator = di.GetService<DocumentationFileCreator>();
 
             async Task scanner(IEnumerable<string> repositories, Options options)
             {
+                await client.Init();
+
                 var start = DateTime.UtcNow;
 
                 var results = new List<ValidationReport>();
@@ -86,7 +87,7 @@ namespace Runner
             }
 
             await Parser.Default
-                .ParseArguments<ScanSelectedOptions, ScanAllOptions, DebugTestOptions>(args)
+                .ParseArguments<ScanSelectedOptions, ScanAllOptions, GenerateDocumentationOptions>(args)
                 .MapResult(
                     async (ScanSelectedOptions options) => await scanner(options.Repositories, options),
                     async (ScanAllOptions options) =>
@@ -98,12 +99,11 @@ namespace Runner
                             .Where(repository => !repository.Archived);
                         await scanner(allNonArchivedRepositories.Select(r => r.Name).ToArray(), options);
                     },
-                    async (DebugTestOptions options) =>
+                    async (GenerateDocumentationOptions options) =>
                     {
-                        var utils = di.GetService<GitUtils>();
-                        var pr = await ghClient.PullRequest.Get(githubConfig.Organization, options.Repository, options.PullRequestNumber);
-                        var result = await utils.PullRequestHasLiveBranch(ghClient, pr);
-                        logger.LogInformation("PR '{title}' has live branch: {result}", pr.Title, result);
+                        documentCreator.GenerateDocumentation(options.OutputFolder);
+
+                        await Task.CompletedTask;
                     },
                     async errors => await Task.CompletedTask);
         }
@@ -155,17 +155,23 @@ namespace Runner
         private static GitHubClient CreateClient(GitHubConfiguration configuration)
         {
             var client = new GitHubClient(new ProductHeaderValue("PTCS-Repository-Validator"));
-            var tokenAuth = new Credentials(configuration.Token);
-            client.Credentials = tokenAuth;
+            if (!string.IsNullOrWhiteSpace(configuration.Token))
+            {
+                var tokenAuth = new Credentials(configuration.Token);
+                client.Credentials = tokenAuth;
+            }
             return client;
         }
 
-        private static ServiceProvider BuildDependencyInjection(IConfiguration config) => new ServiceCollection()
+        private static ServiceProvider BuildDependencyInjection(IConfiguration config)
+        {
+            return new ServiceCollection()
                 .AddLogging(loggingBuilder =>
                 {
                     loggingBuilder.AddConfiguration(config.GetSection("Logging"));
                     loggingBuilder.AddConsole();
                 })
+                .AddValidationRules(config)
                 .AddTransient(services =>
                 {
                     var githubConfig = new GitHubConfiguration();
@@ -181,26 +187,15 @@ namespace Runner
                 .AddTransient<ValidationClient>()
                 .AddSingleton(provider =>
                 {
-                    var rules = new IValidationRule[]
-                    {
-                        provider.GetService<HasDescriptionRule>(),
-                        provider.GetService<HasReadmeRule>(),
-                        provider.GetService<HasNewestPtcsJenkinsLibRule>(),
-                        provider.GetService<HasNotManyStaleBranchesRule>(),
-                        provider.GetService<HasLicenseRule>()
-                    };
                     return new RepositoryValidator(
                         provider.GetService<ILogger<RepositoryValidator>>(),
                         provider.GetService<IGitHubClient>(),
-                        rules);
+                        provider.GetServices<IValidationRule>().ToArray());
                 })
                 .AddTransient<GitUtils>()
-                .AddTransient<HasDescriptionRule>()
-                .AddTransient<HasLicenseRule>()
-                .AddTransient<HasNewestPtcsJenkinsLibRule>()
-                .AddTransient<HasNotManyStaleBranchesRule>()
-                .AddTransient<HasReadmeRule>()
+                .AddTransient<DocumentationFileCreator>()
                 .BuildServiceProvider();
+        }
 
         private static void ValidateConfig(GitHubConfiguration gitHubConfiguration)
         {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -11,6 +12,11 @@ namespace ValidationLibrary.Tests.Rules
 {
     public class HasReadmeRuleTests
     {
+        /// <summary>
+        /// By default, master is checked for README.md if there is no branch
+        /// </summary>
+        private const string MasterBranch = "master";
+
         private HasReadmeRule _rule;
 
         private User _owner;
@@ -48,9 +54,11 @@ namespace ValidationLibrary.Tests.Rules
         [Test]
         public async Task IsValid_ReturnsOkWhenReadmeExists()
         {
-            var readme = CreateReadme("README.md", "random content");
+            var readme = CreateContent("README.md", "random content");
+            IReadOnlyList<RepositoryContent> contents = new[] { readme };
             var repository = CreateRepository("repomen");
-            _mockRepositoryContentClient.GetReadme(_owner.Name, repository.Name).Returns(Task.FromResult(readme));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MasterBranch).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MasterBranch).Returns(Task.FromResult(contents));
 
             var result = await _rule.IsValid(_mockClient, repository);
             Assert.IsTrue(result.IsValid);
@@ -59,9 +67,11 @@ namespace ValidationLibrary.Tests.Rules
         [Test]
         public async Task IsValid_ReturnsFalseWhenReadmeExistsWithoutContent()
         {
-            var readme = CreateReadme("README.md", "");
+            var readme = CreateContent("README.md", "");
+            IReadOnlyList<RepositoryContent> contents = new[] { readme };
             var repository = CreateRepository("repomen");
-            _mockRepositoryContentClient.GetReadme(_owner.Name, repository.Name).Returns(Task.FromResult(readme));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MasterBranch).Returns(Task.FromResult(contents));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MasterBranch).Returns(Task.FromResult(contents));
 
             var result = await _rule.IsValid(_mockClient, repository);
             Assert.IsFalse(result.IsValid);
@@ -71,20 +81,22 @@ namespace ValidationLibrary.Tests.Rules
         public async Task IsValid_ReturnsFalseWhenReadmeDoesNotExist()
         {
             var repository = CreateRepository("repomen");
-            _mockRepositoryContentClient.GetReadme(_owner.Name, repository.Name).Returns(Task.FromResult<Readme>(null));
+            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MasterBranch).Returns(Task.FromResult((IReadOnlyList<RepositoryContent>)new List<RepositoryContent>()));
 
             var result = await _rule.IsValid(_mockClient, repository);
             Assert.IsFalse(result.IsValid);
         }
 
-        private Readme CreateReadme(string name, string content)
+        private RepositoryContent CreateContent(string name, string content)
         {
-            return new Readme(null, content, name, null, null);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(content);
+            var converted = Convert.ToBase64String(bytes);
+            return new RepositoryContent(name, null, null, 0, ContentType.File, null, null, null, null, null, converted, null, null);
         }
 
         private Repository CreateRepository(string name)
         {
-            return new Repository(null, null, null, null, null, null, null, 0, null, _owner, name, null, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, false, false, false, false, 0, 0, null, null, null, false);
+            return new Repository(null, null, null, null, null, null, null, 0, null, _owner, name, null, false, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, false, false, false, false, 0, 0, null, null, null, false);
         }
     }
 }
