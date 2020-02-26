@@ -163,12 +163,15 @@ namespace Runner
             return client;
         }
 
-        private static ServiceProvider BuildDependencyInjection(IConfiguration config) => new ServiceCollection()
+        private static ServiceProvider BuildDependencyInjection(IConfiguration config)
+        {
+            return new ServiceCollection()
                 .AddLogging(loggingBuilder =>
                 {
                     loggingBuilder.AddConfiguration(config.GetSection("Logging"));
                     loggingBuilder.AddConsole();
                 })
+                .AddValidationRules(config)
                 .AddTransient(services =>
                 {
                     var githubConfig = new GitHubConfiguration();
@@ -184,29 +187,15 @@ namespace Runner
                 .AddTransient<ValidationClient>()
                 .AddSingleton(provider =>
                 {
-                    var rules = new IValidationRule[]
-                    {
-                        provider.GetService<HasDescriptionRule>(),
-                        provider.GetService<HasReadmeRule>(),
-                        provider.GetService<HasNewestPtcsJenkinsLibRule>(),
-                        provider.GetService<HasNotManyStaleBranchesRule>(),
-                        provider.GetService<HasLicenseRule>(),
-                        provider.GetService<HasCodeownersRule>()
-                    };
                     return new RepositoryValidator(
                         provider.GetService<ILogger<RepositoryValidator>>(),
                         provider.GetService<IGitHubClient>(),
-                        rules);
+                        provider.GetServices<IValidationRule>().ToArray());
                 })
                 .AddTransient<GitUtils>()
                 .AddTransient<DocumentationFileCreator>()
-                .AddTransient<HasDescriptionRule>()
-                .AddTransient<HasLicenseRule>()
-                .AddTransient<HasNewestPtcsJenkinsLibRule>()
-                .AddTransient<HasNotManyStaleBranchesRule>()
-                .AddTransient<HasReadmeRule>()
-                .AddTransient<HasCodeownersRule>()
                 .BuildServiceProvider();
+        }
 
         private static void ValidateConfig(GitHubConfiguration gitHubConfiguration)
         {
