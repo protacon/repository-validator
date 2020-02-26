@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +7,7 @@ namespace ValidationLibrary.Rules
 {
     public static class ExtensionMethods
     {
-        public static IEnumerable<Type> AddValidationRules(this IServiceCollection service, IConfiguration config)
+        public static IServiceCollection AddValidationRules(this IServiceCollection service, IConfiguration config)
         {
             // Get all rule classes.            
             var allValidationRules = typeof(ExtensionMethods).Assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
@@ -19,10 +18,10 @@ namespace ValidationLibrary.Rules
             // Add each rule as available for the dependancy injection.
             foreach (var rule in selectedValidationRules)
             {
-                service.AddTransient(rule);
+                service.AddTransient(typeof(IValidationRule), rule);
             }
 
-            return selectedValidationRules;
+            return service;
         }
     }
 }

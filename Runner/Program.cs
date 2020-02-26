@@ -165,15 +165,13 @@ namespace Runner
 
         private static ServiceProvider BuildDependencyInjection(IConfiguration config)
         {
-            var collector = new ServiceCollection();
-            var selectedRules = collector.AddValidationRules(config);
-
-            var provider = collector
+            return new ServiceCollection()
                 .AddLogging(loggingBuilder =>
                 {
                     loggingBuilder.AddConfiguration(config.GetSection("Logging"));
                     loggingBuilder.AddConsole();
                 })
+                .AddValidationRules(config)
                 .AddTransient(services =>
                 {
                     var githubConfig = new GitHubConfiguration();
@@ -189,20 +187,14 @@ namespace Runner
                 .AddTransient<ValidationClient>()
                 .AddSingleton(provider =>
                 {
-                    var rules = selectedRules.Select(r => (IValidationRule)provider.GetService(r)).ToArray();
                     return new RepositoryValidator(
                         provider.GetService<ILogger<RepositoryValidator>>(),
                         provider.GetService<IGitHubClient>(),
-                        rules);
+                        provider.GetServices<IValidationRule>().ToArray());
                 })
                 .AddTransient<GitUtils>()
                 .AddTransient<DocumentationFileCreator>()
                 .BuildServiceProvider();
-
-            var logger = provider.GetService<ILogger<Program>>();
-            logger.LogInformation($"Selected validation rules: {selectedRules}");
-
-            return provider;
         }
 
         private static void ValidateConfig(GitHubConfiguration gitHubConfiguration)

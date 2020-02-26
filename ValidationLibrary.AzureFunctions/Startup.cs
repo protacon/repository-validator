@@ -49,11 +49,10 @@ namespace ValidationLibrary.AzureFunctions
                 .AddEnvironmentVariables()
                 .Build();
 
-            var selectedRules = builder.Services.AddValidationRules(config);
-
             builder
                 .Services
                 .AddLogging()
+                .AddValidationRules(config)
                 .AddTransient<IGitHubClient, GitHubClient>(services =>
                 {
                     var githubConfig = new GitHubConfiguration();
@@ -66,13 +65,10 @@ namespace ValidationLibrary.AzureFunctions
                 .AddTransient<IValidationClient, ValidationClient>()
                 .AddSingleton(provider =>
                 {
-                    var rules = selectedRules.Select(r => (IValidationRule)provider.GetService(r)).ToArray();
-                    var logger = provider.GetService<ILogger<Startup>>();
-                    logger.LogInformation($"selected validation rules: {selectedRules}");
                     return new ValidationLibrary.RepositoryValidator(
                         provider.GetService<ILogger<ValidationLibrary.RepositoryValidator>>(),
                         provider.GetService<IGitHubClient>(),
-                        rules);
+                        provider.GetServices<IValidationRule>().ToArray());
                 })
                 .AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>()
                 .AddTransient<RepositoryValidator>();
