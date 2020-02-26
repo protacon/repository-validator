@@ -36,7 +36,7 @@ dotnet publish -c Release -o $publishFolder $azureFunctionProject --version-suff
 $destination = "publish.zip"
 $fullSourcePath = (Resolve-Path "$publishFolder").Path
 $fullTargetPath = (Resolve-Path ".\").Path
-$fullZipTarget = "$fullTargetPath\$destination"
+$fullZipTarget = Join-Path -Path $fullTargetPath -ChildPath $destination
 
 Compress-Archive -DestinationPath $fullZipTarget -Path "$fullSourcePath/*" -Force
 
