@@ -36,7 +36,7 @@ $webApp = Get-AzWebApp `
 
 $address = ./Deployment/Get-FunctionUri.ps1 `
     -WebApp $webApp `
-    -FunctionName 'RepositoryValidator'
+    -FunctionName 'StatusCheck'
 
 # This should match the webhook content sent by github, but we are only using
 # required properties
@@ -45,7 +45,7 @@ $params = @{
         'name'  = $Repository
         'owner' = @{
             'login' = $Organization
-        }        
+        }
     }
 } | ConvertTo-Json
 
