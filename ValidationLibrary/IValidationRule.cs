@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Octokit;
 
@@ -14,5 +14,7 @@ namespace ValidationLibrary
         Task Init(IGitHubClient ghClient);
 
         Task<ValidationResult> IsValid(IGitHubClient client, Repository repository);
+
+        Dictionary<string, string> GetConfiguration();
     }
 }

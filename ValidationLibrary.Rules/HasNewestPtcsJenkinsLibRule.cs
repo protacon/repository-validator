@@ -1,9 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Octokit;
 using ValidationLibrary.Utils;
 
@@ -36,11 +36,8 @@ namespace ValidationLibrary.Rules
         private const string FileMode = "100644";
         private readonly string _branchName = $"feature/{LibraryName}-update";
         private readonly Regex _regex = new Regex($@"^(library)[\s][""']{LibraryName}@(\d+.\d+.\d+.*)[""']", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
-
         private readonly ILogger<HasNewestPtcsJenkinsLibRule> _logger;
         private readonly GitUtils _gitUtils;
-
-        [JsonProperty("JenkinsExpectedVersion")]
         private string _expectedVersion;
         private string _latestReleaseUrl;
 
@@ -70,6 +67,15 @@ namespace ValidationLibrary.Rules
 
             return new ValidationResult(RuleName, $"Update {LibraryName} to newest version. Newest version can be found in https://github.com/protacon/{LibraryName}/releases",
                 isValid, Fix);
+        }
+
+        public override Dictionary<string, string> GetConfiguration()
+        {
+            return new Dictionary<string, string>
+            {
+                 { "PullRequestTitle", RuleName },
+                 { "LatestJenkinsLibraryVersion", _expectedVersion}
+            };
         }
 
         private bool IsValid(RepositoryContent jenkinsContent)

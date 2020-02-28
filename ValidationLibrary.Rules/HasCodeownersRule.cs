@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace ValidationLibrary.Rules
 {
@@ -21,10 +20,8 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasCodeownersRule : IValidationRule
     {
-        [JsonProperty("PullRequestTitle")]
         public string RuleName => "Missing CODEOWNERS";
 
-        [JsonProperty("MainBranch")]
         private const string MainBranch = "master";
 
         private readonly ILogger<HasCodeownersRule> _logger;
@@ -63,6 +60,15 @@ namespace ValidationLibrary.Rules
 
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. CODEOWNERS exists: {codeownersExist}", nameof(HasCodeownersRule), RuleName, repo.FullName, !string.IsNullOrWhiteSpace(codeownersContent.Content));
             return new ValidationResult(RuleName, "Add CODEOWNERS file & add at least one owner.", !string.IsNullOrWhiteSpace(codeownersContent.Content), DoNothing);
+        }
+
+        public Dictionary<string, string> GetConfiguration()
+        {
+            return new Dictionary<string, string>
+            {
+                 { "PullRequestTitle", RuleName },
+                 { "Main Branch", MainBranch}
+            };
         }
 
         private Task DoNothing(IGitHubClient client, Repository repository)

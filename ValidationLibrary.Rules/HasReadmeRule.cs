@@ -5,6 +5,7 @@ using ValidationLibrary.Utils;
 using System;
 using System.Net.Http;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace ValidationLibrary.Rules
 {
@@ -61,6 +62,15 @@ namespace ValidationLibrary.Rules
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}",
                 nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, hasReadmeWithContent);
             return new ValidationResult(RuleName, "Add README.md file to repository root with content describing this repository.", hasReadmeWithContent, Fix);
+        }
+
+        public override Dictionary<string, string> GetConfiguration()
+        {
+            return new Dictionary<string, string>
+            {
+                 { "PullRequestTitle", RuleName },
+                 { "ReadMETemplateFileLocation", _templateFileUrl.OriginalString }
+            };
         }
 
         /// <summary>

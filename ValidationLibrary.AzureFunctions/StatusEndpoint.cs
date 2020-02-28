@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -26,13 +27,9 @@ namespace ValidationLibrary.AzureFunctions
             {
                 _logger.LogDebug("Repository validator status check hook launched.");
 
-                var status = new Status
-                {
-                    readmeTemplateFileLocation = "https://raw.githubusercontent.com/protacon/repository-validator/master/README_TEMPLATE.md",
-                    Rules = _validator.GetRules()
-                };
-
-                return new JsonResult(status);
+                return new JsonResult(new {
+                    Rules = _validator.GetRules().Select(r => r.GetConfiguration())
+                });
             }
             catch (Exception exception)
             {
@@ -44,12 +41,6 @@ namespace ValidationLibrary.AzureFunctions
                 }
                 throw;
             }
-        }
-
-        public class Status
-        {
-            public string readmeTemplateFileLocation;
-            public IValidationRule[] Rules;
         }
     }
 }

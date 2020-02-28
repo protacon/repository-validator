@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Octokit;
 
 namespace ValidationLibrary.Rules
@@ -16,7 +16,6 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasDescriptionRule : IValidationRule
     {
-        [JsonProperty("PullRequestTitle")]
         public string RuleName => "Missing description";
 
         private readonly ILogger<HasDescriptionRule> _logger;
@@ -43,6 +42,14 @@ namespace ValidationLibrary.Rules
             var isValid = !string.IsNullOrWhiteSpace(gitHubRepository.Description);
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Has description: {hasDescription}", nameof(HasDescriptionRule), RuleName, gitHubRepository.FullName, isValid);
             return Task.FromResult(new ValidationResult(RuleName, "Add description for this repository.", isValid, DoNothing));
+        }
+
+        public Dictionary<string, string> GetConfiguration()
+        {
+            return new Dictionary<string, string>
+            {
+                 { "PullRequestTitle", RuleName }
+            };
         }
 
         private Task DoNothing(IGitHubClient client, Repository repository)

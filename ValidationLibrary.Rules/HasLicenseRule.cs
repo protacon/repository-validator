@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Octokit;
 
 namespace ValidationLibrary.Rules
@@ -17,7 +17,6 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasLicenseRule : IValidationRule
     {
-        [JsonProperty("PullRequestTitle")]
         public string RuleName => "Missing License";
 
         private const string HowToFix = "Add a license for this repository. See [help](https://help.github.com/en/articles/licensing-a-repository) for guidance. Private repositories don't need a license.";
@@ -54,6 +53,14 @@ namespace ValidationLibrary.Rules
             _logger.LogTrace("License found {key}", repository.License.Name);
 
             return Task.FromResult(new ValidationResult(RuleName, HowToFix, true, DoNothing));
+        }
+
+        public Dictionary<string, string> GetConfiguration()
+        {
+            return new Dictionary<string, string>
+            {
+                 { "PullRequestTitle", RuleName }
+            };
         }
 
         private Task DoNothing(IGitHubClient client, Repository repository)

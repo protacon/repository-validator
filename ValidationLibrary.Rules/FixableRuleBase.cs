@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Octokit;
 using Octokit.Helpers;
 using ValidationLibrary.Utils;
@@ -15,12 +14,8 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public abstract class FixableRuleBase<T> : IValidationRule where T : IValidationRule
     {
-        [JsonProperty("PullRequestTitle")]
         public string RuleName { get; }
-
         protected abstract string PullRequestBody { get; }
-
-        [JsonProperty("MainBranch")]
         protected const string MainBranch = "master";
         private readonly ILogger<FixableRuleBase<T>> _logger;
         private readonly GitUtils _gitUtils;
@@ -37,6 +32,8 @@ namespace ValidationLibrary.Rules
         public abstract Task Init(IGitHubClient ghClient);
 
         public abstract Task<ValidationResult> IsValid(IGitHubClient client, Repository repository);
+
+        public abstract Dictionary<string, string> GetConfiguration();
 
         protected async Task CreatePullRequestIfNeeded(IGitHubClient client, Repository repository, Reference latest)
         {
