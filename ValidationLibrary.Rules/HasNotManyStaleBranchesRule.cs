@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Octokit;
 
 namespace ValidationLibrary.Rules
@@ -25,8 +26,10 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasNotManyStaleBranchesRule : IValidationRule
     {
+        [JsonProperty("PullRequestTitle")]
         public string RuleName => "Stale branches";
 
+        [JsonProperty("StaleCountLimit")]
         private const int StaleCountLimit = 10;
         private readonly ILogger<HasNotManyStaleBranchesRule> _logger;
 

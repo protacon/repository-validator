@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace ValidationLibrary.Rules
 {
@@ -20,8 +21,10 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasCodeownersRule : IValidationRule
     {
+        [JsonProperty("PullRequestTitle")]
         public string RuleName => "Missing CODEOWNERS";
 
+        [JsonProperty("MainBranch")]
         private const string MainBranch = "master";
 
         private readonly ILogger<HasCodeownersRule> _logger;

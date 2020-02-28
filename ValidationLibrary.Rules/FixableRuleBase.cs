@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Octokit;
 using Octokit.Helpers;
 using ValidationLibrary.Utils;
@@ -14,10 +15,12 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public abstract class FixableRuleBase<T> : IValidationRule where T : IValidationRule
     {
+        [JsonProperty("PullRequestTitle")]
         public string RuleName { get; }
 
         protected abstract string PullRequestBody { get; }
 
+        [JsonProperty("MainBranch")]
         protected const string MainBranch = "master";
         private readonly ILogger<FixableRuleBase<T>> _logger;
         private readonly GitUtils _gitUtils;

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Octokit;
 
 namespace ValidationLibrary.Rules
@@ -16,6 +17,7 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasLicenseRule : IValidationRule
     {
+        [JsonProperty("PullRequestTitle")]
         public string RuleName => "Missing License";
 
         private const string HowToFix = "Add a license for this repository. See [help](https://help.github.com/en/articles/licensing-a-repository) for guidance. Private repositories don't need a license.";

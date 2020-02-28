@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Octokit;
 
 namespace ValidationLibrary.Rules
@@ -15,6 +16,7 @@ namespace ValidationLibrary.Rules
     /// </summary>
     public class HasDescriptionRule : IValidationRule
     {
+        [JsonProperty("PullRequestTitle")]
         public string RuleName => "Missing description";
 
         private readonly ILogger<HasDescriptionRule> _logger;

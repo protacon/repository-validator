@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Octokit;
 using ValidationLibrary.Utils;
 
@@ -38,6 +39,8 @@ namespace ValidationLibrary.Rules
 
         private readonly ILogger<HasNewestPtcsJenkinsLibRule> _logger;
         private readonly GitUtils _gitUtils;
+
+        [JsonProperty("JenkinsExpectedVersion")]
         private string _expectedVersion;
         private string _latestReleaseUrl;
 
