@@ -67,7 +67,7 @@ namespace ValidationLibrary.Rules
             return new Dictionary<string, string>
             {
                  { "PullRequestTitle", RuleName },
-                 { "Main Branch", MainBranch}
+                 { "Main Branch", MainBranch }
             };
         }
 
