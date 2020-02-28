@@ -81,7 +81,7 @@ namespace ValidationLibrary.Rules
             return new Dictionary<string, string>
             {
                  { "PullRequestTitle", RuleName },
-                 { "StaleCountLimit", StaleCountLimit.ToString() }
+                 { "StaleCountLimit", $"{StaleCountLimit}" }
             };
         }
 
