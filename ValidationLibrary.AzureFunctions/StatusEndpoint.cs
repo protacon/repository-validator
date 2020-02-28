@@ -26,7 +26,8 @@ namespace ValidationLibrary.AzureFunctions
             {
                 _logger.LogDebug("Repository validator status check hook launched.");
 
-                return new JsonResult(new {
+                return new JsonResult(new
+                {
                     Rules = _validator.GetRules().Select(r => r.GetConfiguration())
                 });
             }
