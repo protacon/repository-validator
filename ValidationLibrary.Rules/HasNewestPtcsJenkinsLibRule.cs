@@ -73,9 +73,10 @@ namespace ValidationLibrary.Rules
         {
             return new Dictionary<string, string>
             {
-                 { "PullRequestTitle", RuleName },
-                 { "LatestJenkinsLibraryVersion", _expectedVersion },
-                 { "Main Branch", MainBranch }
+                { "ClassName", nameof(HasNewestPtcsJenkinsLibRule) },
+                { "PullRequestTitle", RuleName },
+                { "LatestJenkinsLibraryVersion", _expectedVersion },
+                { "MainBranch", MainBranch }
             };
         }
 

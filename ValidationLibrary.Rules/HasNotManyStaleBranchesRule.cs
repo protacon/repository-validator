@@ -80,8 +80,9 @@ namespace ValidationLibrary.Rules
         {
             return new Dictionary<string, string>
             {
-                 { "PullRequestTitle", RuleName },
-                 { "StaleCountLimit", $"{StaleCountLimit}" }
+                { "ClassName", nameof(HasNotManyStaleBranchesRule) },
+                { "PullRequestTitle", RuleName },
+                { "StaleCountLimit", $"{StaleCountLimit}" }
             };
         }
 
