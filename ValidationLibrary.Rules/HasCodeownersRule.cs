@@ -67,7 +67,7 @@ namespace ValidationLibrary.Rules
             return new Dictionary<string, string>
             {
                 { "ClassName", nameof(HasCodeownersRule) },
-                { "PullRequestTitle", RuleName },
+                { "RuleName", RuleName },
                 { "MainBranch", MainBranch }
             };
         }

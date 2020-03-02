@@ -69,8 +69,8 @@ namespace ValidationLibrary.Rules
             return new Dictionary<string, string>
             {
                 { "ClassName", nameof(HasCodeownersRule) },
-                { "PullRequestTitle", RuleName },
-                { "ReadMETemplateFileLocation", _templateFileUrl.OriginalString },
+                { "PullRequestTitle", _branchName },
+                { "ReadMeTemplateFileLocation", _templateFileUrl.OriginalString },
                 { "MainBranch", MainBranch }
             };
         }

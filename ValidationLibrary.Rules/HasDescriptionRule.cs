@@ -49,7 +49,7 @@ namespace ValidationLibrary.Rules
             return new Dictionary<string, string>
             {
                 { "ClassName", nameof(HasDescriptionRule) },
-                { "PullRequestTitle", RuleName }
+                { "RuleName", RuleName }
             };
         }
 

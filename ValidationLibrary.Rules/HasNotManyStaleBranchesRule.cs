@@ -57,7 +57,7 @@ namespace ValidationLibrary.Rules
             var branches = await client.Repository.Branch.GetAll(gitHubRepository.Owner.Login, gitHubRepository.Name).ConfigureAwait(false);
 
             var staleCommitsMap = new Dictionary<string, bool>();
-            var staleTreshold = DateTimeOffset.UtcNow - TimeSpan.FromDays(90);
+            var staleThreshold = DateTimeOffset.UtcNow - TimeSpan.FromDays(90);
             var staleCount = 0;
 
             foreach (var branch in branches)
@@ -65,7 +65,7 @@ namespace ValidationLibrary.Rules
                 if (!staleCommitsMap.ContainsKey(branch.Commit.Sha))
                 {
                     var commit = await client.Repository.Commit.Get(gitHubRepository.Id, branch.Commit.Sha).ConfigureAwait(false);
-                    staleCommitsMap[branch.Commit.Sha] = commit.Commit.Author.Date < staleTreshold;
+                    staleCommitsMap[branch.Commit.Sha] = commit.Commit.Author.Date < staleThreshold;
                 }
 
                 if (staleCommitsMap[branch.Commit.Sha]) staleCount++;
@@ -81,7 +81,7 @@ namespace ValidationLibrary.Rules
             return new Dictionary<string, string>
             {
                 { "ClassName", nameof(HasNotManyStaleBranchesRule) },
-                { "PullRequestTitle", RuleName },
+                { "RuleName", RuleName },
                 { "StaleCountLimit", $"{StaleCountLimit}" }
             };
         }
