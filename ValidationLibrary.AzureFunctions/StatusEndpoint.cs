@@ -20,7 +20,7 @@ namespace ValidationLibrary.AzureFunctions
         }
 
         [FunctionName("StatusCheck")]
-        public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req)
+        public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequestMessage req)
         {
             try
             {
