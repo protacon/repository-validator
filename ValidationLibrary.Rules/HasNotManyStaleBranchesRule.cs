@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Octokit;
@@ -27,6 +28,8 @@ namespace ValidationLibrary.Rules
     {
         public string RuleName => "Stale branches";
         private const int StaleCountLimit = 10;
+
+        private DateTimeOffset _staleThreshold = DateTimeOffset.UtcNow - TimeSpan.FromDays(90);
         private readonly ILogger<HasNotManyStaleBranchesRule> _logger;
 
         public HasNotManyStaleBranchesRule(ILogger<HasNotManyStaleBranchesRule> logger)
@@ -57,7 +60,6 @@ namespace ValidationLibrary.Rules
             var branches = await client.Repository.Branch.GetAll(gitHubRepository.Owner.Login, gitHubRepository.Name).ConfigureAwait(false);
 
             var staleCommitsMap = new Dictionary<string, bool>();
-            var staleThreshold = DateTimeOffset.UtcNow - TimeSpan.FromDays(90);
             var staleCount = 0;
 
             foreach (var branch in branches)
@@ -65,7 +67,7 @@ namespace ValidationLibrary.Rules
                 if (!staleCommitsMap.ContainsKey(branch.Commit.Sha))
                 {
                     var commit = await client.Repository.Commit.Get(gitHubRepository.Id, branch.Commit.Sha).ConfigureAwait(false);
-                    staleCommitsMap[branch.Commit.Sha] = commit.Commit.Author.Date < staleThreshold;
+                    staleCommitsMap[branch.Commit.Sha] = commit.Commit.Author.Date < _staleThreshold;
                 }
 
                 if (staleCommitsMap[branch.Commit.Sha]) staleCount++;
@@ -82,7 +84,8 @@ namespace ValidationLibrary.Rules
             {
                 { "ClassName", nameof(HasNotManyStaleBranchesRule) },
                 { "RuleName", RuleName },
-                { "StaleCountLimit", $"{StaleCountLimit}" }
+                { "StaleCountLimit", $"{StaleCountLimit}" },
+                { "StaleBranchTimeThreshold", $"{_staleThreshold.ToString("r", CultureInfo.InvariantCulture)}" }
             };
         }
 
