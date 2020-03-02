@@ -33,12 +33,7 @@ namespace ValidationLibrary.AzureFunctions
             }
             catch (Exception exception)
             {
-                if (exception is ArgumentException || exception is JsonException)
-                {
-                    _logger.LogError(exception, "Invalid request received");
-
-                    return new BadRequestResult();
-                }
+                _logger.LogError(exception, "Could not perform a status check of the repository validator.");
                 throw;
             }
         }
