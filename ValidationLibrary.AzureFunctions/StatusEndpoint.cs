@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,20 +20,12 @@ namespace ValidationLibrary.AzureFunctions
         [FunctionName("StatusCheck")]
         public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequestMessage req)
         {
-            try
-            {
-                _logger.LogDebug("Repository validator status check hook launched.");
+            _logger.LogDebug("Repository validator status check hook launched.");
 
-                return new JsonResult(new
-                {
-                    Rules = _validator.GetRules().Select(r => r.GetConfiguration())
-                });
-            }
-            catch (Exception exception)
+            return new JsonResult(new
             {
-                _logger.LogError(exception, "Could not perform a status check of the repository validator.");
-                throw;
-            }
+                Rules = _validator.GetRules().Select(r => r.GetConfiguration())
+            });
         }
     }
 }
