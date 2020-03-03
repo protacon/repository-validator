@@ -24,7 +24,7 @@ namespace ValidationLibrary.AzureFunctions
 
             return new JsonResult(new
             {
-                Rules = _validator.GetRules().Select(r => r.GetConfiguration())
+                Rules = _validator.GetRules().Select(r => r.GetConfiguration()).ToArray()
             });
         }
     }
