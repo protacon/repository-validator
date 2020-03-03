@@ -56,8 +56,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
         public void Configure_CheckNormalRuleConfiguration()
         {
             // Get all rule classes.
-            var assembly = Assembly.Load("ValidationLibrary.Rules, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
-            var expectedRules = assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
+            var expectedRules = typeof(HasLicenseRule).Assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
             var expectedRuleNames = expectedRules.Select(r =>
             {
                 var args = r.GetConstructors()[0].GetParameters().Select(p => (object)null).ToArray();
