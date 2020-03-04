@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
+using Octokit;
 using ValidationLibrary.Rules;
 
 namespace ValidationLibrary.AzureFunctions.Tests
@@ -21,18 +22,19 @@ namespace ValidationLibrary.AzureFunctions.Tests
         {
             Environment.SetEnvironmentVariable("GitHub:Organization", "mock");
             Environment.SetEnvironmentVariable("GitHub:Token", "mock");
-
-            IHost host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
-            var validator = host.Services.GetService(typeof(ValidationLibrary.RepositoryValidator));
-            _statusEndpoint = new StatusEndpoint(Substitute.For<ILogger<StatusEndpoint>>(), (ValidationLibrary.RepositoryValidator)validator);
-            var request = new HttpRequestMessage();
+            
             var ruleType = typeof(HasLicenseRule);
-            var expectedRules = ruleType.Assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
-            var expectedStatuses = expectedRules.Select(r =>
+            var expectedRulesTypes = ruleType.Assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
+            var expectedRules = expectedRulesTypes.Select(r =>
             {
                 var args = r.GetConstructors()[0].GetParameters().Select(p => (object)null).ToArray();
-                return ((IValidationRule)Activator.CreateInstance(r, args)).GetConfiguration();
-            });
+                return ((IValidationRule)Activator.CreateInstance(r, args));
+            }).ToArray();
+            var expectedStatuses = expectedRules.Select(r => r.GetConfiguration());
+
+            var validator = Substitute.For<ValidationLibrary.RepositoryValidator>(new object[] { Substitute.For<ILogger<ValidationLibrary.RepositoryValidator>>(), Substitute.For<IGitHubClient>(), expectedRules });
+            _statusEndpoint = new StatusEndpoint(Substitute.For<ILogger<StatusEndpoint>>(), validator);
+            var request = new HttpRequestMessage();
 
             var result = _statusEndpoint.Run(request);
 
