@@ -51,23 +51,12 @@ namespace ValidationLibrary.Tests.Rules
             Assert.NotNull(_rule.RuleName);
         }
 
-        [Test]
-        public async Task IsValid_ReturnsOkWhenReadmeExists()
-        {
-            var readme = CreateContent("ReAdMe.md", "random content");
-            IReadOnlyList<RepositoryContent> contents = new[] { readme };
-            var repository = CreateRepository("repomen");
-            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MasterBranch).Returns(Task.FromResult(contents));
-            _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, MasterBranch).Returns(Task.FromResult(contents));
+        static string[] ReadMeNames = { "ReAdMe.md", "rEaDmE.txt", "README", "readme", "ReAdMe.doc" };
 
-            var result = await _rule.IsValid(_mockClient, repository);
-            Assert.IsTrue(result.IsValid);
-        }
-
-        [Test]
-        public async Task IsValid_ReturnsOkTestDifferentExtension()
+        [TestCaseSource("ReadMeNames")]
+        public async Task IsValid_ReturnsOkWhenReadmeExists(string readMeName)
         {
-            var readme = CreateContent("rEaDmE.txt", "random content");
+            var readme = CreateContent(readMeName, "random content");
             IReadOnlyList<RepositoryContent> contents = new[] { readme };
             var repository = CreateRepository("repomen");
             _mockRepositoryContentClient.GetAllContentsByRef(_owner.Name, repository.Name, contents[0].Name, MasterBranch).Returns(Task.FromResult(contents));
