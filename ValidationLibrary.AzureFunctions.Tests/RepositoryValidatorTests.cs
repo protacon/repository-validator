@@ -27,6 +27,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
             var request = new HttpRequestMessage();
             var result = await _repositoryValidator.Run(request);
             var casted = result as BadRequestResult;
+            Assert.NotNull(casted, "The repository validator run result was not a BadRequestResult as expected.");
             Assert.AreEqual((int)HttpStatusCode.BadRequest, casted.StatusCode);
         }
 
@@ -48,6 +49,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
             };
             var result = await _repositoryValidator.Run(request);
             var casted = result as BadRequestResult;
+            Assert.NotNull(casted, "The repository validator run result was not a BadRequestResult as expected.");
             Assert.AreEqual((int)HttpStatusCode.BadRequest, casted.StatusCode);
         }
     }
