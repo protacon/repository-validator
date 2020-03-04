@@ -31,7 +31,8 @@ namespace ValidationLibrary.Rules
                         "To prevent automatic validation, see documentation from [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
                         Environment.NewLine +
                         "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation.";
-        private const string ReadmeFileName = "README";
+        private const string ReadmeFileName = "README.md";
+        private string ReadmeFilePrefix = ReadmeFileName.Substring(0, ReadmeFileName.IndexOf("."));
         private const string FileMode = "100644";
         private readonly string _branchName = "feature/readme-autofix-template";
         private readonly Uri _templateFileUrl;
@@ -130,7 +131,7 @@ namespace ValidationLibrary.Rules
             // NOTE: rootContents doesn't contain actual contents, content is only fetched when we fetch the single file later.
             var rootContents = await GetContents(client, repository, branch).ConfigureAwait(false);
 
-            var readmeFile = rootContents.FirstOrDefault(content => Regex.IsMatch(content.Name, $@"^{ReadmeFileName}(\....?)?$", RegexOptions.IgnoreCase));
+            var readmeFile = rootContents.FirstOrDefault(content => Regex.IsMatch(content.Name, $@"^{ReadmeFilePrefix}(\....?)?$", RegexOptions.IgnoreCase));
             //  See HasReadMeRuleTests for examples of valid and invalid readme file names.
             if (readmeFile == null)
             {
