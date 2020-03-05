@@ -5,6 +5,7 @@ using ValidationLibrary.Utils;
 using System;
 using System.Net.Http;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace ValidationLibrary.Rules
 {
@@ -31,6 +32,7 @@ namespace ValidationLibrary.Rules
                         Environment.NewLine +
                         "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation.";
         private const string ReadmeFileName = "README.md";
+        private const string ReadmeFilePrefix = "README";
         private const string FileMode = "100644";
         private readonly string _branchName = "feature/readme-autofix-template";
         private readonly Uri _templateFileUrl;
@@ -129,7 +131,8 @@ namespace ValidationLibrary.Rules
             // NOTE: rootContents doesn't contain actual contents, content is only fetched when we fetch the single file later.
             var rootContents = await GetContents(client, repository, branch).ConfigureAwait(false);
 
-            var readmeFile = rootContents.FirstOrDefault(content => content.Name.Equals(ReadmeFileName, StringComparison.InvariantCultureIgnoreCase));
+            var readmeFile = rootContents.FirstOrDefault(content => Regex.IsMatch(content.Name, $@"^{ReadmeFilePrefix}(\....?)?$", RegexOptions.IgnoreCase));
+            //  See HasReadMeRuleTests for examples of valid and invalid readme file names.
             if (readmeFile == null)
             {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, No {readmeFileName} found in root.", nameof(HasReadmeRule), RuleName, ReadmeFileName);
