@@ -1,7 +1,6 @@
 using NUnit.Framework;
 using Microsoft.Extensions.Hosting;
 using System;
-using System.Reflection;
 using System.Linq;
 using ValidationLibrary.Rules;
 
@@ -65,7 +64,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
 
             IHost host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
             var validator = (ValidationLibrary.RepositoryValidator)host.Services.GetService(typeof(ValidationLibrary.RepositoryValidator));
-            var actualRules = validator.GetRules();
+            var actualRules = validator.Rules;
 
             Assert.AreEqual(expectedRules.Count(), actualRules.Length);
             foreach (var ruleName in expectedRuleNames)
@@ -87,7 +86,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
 
             IHost host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
             var validator = (ValidationLibrary.RepositoryValidator)host.Services.GetService(typeof(ValidationLibrary.RepositoryValidator));
-            var actualRules = validator.GetRules();
+            var actualRules = validator.Rules;
 
             Assert.AreEqual(expectedRules.Count() - 1, actualRules.Length);
             Assert.IsTrue(expectedRules.Any(r => r.Equals(ruleType)));

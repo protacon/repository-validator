@@ -62,6 +62,16 @@ namespace ValidationLibrary.Rules
             return new ValidationResult(RuleName, "Add CODEOWNERS file & add at least one owner.", !string.IsNullOrWhiteSpace(codeownersContent.Content), DoNothing);
         }
 
+        public Dictionary<string, string> GetConfiguration()
+        {
+            return new Dictionary<string, string>
+            {
+                { "ClassName", nameof(HasCodeownersRule) },
+                { "RuleName", RuleName },
+                { "MainBranch", MainBranch }
+            };
+        }
+
         private Task DoNothing(IGitHubClient client, Repository repository)
         {
             return Task.CompletedTask;

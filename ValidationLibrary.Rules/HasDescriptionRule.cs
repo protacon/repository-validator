@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Octokit;
@@ -41,6 +42,15 @@ namespace ValidationLibrary.Rules
             var isValid = !string.IsNullOrWhiteSpace(gitHubRepository.Description);
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Has description: {hasDescription}", nameof(HasDescriptionRule), RuleName, gitHubRepository.FullName, isValid);
             return Task.FromResult(new ValidationResult(RuleName, "Add description for this repository.", isValid, DoNothing));
+        }
+
+        public Dictionary<string, string> GetConfiguration()
+        {
+            return new Dictionary<string, string>
+            {
+                { "ClassName", nameof(HasDescriptionRule) },
+                { "RuleName", RuleName }
+            };
         }
 
         private Task DoNothing(IGitHubClient client, Repository repository)

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Octokit;
@@ -52,6 +53,15 @@ namespace ValidationLibrary.Rules
             _logger.LogTrace("License found {key}", repository.License.Name);
 
             return Task.FromResult(new ValidationResult(RuleName, HowToFix, true, DoNothing));
+        }
+
+        public Dictionary<string, string> GetConfiguration()
+        {
+            return new Dictionary<string, string>
+            {
+                { "ClassName", nameof(HasLicenseRule) },
+                { "RuleName", RuleName }
+            };
         }
 
         private Task DoNothing(IGitHubClient client, Repository repository)
