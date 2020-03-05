@@ -32,7 +32,7 @@ namespace ValidationLibrary.Rules
                         Environment.NewLine +
                         "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation.";
         private const string ReadmeFileName = "README.md";
-        private string ReadmeFilePrefix = ReadmeFileName.Substring(0, ReadmeFileName.IndexOf("."));
+        private const string ReadmeFilePrefix = "README";
         private const string FileMode = "100644";
         private readonly string _branchName = "feature/readme-autofix-template";
         private readonly Uri _templateFileUrl;
