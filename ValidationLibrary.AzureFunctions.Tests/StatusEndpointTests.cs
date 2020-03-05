@@ -13,9 +13,10 @@ namespace ValidationLibrary.AzureFunctions.Tests
     public class StatusEndpointTests
     {
         private StatusEndpoint _statusEndpoint;
+        private ValidationLibrary.RepositoryValidator _validator;
 
-        [Test]
-        public void Run_NormalStatusEndpointCheck()
+        [SetUp]
+        public void Setup()
         {
             var rule = Substitute.For<IValidationRule>();
             rule.GetConfiguration().Returns(new Dictionary<string, string>
@@ -35,10 +36,14 @@ namespace ValidationLibrary.AzureFunctions.Tests
             });
 
             var rules = new[] { rule, rule2 };
-            var expectedStatuses = rules.Select(r => r.GetConfiguration());
+            _validator = Substitute.For<ValidationLibrary.RepositoryValidator>(new object[] { Substitute.For<ILogger<ValidationLibrary.RepositoryValidator>>(), Substitute.For<IGitHubClient>(), rules });
+            _statusEndpoint = new StatusEndpoint(Substitute.For<ILogger<StatusEndpoint>>(), _validator);
+        }
 
-            var validator = Substitute.For<ValidationLibrary.RepositoryValidator>(new object[] { Substitute.For<ILogger<ValidationLibrary.RepositoryValidator>>(), Substitute.For<IGitHubClient>(), rules });
-            _statusEndpoint = new StatusEndpoint(Substitute.For<ILogger<StatusEndpoint>>(), validator);
+        [Test]
+        public void Run_NormalStatusEndpointCheck()
+        {
+            var expectedStatuses = _validator.GetRules().Select(r => r.GetConfiguration());
             var request = new HttpRequestMessage();
 
             var result = _statusEndpoint.Run(request);
