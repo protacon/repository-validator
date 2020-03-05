@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
-using Octokit;
 
 namespace ValidationLibrary.AzureFunctions.Tests
 {
@@ -13,7 +12,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
     public class StatusEndpointTests
     {
         private StatusEndpoint _statusEndpoint;
-        private ValidationLibrary.RepositoryValidator _validator;
+        private IRepositoryValidator _validator;
 
         [SetUp]
         public void Setup()
@@ -36,14 +35,15 @@ namespace ValidationLibrary.AzureFunctions.Tests
             });
 
             var rules = new[] { rule, rule2 };
-            _validator = Substitute.For<ValidationLibrary.RepositoryValidator>(new object[] { Substitute.For<ILogger<ValidationLibrary.RepositoryValidator>>(), Substitute.For<IGitHubClient>(), rules });
+            _validator = Substitute.For<IRepositoryValidator>();
+            _validator.Rules.Returns(rules);
             _statusEndpoint = new StatusEndpoint(Substitute.For<ILogger<StatusEndpoint>>(), _validator);
         }
 
         [Test]
         public void Run_NormalStatusEndpointCheck()
         {
-            var expectedStatuses = _validator.GetRules().Select(r => r.GetConfiguration());
+            var expectedStatuses = _validator.Rules.Select(r => r.GetConfiguration());
             var request = new HttpRequestMessage();
 
             var result = _statusEndpoint.Run(request);

@@ -10,8 +10,8 @@ namespace ValidationLibrary.AzureFunctions
     public class StatusEndpoint
     {
         private readonly ILogger<StatusEndpoint> _logger;
-        private ValidationLibrary.RepositoryValidator _validator;
-        public StatusEndpoint(ILogger<StatusEndpoint> logger, ValidationLibrary.RepositoryValidator validator)
+        private IRepositoryValidator _validator;
+        public StatusEndpoint(ILogger<StatusEndpoint> logger, IRepositoryValidator validator)
         {
             _logger = logger;
             _validator = validator;
@@ -24,7 +24,7 @@ namespace ValidationLibrary.AzureFunctions
 
             return new JsonResult(new
             {
-                Rules = _validator.GetRules().Select(r => r.GetConfiguration()).ToArray()
+                Rules = _validator.Rules.Select(r => r.GetConfiguration()).ToArray()
             });
         }
     }
