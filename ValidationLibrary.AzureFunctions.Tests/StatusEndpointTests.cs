@@ -1,14 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
 using Octokit;
-using ValidationLibrary.Rules;
 
 namespace ValidationLibrary.AzureFunctions.Tests
 {
@@ -20,19 +17,27 @@ namespace ValidationLibrary.AzureFunctions.Tests
         [Test]
         public void Run_NormalStatusEndpointCheck()
         {
-            Environment.SetEnvironmentVariable("GitHub:Organization", "mock");
-            Environment.SetEnvironmentVariable("GitHub:Token", "mock");
-            
-            var ruleType = typeof(HasLicenseRule);
-            var expectedRulesTypes = ruleType.Assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
-            var expectedRules = expectedRulesTypes.Select(r =>
+            var rule = Substitute.For<IValidationRule>();
+            rule.GetConfiguration().Returns(new Dictionary<string, string>
             {
-                var args = r.GetConstructors()[0].GetParameters().Select(p => (object)null).ToArray();
-                return ((IValidationRule)Activator.CreateInstance(r, args));
-            }).ToArray();
-            var expectedStatuses = expectedRules.Select(r => r.GetConfiguration());
+                { "ClassName", "GoodTestClassName" },
+                { "PullRequestTitle", "GoodTestTitle" },
+                { "ReadMeTemplateFileLocation", "GoodTestLocation.md" },
+                { "MainBranch", "GoodTestBranch" }
+            });
+            var rule2 = Substitute.For<IValidationRule>();
+            rule2.GetConfiguration().Returns(new Dictionary<string, string>
+            {
+                { "ClassName", "BadTestClassName" },
+                { "PullRequestTitle", "BadTestTitle" },
+                { "ReadMeTemplateFileLocation", "BadTestLocation.md" },
+                { "MainBranch", "BadTestBranch" }
+            });
 
-            var validator = Substitute.For<ValidationLibrary.RepositoryValidator>(new object[] { Substitute.For<ILogger<ValidationLibrary.RepositoryValidator>>(), Substitute.For<IGitHubClient>(), expectedRules });
+            var rules = new[] { rule, rule2 };
+            var expectedStatuses = rules.Select(r => r.GetConfiguration());
+
+            var validator = Substitute.For<ValidationLibrary.RepositoryValidator>(new object[] { Substitute.For<ILogger<ValidationLibrary.RepositoryValidator>>(), Substitute.For<IGitHubClient>(), rules });
             _statusEndpoint = new StatusEndpoint(Substitute.For<ILogger<StatusEndpoint>>(), validator);
             var request = new HttpRequestMessage();
 
@@ -46,9 +51,6 @@ namespace ValidationLibrary.AzureFunctions.Tests
             {
                 Assert.IsTrue(actualStatuses.Any(s => !s.Except(expectedStatus).Any()));
             }
-
-            Environment.SetEnvironmentVariable("GitHub:Organization", null);
-            Environment.SetEnvironmentVariable("GitHub:Token", null);
         }
     }
 }
