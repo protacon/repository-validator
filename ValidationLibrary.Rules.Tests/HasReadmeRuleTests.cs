@@ -51,10 +51,8 @@ namespace ValidationLibrary.Tests.Rules
             Assert.NotNull(_rule.RuleName);
         }
 
-        static string[] ValidReadMeNames = { "ReAdMe.md", "rEaDmE.txt", "README", "readme", "ReAdMe.doc" };
-
-        [TestCaseSource("ValidReadMeNames")]
-        public async Task IsValid_ReturnsOkWhenReadmeExists(string readMeName)
+        [Test]
+        public async Task IsValid_ReturnsOkWhenReadmeExists([Values("ReAdMe.md", "rEaDmE.txt", "README", "readme", "ReAdMe.doc")]string readMeName)
         {
             var readme = CreateContent(readMeName, "random content");
             IReadOnlyList<RepositoryContent> contents = new[] { readme };
@@ -66,10 +64,8 @@ namespace ValidationLibrary.Tests.Rules
             Assert.IsTrue(result.IsValid);
         }
 
-        static string[] InvalidReadMeNames = { "aREADME.md", "rEaDmE.txta", "README.", "readm", "ReAdMea.doc", "" };
-
-        [TestCaseSource("InvalidReadMeNames")]
-        public async Task IsValid_ReturnsFalseWhenReadmeDoesNotExist(string readMeName)
+        [Test]
+        public async Task IsValid_ReturnsFalseWhenReadmeDoesNotExist([Values("aREADME.md", "rEaDmE.txta", "README.", "readm", "ReAdMea.doc", "")]string readMeName)
         {
             var contents = new List<RepositoryContent>();
             if (!string.IsNullOrEmpty(readMeName))
