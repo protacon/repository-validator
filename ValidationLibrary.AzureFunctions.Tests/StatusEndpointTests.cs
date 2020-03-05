@@ -50,7 +50,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
 
             var casted = result as JsonResult;
             Assert.NotNull(casted, "The returned result was not a JsonResult.");
-            var actualStatuses = (Dictionary<string, string>[])casted.Value.GetType().GetProperty("Rules")?.GetValue(casted.Value, null);
+            var actualStatuses = (Dictionary<string, string>[])casted.Value.GetType().GetProperty(nameof(_validator.Rules))?.GetValue(casted.Value, null);
             Assert.AreEqual(expectedStatuses.Count(), actualStatuses.Length);
             foreach (var expectedStatus in expectedStatuses)
             {
