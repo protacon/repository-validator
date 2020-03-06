@@ -8,24 +8,11 @@ using ValidationLibrary.Rules;
 
 namespace ValidationLibrary.Tests.Rules
 {
-    public class HasLicenseRuleTests
+    public class HasLicenseRuleTests : BaseRuleTests<HasLicenseRule>
     {
-        private HasLicenseRule _rule;
-
-        private IGitHubClient _mockClient;
-
-
-        [SetUp]
-        public void Setup()
+        protected override void OnSetup()
         {
-            _mockClient = Substitute.For<IGitHubClient>();
             _rule = new HasLicenseRule(Substitute.For<ILogger<HasLicenseRule>>());
-        }
-
-        [Test]
-        public void RuleName_IsDefined()
-        {
-            Assert.IsFalse(string.IsNullOrWhiteSpace(_rule.RuleName));
         }
 
         [Test]
@@ -33,7 +20,7 @@ namespace ValidationLibrary.Tests.Rules
         {
             var repository = CreateRepository("repomen", true, null);
 
-            var result = await _rule.IsValid(_mockClient, repository);
+            var result = await _rule.IsValid(MockClient, repository);
             Assert.IsTrue(result.IsValid);
         }
 
@@ -44,7 +31,7 @@ namespace ValidationLibrary.Tests.Rules
 
             var repository = CreateRepository("repomen", false, license);
 
-            var result = await _rule.IsValid(_mockClient, repository);
+            var result = await _rule.IsValid(MockClient, repository);
             Assert.IsTrue(result.IsValid);
         }
 
@@ -53,7 +40,7 @@ namespace ValidationLibrary.Tests.Rules
         {
             var repository = CreateRepository("repomen", false, null);
 
-            var result = await _rule.IsValid(_mockClient, repository);
+            var result = await _rule.IsValid(MockClient, repository);
             Assert.IsFalse(result.IsValid);
         }
 

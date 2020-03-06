@@ -39,7 +39,6 @@ namespace ValidationLibrary.Rules
 
         public async Task<ValidationResult> IsValid(IGitHubClient client, Repository repo)
         {
-
             if (client is null)
             {
                 throw new ArgumentNullException(nameof(client));

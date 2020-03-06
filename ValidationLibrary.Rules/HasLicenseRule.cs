@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -36,9 +37,14 @@ namespace ValidationLibrary.Rules
 
         public Task<ValidationResult> IsValid(IGitHubClient client, Repository repository)
         {
+            if (client is null)
+            {
+                throw new ArgumentNullException(nameof(client));
+            }
+
             if (repository is null)
             {
-                throw new System.ArgumentNullException(nameof(repository));
+                throw new ArgumentNullException(nameof(repository));
             }
 
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasLicenseRule), RuleName, repository.FullName);

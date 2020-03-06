@@ -3,5 +3,6 @@
   "azureFunctions.projectRuntime": "~2",
   "omnisharp.enableEditorConfigSupport": true,
   "omnisharp.enableRoslynAnalyzers": true,
-  "files.insertFinalNewline": true
+  "files.insertFinalNewline": true,
+  "csharp.suppressHiddenDiagnostics": false
 }

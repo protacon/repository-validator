@@ -170,7 +170,7 @@ namespace ValidationLibrary.Rules
                 }
             }
 
-            return "";
+            return string.Empty;
         }
     }
 }
