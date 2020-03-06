@@ -20,7 +20,12 @@ namespace ValidationLibrary.AzureFunctions
         [FunctionName("StatusCheck")]
         public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequestMessage req)
         {
-            _logger.LogDebug("Repository validator status check hook launched.");
+            if (req is null)
+            {
+                throw new System.ArgumentNullException(nameof(req));
+            }
+
+            _logger.LogDebug("Repository validator status check hook launched. URI: {uri}", req.RequestUri);
 
             return new JsonResult(new
             {

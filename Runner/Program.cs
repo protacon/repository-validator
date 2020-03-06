@@ -41,7 +41,7 @@ namespace Runner
             var logger = di.GetService<ILogger<Program>>();
             var githubConfig = di.GetService<GitHubConfiguration>();
             var ghClient = di.GetService<IGitHubClient>();
-            var repositoryValidator = di.GetService<RepositoryValidator>();
+            var repositoryValidator = di.GetService<IRepositoryValidator>();
             var client = di.GetService<ValidationClient>();
             var documentCreator = di.GetService<DocumentationFileCreator>();
 
@@ -185,7 +185,7 @@ namespace Runner
                     return CreateClient(services.GetService<GitHubConfiguration>());
                 })
                 .AddTransient<ValidationClient>()
-                .AddSingleton(provider =>
+                .AddSingleton<IRepositoryValidator>(provider =>
                 {
                     return new RepositoryValidator(
                         provider.GetService<ILogger<RepositoryValidator>>(),

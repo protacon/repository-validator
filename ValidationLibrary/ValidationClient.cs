@@ -9,9 +9,9 @@ namespace ValidationLibrary
     public class ValidationClient : IValidationClient
     {
         private readonly IGitHubClient _client;
-        private readonly RepositoryValidator _validator;
+        private readonly IRepositoryValidator _validator;
 
-        public ValidationClient(IGitHubClient client, RepositoryValidator validator)
+        public ValidationClient(IGitHubClient client, IRepositoryValidator validator)
         {
             _client = client ?? throw new System.ArgumentNullException(nameof(client));
             _validator = validator ?? throw new System.ArgumentNullException(nameof(validator));
