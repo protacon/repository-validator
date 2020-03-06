@@ -27,7 +27,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
         public void Configure_CanBuildRepositoryValidator()
         {
             IHost host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
-            var validator = host.Services.GetService(typeof(RepositoryValidator));
+            var validator = host.Services.GetService(typeof(IRepositoryValidator));
             Assert.NotNull(validator);
         }
 
@@ -37,7 +37,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
             Environment.SetEnvironmentVariable("GitHub:Organization", null);
 
             IHost host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
-            var ex = Assert.Throws<ArgumentNullException>(() => host.Services.GetService(typeof(RepositoryValidator)));
+            var ex = Assert.Throws<ArgumentNullException>(() => host.Services.GetService(typeof(IRepositoryValidator)));
             Assert.AreEqual("Organization", ex.ParamName);
         }
 
@@ -47,7 +47,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
             Environment.SetEnvironmentVariable("GitHub:Token", null);
 
             IHost host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
-            var ex = Assert.Throws<ArgumentNullException>(() => host.Services.GetService(typeof(RepositoryValidator)));
+            var ex = Assert.Throws<ArgumentNullException>(() => host.Services.GetService(typeof(IRepositoryValidator)));
             Assert.AreEqual("Token", ex.ParamName);
         }
 
@@ -63,7 +63,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
             });
 
             IHost host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
-            var validator = (ValidationLibrary.RepositoryValidator)host.Services.GetService(typeof(ValidationLibrary.RepositoryValidator));
+            var validator = (IRepositoryValidator)host.Services.GetService(typeof(IRepositoryValidator));
             var actualRules = validator.Rules;
 
             Assert.AreEqual(expectedRules.Count(), actualRules.Length);
@@ -85,7 +85,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
             var expectedRules = ruleType.Assembly.GetExportedTypes().Where(t => t.GetInterface(nameof(IValidationRule)) != null && !t.IsAbstract);
 
             IHost host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
-            var validator = (ValidationLibrary.RepositoryValidator)host.Services.GetService(typeof(ValidationLibrary.RepositoryValidator));
+            var validator = (IRepositoryValidator)host.Services.GetService(typeof(IRepositoryValidator));
             var actualRules = validator.Rules;
 
             Assert.AreEqual(expectedRules.Count() - 1, actualRules.Length);

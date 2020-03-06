@@ -11,14 +11,14 @@ using Octokit;
 namespace ValidationLibrary.AzureFunctions.Tests
 {
     [TestFixture]
-    public class RepositoryValidatorTests
+    public class RepositoryValidatorEndpointTests
     {
-        private RepositoryValidator _repositoryValidator;
+        private RepositoryValidatorEndpoint _repositoryValidator;
 
         [SetUp]
         public void Setup()
         {
-            _repositoryValidator = new RepositoryValidator(Substitute.For<ILogger<RepositoryValidator>>(), Substitute.For<IGitHubClient>(), Substitute.For<IValidationClient>());
+            _repositoryValidator = new RepositoryValidatorEndpoint(Substitute.For<ILogger<RepositoryValidatorEndpoint>>(), Substitute.For<IGitHubClient>(), Substitute.For<IValidationClient>());
         }
 
         [Test]

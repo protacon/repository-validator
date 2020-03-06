@@ -7,5 +7,6 @@ namespace ValidationLibrary
     {
         IValidationRule[] Rules { get; }
         Task<ValidationReport> Validate(Repository gitHubRepository, bool overrideRuleIgnore);
+        Task Init();
     }
 }

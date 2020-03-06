@@ -13,13 +13,13 @@ using ValidationLibrary.GitHub;
 
 namespace ValidationLibrary.AzureFunctions
 {
-    public class RepositoryValidator
+    public class RepositoryValidatorEndpoint
     {
-        private readonly ILogger<RepositoryValidator> _logger;
+        private readonly ILogger<RepositoryValidatorEndpoint> _logger;
         private readonly IGitHubClient _gitHubClient;
         private readonly IValidationClient _validationClient;
 
-        public RepositoryValidator(ILogger<RepositoryValidator> logger, IGitHubClient gitHubClient, IValidationClient validationClient)
+        public RepositoryValidatorEndpoint(ILogger<RepositoryValidatorEndpoint> logger, IGitHubClient gitHubClient, IValidationClient validationClient)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _gitHubClient = gitHubClient ?? throw new ArgumentNullException(nameof(gitHubClient));
