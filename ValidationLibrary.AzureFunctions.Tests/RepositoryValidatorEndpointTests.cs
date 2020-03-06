@@ -7,18 +7,26 @@ using Newtonsoft.Json;
 using NSubstitute;
 using NUnit.Framework;
 using Octokit;
+using ValidationLibrary.GitHub;
 
 namespace ValidationLibrary.AzureFunctions.Tests
 {
     [TestFixture]
     public class RepositoryValidatorEndpointTests
     {
+        private IGitHubClient _mockGitHubClient;
+        private IValidationClient _mockValidationClient;
+        private IGitHubReporter _mockGitHubReporter;
+
         private RepositoryValidatorEndpoint _repositoryValidator;
 
         [SetUp]
         public void Setup()
         {
-            _repositoryValidator = new RepositoryValidatorEndpoint(Substitute.For<ILogger<RepositoryValidatorEndpoint>>(), Substitute.For<IGitHubClient>(), Substitute.For<IValidationClient>());
+            _mockGitHubClient = Substitute.For<IGitHubClient>();
+            _mockValidationClient = Substitute.For<IValidationClient>();
+            _mockGitHubReporter = Substitute.For<IGitHubReporter>();
+            _repositoryValidator = new RepositoryValidatorEndpoint(Substitute.For<ILogger<RepositoryValidatorEndpoint>>(), _mockGitHubClient, _mockValidationClient, _mockGitHubReporter);
         }
 
         [Test]
@@ -51,6 +59,35 @@ namespace ValidationLibrary.AzureFunctions.Tests
             var casted = result as BadRequestResult;
             Assert.NotNull(casted, "The repository validator run result was not a BadRequestResult as expected.");
             Assert.AreEqual((int)HttpStatusCode.BadRequest, casted.StatusCode);
+        }
+
+        [Test]
+        public async Task Run_ValidatesCorrectRepository()
+        {
+            var report = new ValidationReport()
+            {
+                Results = new ValidationResult[0]
+            };
+
+            var dynamic = new
+            {
+                repository = new
+                {
+                    name = "repository-validator-testing",
+                    owner = new
+                    {
+                        login = "protacon"
+                    }
+                }
+            };
+
+            var request = new HttpRequestMessage()
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(dynamic), System.Text.Encoding.UTF8, "application/json"),
+            };
+            _mockValidationClient.ValidateRepository(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(report);
+            await _repositoryValidator.Run(request);
+            await _mockValidationClient.Received().ValidateRepository(dynamic.repository.owner.login, dynamic.repository.name, false);
         }
     }
 }

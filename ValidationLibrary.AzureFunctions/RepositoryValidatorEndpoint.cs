@@ -18,12 +18,14 @@ namespace ValidationLibrary.AzureFunctions
         private readonly ILogger<RepositoryValidatorEndpoint> _logger;
         private readonly IGitHubClient _gitHubClient;
         private readonly IValidationClient _validationClient;
+        private readonly IGitHubReporter _gitHubReporter;
 
-        public RepositoryValidatorEndpoint(ILogger<RepositoryValidatorEndpoint> logger, IGitHubClient gitHubClient, IValidationClient validationClient)
+        public RepositoryValidatorEndpoint(ILogger<RepositoryValidatorEndpoint> logger, IGitHubClient gitHubClient, IValidationClient validationClient, IGitHubReporter gitHubReporter)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _gitHubClient = gitHubClient ?? throw new ArgumentNullException(nameof(gitHubClient));
             _validationClient = validationClient ?? throw new ArgumentNullException(nameof(validationClient));
+            _gitHubReporter = gitHubReporter ?? throw new ArgumentNullException(nameof(gitHubReporter));
         }
 
         [FunctionName("RepositoryValidator")]
@@ -46,7 +48,7 @@ namespace ValidationLibrary.AzureFunctions
                 var report = await _validationClient.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name, false).ConfigureAwait(false);
 
                 _logger.LogDebug("Sending report.");
-                await ReportToGitHub(report).ConfigureAwait(false);
+                await _gitHubReporter.Report(new[] { report }).ConfigureAwait(false);
                 await PerformAutofixes(report).ConfigureAwait(false);
                 _logger.LogInformation("Validation finished");
                 return new OkResult();
@@ -85,24 +87,6 @@ namespace ValidationLibrary.AzureFunctions
                 throw new ArgumentException("No repository name defined. Unable to validate repository");
             }
         }
-
-        private async Task ReportToGitHub(params ValidationReport[] reports)
-        {
-            var gitHubReportConfig = new GitHubReportConfig
-            {
-                GenericNotice =
-                    "These issues are created, closed and reopened by [repository validator](https://github.com/protacon/repository-validator) when commits are pushed to repository. " + Environment.NewLine +
-                    Environment.NewLine +
-                    "If there are problems, please add an issue to [repository validator](https://github.com/protacon/repository-validator)" + Environment.NewLine +
-                    Environment.NewLine +
-                    "DO NOT change the name of this issue. Names are used to identify the issues created by automation." + Environment.NewLine,
-                Prefix = "[Automatic validation]"
-            };
-
-            var reporter = new GitHubReporter(_logger, _gitHubClient, gitHubReportConfig);
-            await reporter.Report(reports).ConfigureAwait(false);
-        }
-
         private async Task PerformAutofixes(params ValidationReport[] results)
         {
             foreach (var repositoryResult in results)

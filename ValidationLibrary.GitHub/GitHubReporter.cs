@@ -8,7 +8,7 @@ using Octokit;
 
 namespace ValidationLibrary.GitHub
 {
-    public class GitHubReporter
+    public class GitHubReporter : IGitHubReporter
     {
         private readonly ILogger _logger;
         private readonly IGitHubClient _client;

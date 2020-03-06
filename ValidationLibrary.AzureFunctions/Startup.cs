@@ -13,6 +13,7 @@ using ValidationLibrary.AzureFunctions;
 using ValidationLibrary.Utils;
 using System.Linq;
 using ValidationLibrary.Rules;
+using ValidationLibrary.GitHub;
 
 [assembly: WebJobsStartup(typeof(Startup))]
 namespace ValidationLibrary.AzureFunctions
@@ -62,6 +63,8 @@ namespace ValidationLibrary.AzureFunctions
                     return CreateClient(githubConfig);
                 })
                 .AddTransient<GitUtils>()
+                .AddSingleton(CreateGitHubReportConfig())
+                .AddTransient<IGitHubReporter, GitHubReporter>()
                 .AddTransient<IValidationClient, ValidationClient>()
                 .AddSingleton<IRepositoryValidator>(provider =>
                 {
@@ -72,6 +75,20 @@ namespace ValidationLibrary.AzureFunctions
                 })
                 .AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>()
                 .AddTransient<RepositoryValidatorEndpoint>();
+        }
+
+        private static GitHubReportConfig CreateGitHubReportConfig()
+        {
+            return new GitHubReportConfig
+            {
+                GenericNotice =
+                    "These issues are created, closed and reopened by [repository validator](https://github.com/protacon/repository-validator) when commits are pushed to repository. " + Environment.NewLine +
+                    Environment.NewLine +
+                    "If there are problems, please add an issue to [repository validator](https://github.com/protacon/repository-validator)" + Environment.NewLine +
+                    Environment.NewLine +
+                    "DO NOT change the name of this issue. Names are used to identify the issues created by automation." + Environment.NewLine,
+                Prefix = "[Automatic validation]"
+            };
         }
 
         private static GitHubClient CreateClient(GitHubConfiguration gitHubConfiguration)
