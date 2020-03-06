@@ -40,7 +40,7 @@ namespace ValidationLibrary.Tests.Rules
         [Test]
         public async Task IsValid_ReturnsOkForPublicRepositoryWithLicense()
         {
-            LicenseMetadata license = new LicenseMetadata("key", "node", "name", "spdxID", "url", false);
+            var license = new LicenseMetadata("key", "node", "name", "spdxID", "url", false);
 
             var repository = CreateRepository("repomen", false, license);
 

@@ -49,10 +49,10 @@ namespace Runner
 
         private MarkdownableType[] GetRuleTypes()
         {
-            string rulesNamespace = "ValidationLibrary.Rules";
-            _logger.LogInformation("Generating documentation files for rules in namespace {namespace}", rulesNamespace);
-            var validationLibraryAssembly = Assembly.Load(rulesNamespace);
-            var types = TypeExtractor.Load(validationLibraryAssembly, rulesNamespace);
+            const string RulesNamespace = "ValidationLibrary.Rules";
+            _logger.LogInformation("Generating documentation files for rules in namespace {namespace}", RulesNamespace);
+            var validationLibraryAssembly = Assembly.Load(RulesNamespace);
+            var types = TypeExtractor.Load(validationLibraryAssembly, RulesNamespace);
             return types;
         }
 

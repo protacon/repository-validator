@@ -5,19 +5,19 @@ namespace ValidationLibrary.MarkdownGenerator.Tests
 {
     public class VisualStudioDocParserTests
     {
-        private const string namespaceMatch = "ValidationLibrary.Rules";
+        private const string NamespaceMatch = "ValidationLibrary.Rules";
 
         [Test]
         public void ParseXmlComment_ReturnsEmptyForNoComments()
         {
-            Assert.IsEmpty(VisualStudioDocParser.GetTypeSummaries(XDocument.Parse("<?xml version =\"1.0\"?><doc/>"), namespaceMatch));
+            Assert.IsEmpty(VisualStudioDocParser.GetTypeSummaries(XDocument.Parse("<?xml version =\"1.0\"?><doc/>"), NamespaceMatch));
 
             var xml = "<?xml version=\"1.0\"?>" +
                     "<doc>" +
                     "<members>" +
                     "</members>" +
                     "</doc>";
-            Assert.IsEmpty(VisualStudioDocParser.GetTypeSummaries(XDocument.Parse(xml), namespaceMatch));
+            Assert.IsEmpty(VisualStudioDocParser.GetTypeSummaries(XDocument.Parse(xml), NamespaceMatch));
         }
 
         [Test]
@@ -33,7 +33,7 @@ namespace ValidationLibrary.MarkdownGenerator.Tests
                     "</member>" +
                     "</members>" +
                     "</doc>";
-            var result = VisualStudioDocParser.GetTypeSummaries(XDocument.Parse(xml), namespaceMatch);
+            var result = VisualStudioDocParser.GetTypeSummaries(XDocument.Parse(xml), NamespaceMatch);
             Assert.AreEqual(1, result.Length);
 
             Assert.AreEqual("HasLicenseRule", result[0].MemberName);
@@ -50,7 +50,7 @@ namespace ValidationLibrary.MarkdownGenerator.Tests
                     "</member>" +
                     "</members>" +
                     "</doc>";
-            var result = VisualStudioDocParser.GetTypeSummaries(XDocument.Parse(xml), namespaceMatch);
+            var result = VisualStudioDocParser.GetTypeSummaries(XDocument.Parse(xml), NamespaceMatch);
             Assert.AreEqual(1, result.Length);
 
             Assert.AreEqual("HasLicenseRule", result[0].MemberName);

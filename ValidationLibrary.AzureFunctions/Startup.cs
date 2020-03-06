@@ -23,8 +23,8 @@ namespace ValidationLibrary.AzureFunctions
 
         public CustomTelemetryInitializer()
         {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+            var assembly = Assembly.GetExecutingAssembly();
+            var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
             _version = fileVersionInfo.ProductVersion;
         }
 

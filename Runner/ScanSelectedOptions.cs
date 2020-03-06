@@ -15,7 +15,7 @@ namespace Runner
             Repositories = repositories;
         }
 
-        private static readonly IEnumerable<UnParserSettings> ExampleSettings = new[]
+        private static readonly IEnumerable<UnParserSettings> _exampleSettings = new[]
         {
             new UnParserSettings { PreferShortName = true },
             new UnParserSettings { PreferShortName = false }
@@ -29,19 +29,19 @@ namespace Runner
                 return new List<Example>
                 {
                     new Example("Scan repository called 'repository-validator' and only report to console",
-                        ExampleSettings, new ScanSelectedOptions(new []{"repository-validator"}, false, false, false, null, false)),
+                        _exampleSettings, new ScanSelectedOptions(new []{"repository-validator"}, false, false, false, null, false)),
                     new Example("Scan repository called 'repository-validator' and report to Slack",
-                        ExampleSettings, new ScanSelectedOptions(new []{"repository-validator"}, true, false, false, null, false)),
+                        _exampleSettings, new ScanSelectedOptions(new []{"repository-validator"}, true, false, false, null, false)),
                     new Example("Scan repository called 'repository-validator' and report to GitHub",
-                        ExampleSettings, new ScanSelectedOptions(new []{"repository-validator"}, false, true, false, null, false)),
+                        _exampleSettings, new ScanSelectedOptions(new []{"repository-validator"}, false, true, false, null, false)),
                     new Example("Scan repository called 'repository-validator' and report to GitHub and Slack",
-                        ExampleSettings, new ScanSelectedOptions(new []{"repository-validator"}, true, true, false, null, false)),
+                        _exampleSettings, new ScanSelectedOptions(new []{"repository-validator"}, true, true, false, null, false)),
                     new Example("Scan repositories called 'repository-validator', 'repository-2' and 'repository-3' then report to CSV file",
-                        ExampleSettings, new ScanSelectedOptions(new []{"repository-validator", "repository-2", "repository-3"}, false, false, false, "results.csv", false)),
+                        _exampleSettings, new ScanSelectedOptions(new []{"repository-validator", "repository-2", "repository-3"}, false, false, false, "results.csv", false)),
                     new Example("Scan repository called 'repository-validator' and create pull request if needed.",
-                        ExampleSettings, new ScanSelectedOptions(new []{"repository-validator"}, false, false, true, null, false)),
+                        _exampleSettings, new ScanSelectedOptions(new []{"repository-validator"}, false, false, true, null, false)),
                     new Example("Scan repository called 'repository-validator' and create pull request if needed while ignoring repository specific configurations.",
-                        ExampleSettings, new ScanSelectedOptions(new []{"repository-validator"}, false, false, true, null, false)),
+                        _exampleSettings, new ScanSelectedOptions(new []{"repository-validator"}, false, false, true, null, false)),
 
                 };
             }

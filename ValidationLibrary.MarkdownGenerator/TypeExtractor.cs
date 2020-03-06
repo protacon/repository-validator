@@ -19,7 +19,7 @@ namespace ValidationLibrary.MarkdownGenerator
 
             var xmlPath = Path.Combine(Directory.GetParent(assembly.Location).FullName, Path.GetFileNameWithoutExtension(assembly.Location) + ".xml");
 
-            XmlDocumentComment[] comments = GetXmlDocumentComments(xmlPath, namespaceMatch);
+            var comments = GetXmlDocumentComments(xmlPath, namespaceMatch);
             var commentsLookup = comments.ToLookup(x => x.MemberName);
 
             var markdownableTypes = assembly.GetTypes()

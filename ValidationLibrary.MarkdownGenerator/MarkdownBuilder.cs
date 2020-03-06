@@ -24,7 +24,7 @@ namespace ValidationLibrary.MarkdownGenerator
 
         public void Header(int level, string text)
         {
-            for (int i = 0; i < level; i++)
+            for (var i = 0; i < level; i++)
             {
                 _stringBuilder.Append("#");
             }
@@ -34,7 +34,7 @@ namespace ValidationLibrary.MarkdownGenerator
 
         public void HeaderWithCode(int level, string code)
         {
-            for (int i = 0; i < level; i++)
+            for (var i = 0; i < level; i++)
             {
                 _stringBuilder.Append("#");
             }
@@ -45,7 +45,7 @@ namespace ValidationLibrary.MarkdownGenerator
 
         public void HeaderWithLink(int level, string text, string url)
         {
-            for (int i = 0; i < level; i++)
+            for (var i = 0; i < level; i++)
             {
                 _stringBuilder.Append("#");
             }
