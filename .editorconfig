@@ -97,7 +97,7 @@ dotnet_naming_symbols.static_fields.applicable_kinds = field
 dotnet_naming_symbols.static_fields.required_modifiers = static
 
 dotnet_naming_style.static_field_style.capitalization = camel_case
-dotnet_naming_style.static_field_style.required_prefix = s_
+dotnet_naming_style.static_field_style.required_prefix = _
 
 # Instance fields are camelCase and start with _
 dotnet_naming_rule.instance_fields_should_be_camel_case.severity = suggestion
@@ -205,10 +205,3 @@ csharp_space_between_square_brackets = false
 csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
-
-# warning RS0037: PublicAPI.txt is missing '#nullable enable'
-dotnet_diagnostic.RS0037.severity = none
-
-[src/CodeStyle/**.{cs,vb}]
-# warning RS0005: Do not use generic CodeAction.Create to create CodeAction
-dotnet_diagnostic.RS0005.severity = none

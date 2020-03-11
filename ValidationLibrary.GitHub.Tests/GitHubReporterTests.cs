@@ -41,16 +41,9 @@ namespace ValidationLibrary.GitHub.Tests
             var user = new User(null, null, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, 0, null, 0, 0, false, null, 0, 0, null, "LOGIN", null, null, 0, null, 0, 0, 0, null, new RepositoryPermissions(), false, null, null);
             _mockUsersClient.Current().Returns(Task.FromResult(user));
 
-            _mockRepositoryClient.Get(Arg.Any<string>(), Arg.Any<string>()).Returns((args) => Task.FromResult(CreateRepository((string)args[0], (string)args[1], true)));
+            _mockRepositoryClient.Get(Arg.Any<string>(), Arg.Any<string>()).Returns((args) => Task.FromResult(CreateRepository((string)args[0], (string)args[1], true, false)));
 
             _reporter = new GitHubReporter(logger, _mockClient, _config);
-        }
-
-        [Test]
-        public async Task Report_WithEmptyArrayDoesntCallGitHub()
-        {
-            _mockClient = null;
-            await _reporter.Report(new ValidationReport[0]);
         }
 
         [Test]
@@ -66,7 +59,25 @@ namespace ValidationLibrary.GitHub.Tests
                 }
             };
 
-            _mockRepositoryClient.Get(Arg.Any<string>(), Arg.Any<string>()).Returns((args) => Task.FromResult(CreateRepository((string)args[0], (string)args[1], false)));
+            _mockRepositoryClient.Get(Arg.Any<string>(), Arg.Any<string>()).Returns((args) => Task.FromResult(CreateRepository((string)args[0], (string)args[1], false, false)));
+            await _reporter.Report(new ValidationReport[] { report });
+            await _mockIssuesClient.DidNotReceive().Create(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<NewIssue>());
+        }
+
+        [Test]
+        public async Task Report_SkipsIfArchived()
+        {
+            var report = new ValidationReport
+            {
+                Owner = "owner",
+                RepositoryName = "repo",
+                Results = new ValidationResult[]
+                {
+                    new ValidationResult("Rule", "how to fix", false, null)
+                }
+            };
+
+            _mockRepositoryClient.Get(Arg.Any<string>(), Arg.Any<string>()).Returns((args) => Task.FromResult(CreateRepository((string)args[0], (string)args[1], true, true)));
             await _reporter.Report(new ValidationReport[] { report });
             await _mockIssuesClient.DidNotReceive().Create(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<NewIssue>());
         }
@@ -171,9 +182,9 @@ namespace ValidationLibrary.GitHub.Tests
             return new Issue(null, null, null, null, 1, state, title, null, null, null, null, null, null, null, 0, null, null, DateTime.UtcNow, null, 0, null, false, null, null);
         }
 
-        private Repository CreateRepository(string owner, string name, bool hasIssues)
+        private Repository CreateRepository(string owner, string name, bool hasIssues, bool archived)
         {
-            return new Repository(null, null, null, null, null, null, null, 0, null, null, name, $"{owner}/{name}", false, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, hasIssues, false, false, false, 0, 0, null, null, null, false);
+            return new Repository(null, null, null, null, null, null, null, 0, null, null, name, $"{owner}/{name}", false, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, hasIssues, false, false, false, 0, 0, null, null, null, archived);
         }
     }
 }

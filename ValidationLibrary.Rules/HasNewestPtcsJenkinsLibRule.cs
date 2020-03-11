@@ -89,7 +89,7 @@ namespace ValidationLibrary.Rules
             }
             var content = jenkinsContent.Content;
 
-            MatchCollection matches = _regex.Matches(content);
+            var matches = _regex.Matches(content);
             var match = matches.OfType<Match>().FirstOrDefault();
             if (match == null)
             {
@@ -145,7 +145,7 @@ namespace ValidationLibrary.Rules
                 BaseTree = oldTree.Sha
             };
 
-            BlobReference blobReference = await CreateBlob(client, repository, jenkinsFile).ConfigureAwait(false);
+            var blobReference = await CreateBlob(client, repository, jenkinsFile).ConfigureAwait(false);
             var treeItem = new NewTreeItem()
             {
                 Path = JenkinsFileName,

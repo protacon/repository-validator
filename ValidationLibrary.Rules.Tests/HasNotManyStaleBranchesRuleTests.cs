@@ -9,32 +9,21 @@ using ValidationLibrary.Rules;
 
 namespace ValidationLibrary.Tests.Rules
 {
-    public class HasNotManyStaleBranchesRuleTests
+    public class HasNotManyStaleBranchesRuleTests : BaseRuleTests<HasNotManyStaleBranchesRule>
     {
-        private HasNotManyStaleBranchesRule _rule;
-        private IGitHubClient _mockClient;
-
-        [SetUp]
-        public void Setup()
+        protected override void OnSetup()
         {
-            _mockClient = Substitute.For<IGitHubClient>();
             _rule = new HasNotManyStaleBranchesRule(Substitute.For<ILogger<HasNotManyStaleBranchesRule>>());
-        }
-
-        [Test]
-        public void RuleName_IsDefined()
-        {
-            Assert.IsFalse(string.IsNullOrWhiteSpace(_rule.RuleName));
         }
 
         [Test]
         public async Task IsValid_ReturnsOkIfNotTooManyStaleBranches()
         {
             var repository = CreateRepository("repomen", "owner");
-            _mockClient.Repository.Branch.GetAll("owner", "repomen").Returns(CreateBranchList(10, repository));
-            _mockClient.Repository.Commit.Get(repository.Id, "mockshalol").Returns(CreateCommit(2, repository));
+            MockClient.Repository.Branch.GetAll("owner", "repomen").Returns(CreateBranchList(10, repository));
+            MockClient.Repository.Commit.Get(repository.Id, "mockshalol").Returns(CreateCommit(2, repository));
 
-            var result = await _rule.IsValid(_mockClient, repository);
+            var result = await _rule.IsValid(MockClient, repository);
 
             Assert.IsTrue(result.IsValid);
         }
@@ -43,10 +32,10 @@ namespace ValidationLibrary.Tests.Rules
         public async Task IsValid_ReturnsInvalidIfTooManyStaleBranches()
         {
             var repository = CreateRepository("repomen", "owner");
-            _mockClient.Repository.Branch.GetAll("owner", "repomen").Returns(CreateBranchList(10, repository));
-            _mockClient.Repository.Commit.Get(repository.Id, "mockshalol").Returns(CreateCommit(92, repository));
+            MockClient.Repository.Branch.GetAll("owner", "repomen").Returns(CreateBranchList(10, repository));
+            MockClient.Repository.Commit.Get(repository.Id, "mockshalol").Returns(CreateCommit(92, repository));
 
-            var result = await _rule.IsValid(_mockClient, repository);
+            var result = await _rule.IsValid(MockClient, repository);
 
             Assert.IsFalse(result.IsValid);
         }

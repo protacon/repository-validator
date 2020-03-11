@@ -1,6 +1,6 @@
 {
   "azureFunctions.projectLanguage": "C#",
-  "azureFunctions.projectRuntime": "~2",
+  "azureFunctions.projectRuntime": "~3",
   "omnisharp.enableEditorConfigSupport": true,
   "omnisharp.enableRoslynAnalyzers": true,
   "files.insertFinalNewline": true

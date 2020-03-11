@@ -15,7 +15,7 @@ namespace ValidationLibrary.Rules
             // Select those rules defined by the configuration and the environment variables which should be disabled.
             var selectedValidationRules = allValidationRules.Where(r => !string.Equals(config.GetValue<string>($"Rules:{r.Name}"), "disable", StringComparison.InvariantCultureIgnoreCase));
 
-            // Add each rule as available for the dependancy injection.
+            // Add each rule as available for the dependency injection.
             foreach (var rule in selectedValidationRules)
             {
                 service.AddTransient(typeof(IValidationRule), rule);

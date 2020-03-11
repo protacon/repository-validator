@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -13,7 +14,7 @@ namespace ValidationLibrary.Rules
     /// 
     /// See https://help.github.com/en/articles/licensing-a-repository for guidance.
     /// 
-    /// License existance is only checked for public repositories.
+    /// License existence is only checked for public repositories.
     /// </summary>
     public class HasLicenseRule : IValidationRule
     {
@@ -36,9 +37,14 @@ namespace ValidationLibrary.Rules
 
         public Task<ValidationResult> IsValid(IGitHubClient client, Repository repository)
         {
+            if (client is null)
+            {
+                throw new ArgumentNullException(nameof(client));
+            }
+
             if (repository is null)
             {
-                throw new System.ArgumentNullException(nameof(repository));
+                throw new ArgumentNullException(nameof(repository));
             }
 
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasLicenseRule), RuleName, repository.FullName);

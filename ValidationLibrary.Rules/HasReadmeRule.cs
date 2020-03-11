@@ -59,7 +59,7 @@ namespace ValidationLibrary.Rules
 
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}",
                 nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
-            bool hasReadmeWithContent = await HasReadmeWithContent(client, gitHubRepository, MainBranch).ConfigureAwait(false);
+            var hasReadmeWithContent = await HasReadmeWithContent(client, gitHubRepository, MainBranch).ConfigureAwait(false);
 
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}",
                 nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, hasReadmeWithContent);
@@ -91,7 +91,7 @@ namespace ValidationLibrary.Rules
             var latest = await GetCommitAsBase(_branchName, client, repository).ConfigureAwait(false);
             _logger.LogTrace("Latest commit {sha} with message {message}", latest.Sha, latest.Message);
 
-            bool hasReadmeWithContent = await HasReadmeWithContent(client, repository, latest.Sha).ConfigureAwait(false);
+            var hasReadmeWithContent = await HasReadmeWithContent(client, repository, latest.Sha).ConfigureAwait(false);
             if (hasReadmeWithContent)
             {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, Branch {branchName} already had readme, skipping updating existing branch.",
@@ -111,7 +111,7 @@ namespace ValidationLibrary.Rules
                 BaseTree = oldTree.Sha
             };
 
-            BlobReference blobReference = await CreateBlob(client, repository, jenkinsFile).ConfigureAwait(false);
+            var blobReference = await CreateBlob(client, repository, jenkinsFile).ConfigureAwait(false);
             var treeItem = new NewTreeItem()
             {
                 Path = ReadmeFileName,
@@ -170,7 +170,7 @@ namespace ValidationLibrary.Rules
                 }
             }
 
-            return "";
+            return string.Empty;
         }
     }
 }

@@ -9,19 +9,19 @@ namespace ValidationLibrary.Rules
 {
     /// <summary>
     /// This rule checks that repository does not have too many stale branches.
-    /// This rule returns invalid if there are 10 or more branches with lates commit over
+    /// This rule returns invalid if there are 10 or more branches with latest commit over
     /// 90 days ago.
     /// 
     /// Stale branches should be removed to make it easier for new developers to see which
-    /// branhces are actually related to current development etc.
+    /// branches are actually related to current development etc.
     /// 
-    /// To make branch management easier, puse GitHub repository settings to protect relevant branches and
+    /// To make branch management easier, use GitHub repository settings to protect relevant branches and
     /// automatically delete merged branches.
     /// 
     /// There is no automatic fix for this rule.
     /// 
     /// When to ignore
-    ///  * Repository doesn't utilize feature branhces
+    ///  * Repository doesn't utilize feature branches
     ///  * Repository is migrated from SVN and has branches instead of tags
     /// </summary>
     public class HasNotManyStaleBranchesRule : IValidationRule

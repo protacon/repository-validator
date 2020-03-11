@@ -10,7 +10,7 @@ using ValidationLibrary.Utils;
 namespace ValidationLibrary.Rules
 {
     /// <summary>
-    /// Base for rules that have a possible fix that can be automatcally generated
+    /// Base for rules that have a possible fix that can be automatically generated
     /// </summary>
     public abstract class FixableRuleBase<T> : IValidationRule where T : IValidationRule
     {
