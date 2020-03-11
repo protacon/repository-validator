@@ -35,12 +35,6 @@ namespace ValidationLibrary.Tests.Rules
         protected abstract void OnSetup();
 
         [Test]
-        public async Task Init_DoesntThrow()
-        {
-            await _rule.Init(MockClient);
-        }
-
-        [Test]
         public void RuleName_IsDefined()
         {
             Assert.IsFalse(string.IsNullOrWhiteSpace(_rule.RuleName));

@@ -21,7 +21,7 @@ namespace ValidationLibrary.Rules
     /// There is no automatic fix for this rule.
     /// 
     /// When to ignore
-    ///  * Repository doesn't utilize feature branhces
+    ///  * Repository doesn't utilize feature branches
     ///  * Repository is migrated from SVN and has branches instead of tags
     /// </summary>
     public class HasNotManyStaleBranchesRule : IValidationRule
