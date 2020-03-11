@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -17,9 +18,9 @@ namespace ValidationLibrary
 
         public RepositoryValidator(ILogger<RepositoryValidator> logger, IGitHubClient gitHubClient, IValidationRule[] validationRules)
         {
-            Rules = validationRules ?? throw new System.ArgumentNullException(nameof(validationRules));
-            _logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
-            _gitHubClient = gitHubClient ?? throw new System.ArgumentNullException(nameof(gitHubClient));
+            Rules = validationRules ?? throw new ArgumentNullException(nameof(validationRules));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _gitHubClient = gitHubClient ?? throw new ArgumentNullException(nameof(gitHubClient));
             logger.LogInformation("Creating {className} with rules: {rules}", nameof(RepositoryValidator), string.Join(", ", Rules.Select(rule => rule.RuleName))); ;
         }
 
@@ -39,7 +40,7 @@ namespace ValidationLibrary
         {
             if (gitHubRepository is null)
             {
-                throw new System.ArgumentNullException(nameof(gitHubRepository));
+                throw new ArgumentNullException(nameof(gitHubRepository));
             }
 
             _logger.LogTrace("Validating repository {repositoryName}", gitHubRepository.FullName);

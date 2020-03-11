@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -14,14 +15,14 @@ namespace ValidationLibrary.Utils
 
         public GitUtils(ILogger<GitUtils> logger)
         {
-            _logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<bool> HasOpenPullRequest(IGitHubClient client, Repository repository, Reference reference)
         {
-            if (client is null) throw new System.ArgumentNullException(nameof(client));
-            if (repository is null) throw new System.ArgumentNullException(nameof(repository));
-            if (reference is null) throw new System.ArgumentNullException(nameof(reference));
+            if (client is null) throw new ArgumentNullException(nameof(client));
+            if (repository is null) throw new ArgumentNullException(nameof(repository));
+            if (reference is null) throw new ArgumentNullException(nameof(reference));
 
             _logger.LogTrace("Checking if there is existing open pull request in repository {repositoryName} for reference '{pullRequest}'.",
                 repository.FullName, reference.Ref);
@@ -37,9 +38,9 @@ namespace ValidationLibrary.Utils
 
         public async Task<PullRequest> GetClosedNonMergedPullRequestOrNull(IGitHubClient client, Repository repository, string pullRequestTitle)
         {
-            if (client is null) throw new System.ArgumentNullException(nameof(client));
-            if (repository is null) throw new System.ArgumentNullException(nameof(repository));
-            if (string.IsNullOrWhiteSpace(pullRequestTitle)) throw new System.ArgumentException("Pull request title must be defined", nameof(pullRequestTitle));
+            if (client is null) throw new ArgumentNullException(nameof(client));
+            if (repository is null) throw new ArgumentNullException(nameof(repository));
+            if (string.IsNullOrWhiteSpace(pullRequestTitle)) throw new ArgumentException("Pull request title must be defined", nameof(pullRequestTitle));
 
             _logger.LogTrace("Checking if there is existing closed pull request in repository {repositoryName} for pull request '{pullRequest}'.",
                 repository.FullName, pullRequestTitle);

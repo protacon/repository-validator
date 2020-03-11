@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Octokit;
 
@@ -13,8 +14,8 @@ namespace ValidationLibrary
 
         public ValidationClient(IGitHubClient client, IRepositoryValidator validator)
         {
-            _client = client ?? throw new System.ArgumentNullException(nameof(client));
-            _validator = validator ?? throw new System.ArgumentNullException(nameof(validator));
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         }
 
         public async Task Init()
