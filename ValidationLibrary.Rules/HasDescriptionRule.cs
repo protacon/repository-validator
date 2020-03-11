@@ -34,15 +34,8 @@ namespace ValidationLibrary.Rules
 
         public Task<ValidationResult> IsValid(IGitHubClient client, Repository gitHubRepository)
         {
-            if (client is null)
-            {
-                throw new ArgumentNullException(nameof(client));
-            }
-
-            if (gitHubRepository is null)
-            {
-                throw new ArgumentNullException(nameof(gitHubRepository));
-            }
+            if (client is null) throw new ArgumentNullException(nameof(client));
+            if (gitHubRepository is null) throw new ArgumentNullException(nameof(gitHubRepository));
 
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasDescriptionRule), RuleName, gitHubRepository.FullName);
             var isValid = !string.IsNullOrWhiteSpace(gitHubRepository.Description);

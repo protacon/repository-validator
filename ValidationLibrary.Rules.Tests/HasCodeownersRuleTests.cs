@@ -82,7 +82,7 @@ namespace ValidationLibrary.Tests.Rules
         }
 
         [Test]
-        public async Task IsValid_FixIsNotNull()
+        public async Task IsValid_FixIsNotNullAndDoesntThrow()
         {
             var repository = CreateRepository("repo");
 

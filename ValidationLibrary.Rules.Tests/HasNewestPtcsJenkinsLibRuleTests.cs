@@ -20,9 +20,6 @@ namespace ValidationLibrary.Tests.Rules
                 Substitute.For<ILogger<HasNewestPtcsJenkinsLibRule>>(),
                 new GitUtils(Substitute.For<ILogger<GitUtils>>()));
 
-            MockRepositoryContentClient = Substitute.For<IRepositoryContentsClient>();
-            MockRepositoryClient.Content.Returns(MockRepositoryContentClient);
-
             var mockReleaseClient = Substitute.For<IReleasesClient>();
             MockRepositoryClient.Release.Returns(mockReleaseClient);
             var release = new Release(null, null, null, null, 0, null, ExpectedJenkinsPtcsLibrary, null, null, null, false, false, DateTime.UtcNow, null, null, null, null, null);

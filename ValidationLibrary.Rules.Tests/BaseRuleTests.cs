@@ -9,17 +9,17 @@ namespace ValidationLibrary.Tests.Rules
     [TestFixture]
     public abstract class BaseRuleTests<T> where T : IValidationRule
     {
-        public User Owner { get; set; }
+        protected User Owner { get; set; }
         protected T _rule;
 
-        public IGitHubClient MockClient { get; set; }
-        public IRepositoriesClient MockRepositoryClient { get; set; }
-        public IRepositoryContentsClient MockRepositoryContentClient { get; set; }
+        protected IGitHubClient MockClient { get; set; }
+        protected IRepositoriesClient MockRepositoryClient { get; set; }
+        protected IRepositoryContentsClient MockRepositoryContentClient { get; set; }
 
-        public const string MainBranch = "master";
+        protected const string MainBranch = "master";
 
         [SetUp]
-        public void Setup()
+        public async Task Setup()
         {
             Owner = new User(null, null, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, 0, null, 0, 0, false, null, 0, 0, null, "protacon", "protacon", null, 0, null, 0, 0, 0, null, new RepositoryPermissions(), false, null, null);
 
@@ -29,6 +29,7 @@ namespace ValidationLibrary.Tests.Rules
             MockRepositoryContentClient = Substitute.For<IRepositoryContentsClient>();
             MockRepositoryClient.Content.Returns(MockRepositoryContentClient);
             OnSetup();
+            await _rule.Init(MockClient);
         }
 
         protected abstract void OnSetup();

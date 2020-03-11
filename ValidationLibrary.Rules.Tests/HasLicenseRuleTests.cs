@@ -36,7 +36,7 @@ namespace ValidationLibrary.Tests.Rules
         }
 
         [Test]
-        public async Task IsValid_ReturnsInvalidForPublicRepositoryWithLicense()
+        public async Task IsValid_ReturnsInvalidForPublicRepositoryWithoutLicense()
         {
             var repository = CreateRepository("repomen", false, null);
 

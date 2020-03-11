@@ -20,7 +20,6 @@ namespace ValidationLibrary.Tests.Rules
 
             var mockReleaseClient = Substitute.For<IReleasesClient>();
             MockRepositoryClient.Release.Returns(mockReleaseClient);
-            _rule.Init(MockClient).Wait();
         }
 
         [Test]

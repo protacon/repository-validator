@@ -14,7 +14,7 @@ namespace ValidationLibrary.Rules
     /// 
     /// See https://help.github.com/en/articles/licensing-a-repository for guidance.
     /// 
-    /// License existance is only checked for public repositories.
+    /// License existence is only checked for public repositories.
     /// </summary>
     public class HasLicenseRule : IValidationRule
     {

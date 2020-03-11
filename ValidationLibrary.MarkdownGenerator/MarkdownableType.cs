@@ -14,8 +14,8 @@ namespace ValidationLibrary.MarkdownGenerator
 
         public MarkdownableType(Type type, ILookup<string, XmlDocumentComment> commentLookup)
         {
-            _type = type;
-            _commentLookup = commentLookup;
+            _type = type ?? throw new ArgumentNullException(nameof(type));
+            _commentLookup = commentLookup ?? throw new ArgumentNullException(nameof(commentLookup));
         }
 
         public override string ToString()
@@ -28,7 +28,7 @@ namespace ValidationLibrary.MarkdownGenerator
             mb.AppendLine();
 
 
-            foreach (var summaryLine in _commentLookup[_type.Name].FirstOrDefault()?.Summary)
+            foreach (var summaryLine in _commentLookup[typeName].FirstOrDefault()?.Summary)
             {
                 mb.AppendLine(summaryLine);
             }

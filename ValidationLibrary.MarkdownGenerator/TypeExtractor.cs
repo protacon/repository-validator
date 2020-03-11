@@ -11,10 +11,9 @@ namespace ValidationLibrary.MarkdownGenerator
     {
         public static MarkdownableType[] Load(Assembly assembly, string namespaceMatch)
         {
-            if (string.IsNullOrEmpty(namespaceMatch))
-            {
-                throw new ArgumentException("Namespace must be defined for assembly loading", nameof(namespaceMatch));
-            }
+            if (assembly is null) throw new ArgumentNullException(nameof(assembly));
+            if (string.IsNullOrEmpty(namespaceMatch)) throw new ArgumentException("Namespace must be defined for assembly loading", nameof(namespaceMatch));
+
             var namespaceRegex = new Regex(namespaceMatch);
 
             var xmlPath = Path.Combine(Directory.GetParent(assembly.Location).FullName, Path.GetFileNameWithoutExtension(assembly.Location) + ".xml");
