@@ -38,6 +38,7 @@ podTemplate(label: pod.label,
             stage('Test') {
                 sh """
                     dotnet test
+                    dotnet run --project Runner -- generate-document
                 """
             }
         }

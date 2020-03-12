@@ -21,7 +21,7 @@ namespace ValidationLibrary.MarkdownGenerator
 
         public void AppendLine(string text)
         {
-            if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException(nameof(text));
+            if (text is null) throw new ArgumentNullException(nameof(text));
 
             _stringBuilder.AppendLine(text);
         }
