@@ -64,7 +64,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
         [Test]
         public async Task Run_ValidatesCorrectRepository()
         {
-            var report = new ValidationReport()
+            var report = new ValidationReport
             {
                 Results = new ValidationResult[0]
             };
@@ -86,7 +86,8 @@ namespace ValidationLibrary.AzureFunctions.Tests
                 Content = new StringContent(JsonConvert.SerializeObject(dynamic), System.Text.Encoding.UTF8, "application/json"),
             };
             _mockValidationClient.ValidateRepository(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(report);
-            await _repositoryValidator.Run(request);
+            var result = await _repositoryValidator.Run(request) as OkResult;
+            Assert.NotNull(result);
             await _mockValidationClient.Received().ValidateRepository(dynamic.repository.owner.login, dynamic.repository.name, false);
         }
     }

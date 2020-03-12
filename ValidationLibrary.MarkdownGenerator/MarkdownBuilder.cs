@@ -9,7 +9,7 @@ namespace ValidationLibrary.MarkdownGenerator
 
         public static string MarkdownCodeQuote(string code)
         {
-            if (code is null) throw new ArgumentNullException(nameof(code));
+            if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException(nameof(code));
 
             return $"`{code}`";
         }
@@ -21,7 +21,7 @@ namespace ValidationLibrary.MarkdownGenerator
 
         public void AppendLine(string text)
         {
-            if (text is null) throw new ArgumentNullException(nameof(text));
+            if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException(nameof(text));
 
             _stringBuilder.AppendLine(text);
         }
@@ -29,7 +29,7 @@ namespace ValidationLibrary.MarkdownGenerator
         public void Header(int level, string text)
         {
             if (level < 1) throw new ArgumentException("Level must be above 0", nameof(level));
-            if (text is null) throw new ArgumentNullException(nameof(text));
+            if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException(nameof(text));
 
             for (var i = 0; i < level; i++)
             {
@@ -42,7 +42,7 @@ namespace ValidationLibrary.MarkdownGenerator
         public void HeaderWithCode(int level, string code)
         {
             if (level < 1) throw new ArgumentException("Level must be above 0", nameof(level));
-            if (code is null) throw new ArgumentNullException(nameof(code));
+            if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException(nameof(code));
 
             for (var i = 0; i < level; i++)
             {
@@ -55,16 +55,16 @@ namespace ValidationLibrary.MarkdownGenerator
 
         public void Link(string text, string url)
         {
-            if (text is null) throw new ArgumentNullException(nameof(text));
-            if (url is null) throw new ArgumentNullException(nameof(url));
+            if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException(nameof(text));
+            if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException(nameof(url));
 
             _stringBuilder.Append($"[{text}]({url})");
         }
 
         public void Code(string language, string code)
         {
-            if (language is null) throw new ArgumentNullException(nameof(language));
-            if (code is null) throw new ArgumentNullException(nameof(code));
+            if (string.IsNullOrWhiteSpace(language)) throw new ArgumentException(nameof(language));
+            if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException(nameof(code));
 
             _stringBuilder.Append("```");
             _stringBuilder.AppendLine(language);
@@ -74,17 +74,15 @@ namespace ValidationLibrary.MarkdownGenerator
 
         public void CodeQuote(string code)
         {
-            if (code is null) throw new ArgumentNullException(nameof(code));
+            if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException(nameof(code));
 
-            _stringBuilder.Append("`");
-            _stringBuilder.Append(code);
-            _stringBuilder.Append("`");
+            _stringBuilder.Append($"`{code}`");
         }
 
         public void ListLink(string text, string url)
         {
-            if (text is null) throw new ArgumentNullException(nameof(text));
-            if (url is null) throw new ArgumentNullException(nameof(url));
+            if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException(nameof(text));
+            if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException(nameof(url));
 
             _stringBuilder.Append("- ");
             Link(text, url);

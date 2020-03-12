@@ -47,13 +47,6 @@ namespace ValidationLibrary.GitHub.Tests
         }
 
         [Test]
-        public async Task Report_WithEmptyArrayDoesntCallGitHub()
-        {
-            _mockClient = null;
-            await _reporter.Report(new ValidationReport[0]);
-        }
-
-        [Test]
         public async Task Report_SkipsIfIssuesAreNotEnabled()
         {
             var report = new ValidationReport
