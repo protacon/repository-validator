@@ -10,11 +10,11 @@ namespace ValidationLibrary.GitHub
 {
     public class GitHubReporter : IGitHubReporter
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<GitHubReporter> _logger;
         private readonly IGitHubClient _client;
         private readonly GitHubReportConfig _config;
 
-        public GitHubReporter(ILogger logger, IGitHubClient client, GitHubReportConfig config)
+        public GitHubReporter(ILogger<GitHubReporter> logger, IGitHubClient client, GitHubReportConfig config)
         {
             _logger = logger;
             _client = client;

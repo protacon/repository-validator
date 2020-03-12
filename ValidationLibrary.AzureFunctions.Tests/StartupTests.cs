@@ -26,7 +26,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
         public void Configure_CanBuildRepositoryValidator()
         {
             var host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
-            var validator = host.Services.GetService(typeof(IRepositoryValidator));
+            var validator = host.Services.GetService(typeof(RepositoryValidatorEndpoint));
             Assert.NotNull(validator);
         }
 
@@ -36,7 +36,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
             Environment.SetEnvironmentVariable("GitHub:Organization", null);
 
             var host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
-            var ex = Assert.Throws<ArgumentNullException>(() => host.Services.GetService(typeof(IRepositoryValidator)));
+            var ex = Assert.Throws<ArgumentNullException>(() => host.Services.GetService(typeof(RepositoryValidatorEndpoint)));
             Assert.AreEqual("Organization", ex.ParamName);
         }
 
@@ -46,7 +46,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
             Environment.SetEnvironmentVariable("GitHub:Token", null);
 
             var host = new HostBuilder().ConfigureWebJobs(new Startup().Configure).Build();
-            var ex = Assert.Throws<ArgumentNullException>(() => host.Services.GetService(typeof(IRepositoryValidator)));
+            var ex = Assert.Throws<ArgumentNullException>(() => host.Services.GetService(typeof(RepositoryValidatorEndpoint)));
             Assert.AreEqual("Token", ex.ParamName);
         }
 

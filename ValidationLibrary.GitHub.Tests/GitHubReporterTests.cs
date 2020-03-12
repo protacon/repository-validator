@@ -29,7 +29,7 @@ namespace ValidationLibrary.GitHub.Tests
         [SetUp]
         public void Setup()
         {
-            var logger = Substitute.For<ILogger>();
+            var logger = Substitute.For<ILogger<GitHubReporter>>();
             _mockClient = Substitute.For<IGitHubClient>();
             _mockIssuesClient = Substitute.For<IIssuesClient>();
             _mockClient.Issue.Returns(_mockIssuesClient);
