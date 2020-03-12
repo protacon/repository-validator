@@ -10,14 +10,12 @@ using ValidationLibrary.Utils;
 namespace ValidationLibrary.Rules
 {
     /// <summary>
-    /// Base for rules that have a possible fix that can be automatcally generated
+    /// Base for rules that have a possible fix that can be automatically generated
     /// </summary>
     public abstract class FixableRuleBase<T> : IValidationRule where T : IValidationRule
     {
         public string RuleName { get; }
-
         protected abstract string PullRequestBody { get; }
-
         protected const string MainBranch = "master";
         private readonly ILogger<FixableRuleBase<T>> _logger;
         private readonly GitUtils _gitUtils;
@@ -34,6 +32,8 @@ namespace ValidationLibrary.Rules
         public abstract Task Init(IGitHubClient ghClient);
 
         public abstract Task<ValidationResult> IsValid(IGitHubClient client, Repository repository);
+
+        public abstract Dictionary<string, string> GetConfiguration();
 
         protected async Task CreatePullRequestIfNeeded(IGitHubClient client, Repository repository, Reference latest)
         {

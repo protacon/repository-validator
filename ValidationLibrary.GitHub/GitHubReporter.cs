@@ -8,13 +8,13 @@ using Octokit;
 
 namespace ValidationLibrary.GitHub
 {
-    public class GitHubReporter
+    public class GitHubReporter : IGitHubReporter
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<GitHubReporter> _logger;
         private readonly IGitHubClient _client;
         private readonly GitHubReportConfig _config;
 
-        public GitHubReporter(ILogger logger, IGitHubClient client, GitHubReportConfig config)
+        public GitHubReporter(ILogger<GitHubReporter> logger, IGitHubClient client, GitHubReportConfig config)
         {
             _logger = logger;
             _client = client;
@@ -23,10 +23,7 @@ namespace ValidationLibrary.GitHub
 
         public async Task Report(IEnumerable<ValidationReport> reports)
         {
-            if (reports is null)
-            {
-                throw new ArgumentNullException(nameof(reports));
-            }
+            if (reports is null) throw new ArgumentNullException(nameof(reports));
 
             _logger.LogTrace("Reporting {count} reports to GitHub.", reports.Count());
             var current = await _client.User.Current().ConfigureAwait(false);
@@ -38,14 +35,15 @@ namespace ValidationLibrary.GitHub
                     _logger.LogWarning("Repository {owner}/{repositoryName} is archived. Skipping reporting.", report.Owner, report.RepositoryName);
                     continue;
                 }
+
+                if (!repository.HasIssues)
+                {
+                    _logger.LogInformation("Repository {owner}/{repositoryName} has issues disabled. Skipping reporting.", report.Owner, report.RepositoryName);
+                    continue;
+                }
+
                 using (_logger.BeginScope(ScopeParameters(report)))
                 {
-                    if (!repository.HasIssues)
-                    {
-                        _logger.LogInformation("Repository {owner}/{repositoryName} has issues disabled. Skipping reporting.", report.Owner, report.RepositoryName);
-                        continue;
-                    }
-
                     _logger.LogTrace("Reporting for {owner}/{repositoryName}, url: {repositoryUrl}", report.Owner, report.RepositoryName, report.RepositoryUrl);
                     var allIssues = new RepositoryIssueRequest
                     {

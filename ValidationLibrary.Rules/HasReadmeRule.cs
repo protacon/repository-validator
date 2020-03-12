@@ -5,6 +5,8 @@ using ValidationLibrary.Utils;
 using System;
 using System.Net.Http;
 using System.Linq;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace ValidationLibrary.Rules
 {
@@ -31,6 +33,7 @@ namespace ValidationLibrary.Rules
                         Environment.NewLine +
                         "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation.";
         private const string ReadmeFileName = "README.md";
+        private const string ReadmeFilePrefix = "README";
         private const string FileMode = "100644";
         private readonly string _branchName = "feature/readme-autofix-template";
         private readonly Uri _templateFileUrl;
@@ -56,11 +59,22 @@ namespace ValidationLibrary.Rules
 
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}",
                 nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
-            bool hasReadmeWithContent = await HasReadmeWithContent(client, gitHubRepository, MainBranch).ConfigureAwait(false);
+            var hasReadmeWithContent = await HasReadmeWithContent(client, gitHubRepository, MainBranch).ConfigureAwait(false);
 
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}",
                 nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, hasReadmeWithContent);
             return new ValidationResult(RuleName, "Add README.md file to repository root with content describing this repository.", hasReadmeWithContent, Fix);
+        }
+
+        public override Dictionary<string, string> GetConfiguration()
+        {
+            return new Dictionary<string, string>
+            {
+                { "ClassName", nameof(HasReadmeRule) },
+                { "PullRequestTitle", _branchName },
+                { "ReadMeTemplateFileLocation", _templateFileUrl.OriginalString },
+                { "MainBranch", MainBranch }
+            };
         }
 
         /// <summary>
@@ -77,7 +91,7 @@ namespace ValidationLibrary.Rules
             var latest = await GetCommitAsBase(_branchName, client, repository).ConfigureAwait(false);
             _logger.LogTrace("Latest commit {sha} with message {message}", latest.Sha, latest.Message);
 
-            bool hasReadmeWithContent = await HasReadmeWithContent(client, repository, latest.Sha).ConfigureAwait(false);
+            var hasReadmeWithContent = await HasReadmeWithContent(client, repository, latest.Sha).ConfigureAwait(false);
             if (hasReadmeWithContent)
             {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, Branch {branchName} already had readme, skipping updating existing branch.",
@@ -97,7 +111,7 @@ namespace ValidationLibrary.Rules
                 BaseTree = oldTree.Sha
             };
 
-            BlobReference blobReference = await CreateBlob(client, repository, jenkinsFile).ConfigureAwait(false);
+            var blobReference = await CreateBlob(client, repository, jenkinsFile).ConfigureAwait(false);
             var treeItem = new NewTreeItem()
             {
                 Path = ReadmeFileName,
@@ -129,7 +143,8 @@ namespace ValidationLibrary.Rules
             // NOTE: rootContents doesn't contain actual contents, content is only fetched when we fetch the single file later.
             var rootContents = await GetContents(client, repository, branch).ConfigureAwait(false);
 
-            var readmeFile = rootContents.FirstOrDefault(content => content.Name.Equals(ReadmeFileName, StringComparison.InvariantCultureIgnoreCase));
+            var readmeFile = rootContents.FirstOrDefault(content => Regex.IsMatch(content.Name, $@"^{ReadmeFilePrefix}(\....?)?$", RegexOptions.IgnoreCase));
+            //  See HasReadMeRuleTests for examples of valid and invalid readme file names.
             if (readmeFile == null)
             {
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, No {readmeFileName} found in root.", nameof(HasReadmeRule), RuleName, ReadmeFileName);
@@ -155,7 +170,7 @@ namespace ValidationLibrary.Rules
                 }
             }
 
-            return "";
+            return string.Empty;
         }
     }
 }

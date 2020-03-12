@@ -39,7 +39,6 @@ namespace ValidationLibrary.Rules
 
         public async Task<ValidationResult> IsValid(IGitHubClient client, Repository repo)
         {
-
             if (client is null)
             {
                 throw new ArgumentNullException(nameof(client));
@@ -60,6 +59,16 @@ namespace ValidationLibrary.Rules
 
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. CODEOWNERS exists: {codeownersExist}", nameof(HasCodeownersRule), RuleName, repo.FullName, !string.IsNullOrWhiteSpace(codeownersContent.Content));
             return new ValidationResult(RuleName, "Add CODEOWNERS file & add at least one owner.", !string.IsNullOrWhiteSpace(codeownersContent.Content), DoNothing);
+        }
+
+        public Dictionary<string, string> GetConfiguration()
+        {
+            return new Dictionary<string, string>
+            {
+                { "ClassName", nameof(HasCodeownersRule) },
+                { "RuleName", RuleName },
+                { "MainBranch", MainBranch }
+            };
         }
 
         private Task DoNothing(IGitHubClient client, Repository repository)

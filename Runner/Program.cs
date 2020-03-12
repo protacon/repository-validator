@@ -19,7 +19,7 @@ namespace Runner
 {
     public class Program
     {
-        private static readonly GitHubReportConfig GitHubReporterConfig = new GitHubReportConfig
+        private static readonly GitHubReportConfig _gitHubReporterConfig = new GitHubReportConfig
         {
             Prefix = "[Automatic validation]",
             GenericNotice =
@@ -41,11 +41,11 @@ namespace Runner
             var logger = di.GetService<ILogger<Program>>();
             var githubConfig = di.GetService<GitHubConfiguration>();
             var ghClient = di.GetService<IGitHubClient>();
-            var repositoryValidator = di.GetService<RepositoryValidator>();
+            var repositoryValidator = di.GetService<IRepositoryValidator>();
             var client = di.GetService<ValidationClient>();
             var documentCreator = di.GetService<DocumentationFileCreator>();
 
-            async Task scanner(IEnumerable<string> repositories, Options options)
+            async Task Scanner(IEnumerable<string> repositories, Options options)
             {
                 await client.Init();
 
@@ -71,7 +71,7 @@ namespace Runner
                 }
                 if (options.ReportToGithub)
                 {
-                    await ReportToGitHub(ghClient, GitHubReporterConfig, di.GetService<ILogger<GitHubReporter>>(), results);
+                    await ReportToGitHub(ghClient, _gitHubReporterConfig, di.GetService<ILogger<GitHubReporter>>(), results);
                 }
                 if (options.ReportToSlack)
                 {
@@ -89,7 +89,7 @@ namespace Runner
             await Parser.Default
                 .ParseArguments<ScanSelectedOptions, ScanAllOptions, GenerateDocumentationOptions>(args)
                 .MapResult(
-                    async (ScanSelectedOptions options) => await scanner(options.Repositories, options),
+                    async (ScanSelectedOptions options) => await Scanner(options.Repositories, options),
                     async (ScanAllOptions options) =>
                     {
                         var allNonArchivedRepositories = ghClient
@@ -97,7 +97,7 @@ namespace Runner
                             .GetAllForOrg(githubConfig.Organization)
                             .Result
                             .Where(repository => !repository.Archived);
-                        await scanner(allNonArchivedRepositories.Select(r => r.Name).ToArray(), options);
+                        await Scanner(allNonArchivedRepositories.Select(r => r.Name).ToArray(), options);
                     },
                     async (GenerateDocumentationOptions options) =>
                     {
@@ -185,7 +185,7 @@ namespace Runner
                     return CreateClient(services.GetService<GitHubConfiguration>());
                 })
                 .AddTransient<ValidationClient>()
-                .AddSingleton(provider =>
+                .AddSingleton<IRepositoryValidator>(provider =>
                 {
                     return new RepositoryValidator(
                         provider.GetService<ILogger<RepositoryValidator>>(),

@@ -34,7 +34,7 @@ $webApp = Get-AzWebApp `
     -ResourceGroupName $ResourceGroup `
     -Name $WebAppName
 
-$address = ./Deployment/Get-FunctionUri.ps1 `
+$validationAddress = ./Deployment/Get-FunctionUri.ps1 `
     -WebApp $webApp `
     -FunctionName 'RepositoryValidator'
 
@@ -45,9 +45,16 @@ $params = @{
         'name'  = $Repository
         'owner' = @{
             'login' = $Organization
-        }        
+        }
     }
 } | ConvertTo-Json
 
 Write-Host 'Send validation request'
-Invoke-RestMethod -Method POST -Uri $address -Body $params -ContentType 'application/json;charset=UTF-8'
+Invoke-RestMethod -Method POST -Uri $validationAddress -Body $params -ContentType 'application/json;charset=UTF-8'
+
+$statusCheckAddress = ./Deployment/Get-FunctionUri.ps1 `
+    -WebApp $webApp `
+    -FunctionName 'StatusCheck'
+
+Write-Host 'Send status check request'
+Invoke-RestMethod -Method GET -Uri $statusCheckAddress -ContentType 'application/json;charset=UTF-8'

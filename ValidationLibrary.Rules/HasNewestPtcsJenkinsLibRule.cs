@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -35,7 +36,6 @@ namespace ValidationLibrary.Rules
         private const string FileMode = "100644";
         private readonly string _branchName = $"feature/{LibraryName}-update";
         private readonly Regex _regex = new Regex($@"^(library)[\s][""']{LibraryName}@(\d+.\d+.\d+.*)[""']", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
-
         private readonly ILogger<HasNewestPtcsJenkinsLibRule> _logger;
         private readonly GitUtils _gitUtils;
         private string _expectedVersion;
@@ -69,6 +69,17 @@ namespace ValidationLibrary.Rules
                 isValid, Fix);
         }
 
+        public override Dictionary<string, string> GetConfiguration()
+        {
+            return new Dictionary<string, string>
+            {
+                { "ClassName", nameof(HasNewestPtcsJenkinsLibRule) },
+                { "PullRequestTitle", RuleName },
+                { "LatestJenkinsLibraryVersion", _expectedVersion },
+                { "MainBranch", MainBranch }
+            };
+        }
+
         private bool IsValid(RepositoryContent jenkinsContent)
         {
             if (jenkinsContent == null)
@@ -78,7 +89,7 @@ namespace ValidationLibrary.Rules
             }
             var content = jenkinsContent.Content;
 
-            MatchCollection matches = _regex.Matches(content);
+            var matches = _regex.Matches(content);
             var match = matches.OfType<Match>().FirstOrDefault();
             if (match == null)
             {
@@ -134,7 +145,7 @@ namespace ValidationLibrary.Rules
                 BaseTree = oldTree.Sha
             };
 
-            BlobReference blobReference = await CreateBlob(client, repository, jenkinsFile).ConfigureAwait(false);
+            var blobReference = await CreateBlob(client, repository, jenkinsFile).ConfigureAwait(false);
             var treeItem = new NewTreeItem()
             {
                 Path = JenkinsFileName,

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -6,21 +7,21 @@ using Octokit;
 
 namespace ValidationLibrary
 {
-    public class RepositoryValidator
+    public class RepositoryValidator : IRepositoryValidator
     {
         private const string ConfigFileName = "repository-validator.json";
 
         private readonly ILogger<RepositoryValidator> _logger;
 
-        private readonly IValidationRule[] _rules;
+        public IValidationRule[] Rules { get; }
         private readonly IGitHubClient _gitHubClient;
 
         public RepositoryValidator(ILogger<RepositoryValidator> logger, IGitHubClient gitHubClient, IValidationRule[] validationRules)
         {
-            _rules = validationRules ?? throw new System.ArgumentNullException(nameof(validationRules));
-            _logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
-            _gitHubClient = gitHubClient ?? throw new System.ArgumentNullException(nameof(gitHubClient));
-            logger.LogInformation("Creating {className} with rules: {rules}", nameof(RepositoryValidator), string.Join(", ", _rules.Select(rule => rule.RuleName))); ;
+            Rules = validationRules ?? throw new ArgumentNullException(nameof(validationRules));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _gitHubClient = gitHubClient ?? throw new ArgumentNullException(nameof(gitHubClient));
+            logger.LogInformation("Creating {className} with rules: {rules}", nameof(RepositoryValidator), string.Join(", ", Rules.Select(rule => rule.RuleName))); ;
         }
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace ValidationLibrary
         public async Task Init()
         {
             _logger.LogInformation("Initializing {className}", nameof(RepositoryValidator));
-            foreach (var rule in _rules)
+            foreach (var rule in Rules)
             {
                 await rule.Init(_gitHubClient).ConfigureAwait(false);
             }
@@ -39,13 +40,13 @@ namespace ValidationLibrary
         {
             if (gitHubRepository is null)
             {
-                throw new System.ArgumentNullException(nameof(gitHubRepository));
+                throw new ArgumentNullException(nameof(gitHubRepository));
             }
 
             _logger.LogTrace("Validating repository {repositoryName}", gitHubRepository.FullName);
             var config = await GetConfig(gitHubRepository).ConfigureAwait(false);
 
-            var filteredRules = overrideRuleIgnore ? _rules : _rules.Where(rule =>
+            var filteredRules = overrideRuleIgnore ? Rules : Rules.Where(rule =>
             {
                 var name = rule.GetType().Name;
                 var isIgnored = config.IgnoredRules.Contains(name);
@@ -80,11 +81,6 @@ namespace ValidationLibrary
                 _logger.LogDebug("No {configFileName} found in {repositoryName}. Using default config.", ConfigFileName, gitHubRepository.FullName);
                 return new ValidationConfiguration();
             }
-        }
-
-        public IValidationRule[] GetRules()
-        {
-            return _rules;
         }
     }
 }

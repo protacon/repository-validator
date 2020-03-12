@@ -92,10 +92,9 @@
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
                 "siteConfig": {
-                    "defaultDocuments": [
-                    ],
+                    "defaultDocuments": [],
                     "phpVersion": "",
-                    "use32BitWorkerProcess": true,
+                    "use32BitWorkerProcess": false,
                     "appSettings": [
                         {
                             "name": "AzureWebJobsStorage",
