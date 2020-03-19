@@ -13,8 +13,8 @@ namespace ValidationLibrary.AzureFunctions
         private IRepositoryValidator _validator;
         public StatusEndpoint(ILogger<StatusEndpoint> logger, IRepositoryValidator validator)
         {
-            _logger = logger;
-            _validator = validator;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));;
+            _validator = validator ?? throw new ArgumentNullException(nameof(validator));;
         }
 
         [FunctionName("StatusCheck")]
