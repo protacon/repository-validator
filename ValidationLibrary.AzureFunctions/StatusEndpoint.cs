@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ namespace ValidationLibrary.AzureFunctions
         {
             if (req is null)
             {
-                throw new System.ArgumentNullException(nameof(req));
+                throw new ArgumentNullException(nameof(req));
             }
 
             _logger.LogDebug("Repository validator status check hook launched. URI: {uri}", req.RequestUri);
