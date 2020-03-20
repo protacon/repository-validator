@@ -25,7 +25,7 @@ param(
     [Parameter(Mandatory)][string]$ResourceGroup,
     [Parameter()][string]$WebAppName = $ResourceGroup,
     [Parameter()][string]$Organization = 'protacon',
-    [Parameter()][string]$Repository = 'repository-validator'
+    [Parameter()][string]$Repository = 'repository-validator-testing'
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
