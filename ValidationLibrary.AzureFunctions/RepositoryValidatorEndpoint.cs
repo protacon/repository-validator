@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -30,20 +29,36 @@ namespace ValidationLibrary.AzureFunctions
             _gitHubReporter = gitHubReporter ?? throw new ArgumentNullException(nameof(gitHubReporter));
         }
 
-        [FunctionName("DurableFunctionsOrchestrationCSharp1_Hello")]
-        public async Task<string> Run(PushData content/*[HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req*/)
+        [FunctionName(nameof(RepositoryValidator))]
+        public async Task<HttpResponseMessage> RepositoryValidator([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req, [DurableClient] IDurableOrchestrationClient starter)
+        {
+            _logger.LogDebug("Repository validation hook launched.");
+            if (starter is null) throw new ArgumentNullException(nameof(starter), "Durable orchestration client was null. Error using durable functions.");
+            if (req == null || req.Content == null) throw new ArgumentNullException(nameof(req), "Request content was null. Unable to retrieve parameters.");
+
+            var content = await req.Content.ReadAsAsync<PushData>().ConfigureAwait(false);
+            ValidateInput(content);
+
+            var instanceId = await starter.StartNewAsync(nameof(RunOrchestrator), content).ConfigureAwait(false);
+            _logger.LogInformation($"Started orchestration with ID = '{instanceId}'.");
+            return starter.CreateCheckStatusResponse(req, instanceId);
+        }
+
+        [FunctionName(nameof(RunOrchestrator))]
+        public static async Task<StatusCodeResult> RunOrchestrator([OrchestrationTrigger] IDurableOrchestrationContext context)
+        {
+            if (context is null) throw new ArgumentNullException(nameof(context), "Durable orchestration context was null. Error running the orchestrator.");
+
+            var content = context.GetInput<PushData>();
+            return await context.CallActivityAsync<StatusCodeResult>(nameof(RunActivity), content);
+        }
+
+        [FunctionName(nameof(RunActivity))]
+        public async Task<StatusCodeResult> RunActivity([ActivityTrigger] PushData content)
         {
             try
             {
-                // _logger.LogDebug("Repository validation hook launched");
-                // if (req == null || req.Content == null)
-                // {
-                //     throw new ArgumentNullException(nameof(req), "Request content was null. Unable to retrieve parameters.");
-                // }
-
-                // var content = await req.Content.ReadAsAsync<PushData>().ConfigureAwait(false);
-                // ValidateInput(content);
-
+                if (content is null) throw new ArgumentNullException(nameof(content), "No content to execute the activity.");
                 _logger.LogInformation("Doing validation. Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
 
                 await _validationClient.Init().ConfigureAwait(false);
@@ -53,8 +68,7 @@ namespace ValidationLibrary.AzureFunctions
                 await _gitHubReporter.Report(new[] { report }).ConfigureAwait(false);
                 await PerformAutofixes(report).ConfigureAwait(false);
                 _logger.LogInformation("Validation finished");
-                return "Good";
-                //return new OkResult();
+                return new OkResult();
             }
             catch (Exception exception)
             {
@@ -62,33 +76,11 @@ namespace ValidationLibrary.AzureFunctions
                 {
                     _logger.LogError(exception, "Invalid request received");
 
-                    return "bad"; //new BadRequestResult();
+                    return new BadRequestResult();
                 }
                 throw;
             }
         }
-
-        [FunctionName(nameof(RepositoryValidator))]
-        public async Task<HttpResponseMessage> RepositoryValidator([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req, [DurableClient] IDurableOrchestrationClient starter)
-        {
-            var content = await req.Content.ReadAsAsync<PushData>().ConfigureAwait(false);
-            ValidateInput(content);
-            string instanceId = await starter.StartNewAsync("DurableFunctionsOrchestrationCSharp1", content);
-            _logger.LogInformation($"Started orchestration with ID = '{instanceId}'.");
-            return starter.CreateCheckStatusResponse(req, instanceId);
-        }
-
-        [FunctionName("DurableFunctionsOrchestrationCSharp1")]
-        public static async Task<List<string>> RunOrchestrator(PushData content,
-            [OrchestrationTrigger] IDurableOrchestrationContext context)
-        {
-            var outputs = new List<string>();
-
-            // Replace "hello" with the name of your Durable Activity Function.
-            outputs.Add(await context.CallActivityAsync<string>("DurableFunctionsOrchestrationCSharp1_Hello", content));
-            return outputs;
-        }
-
 
         private static void ValidateInput(PushData content)
         {
