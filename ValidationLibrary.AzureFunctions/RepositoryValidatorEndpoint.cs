@@ -36,10 +36,7 @@ namespace ValidationLibrary.AzureFunctions
             if (starter is null) throw new ArgumentNullException(nameof(starter), "Durable orchestration client was null. Error using durable functions.");
             if (req == null || req.Content == null) throw new ArgumentNullException(nameof(req), "Request content was null. Unable to retrieve parameters.");
 
-            var content = await req.Content.ReadAsAsync<PushData>().ConfigureAwait(false);
-            ValidateInput(content);
-
-            var instanceId = await starter.StartNewAsync(nameof(RunOrchestrator), content).ConfigureAwait(false);
+            var instanceId = await starter.StartNewAsync(nameof(RunOrchestrator), req).ConfigureAwait(false);
             _logger.LogInformation($"Started orchestration with ID = '{instanceId}'.");
             return starter.CreateCheckStatusResponse(req, instanceId);
         }
@@ -49,16 +46,20 @@ namespace ValidationLibrary.AzureFunctions
         {
             if (context is null) throw new ArgumentNullException(nameof(context), "Durable orchestration context was null. Error running the orchestrator.");
 
-            var content = context.GetInput<PushData>();
-            return await context.CallActivityAsync<StatusCodeResult>(nameof(RunActivity), content);
+            var request = context.GetInput<HttpRequestMessage>();
+            return await context.CallActivityAsync<StatusCodeResult>(nameof(RunActivity), request);
         }
 
         [FunctionName(nameof(RunActivity))]
-        public async Task<StatusCodeResult> RunActivity([ActivityTrigger] PushData content)
+        public async Task<StatusCodeResult> RunActivity([ActivityTrigger] HttpRequestMessage request)
         {
             try
             {
-                if (content is null) throw new ArgumentNullException(nameof(content), "No content to execute the activity.");
+                if (request is null) throw new ArgumentNullException(nameof(request), "No request to execute the activity.");
+
+                var content = await request.Content.ReadAsAsync<PushData>().ConfigureAwait(false);
+                ValidateInput(content);
+
                 _logger.LogInformation("Doing validation. Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
 
                 await _validationClient.Init().ConfigureAwait(false);
