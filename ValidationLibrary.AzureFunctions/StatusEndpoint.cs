@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,8 +14,8 @@ namespace ValidationLibrary.AzureFunctions
         private IRepositoryValidator _validator;
         public StatusEndpoint(ILogger<StatusEndpoint> logger, IRepositoryValidator validator)
         {
-            _logger = logger;
-            _validator = validator;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         }
 
         [FunctionName("StatusCheck")]
@@ -22,7 +23,7 @@ namespace ValidationLibrary.AzureFunctions
         {
             if (req is null)
             {
-                throw new System.ArgumentNullException(nameof(req));
+                throw new ArgumentNullException(nameof(req));
             }
 
             _logger.LogDebug("Repository validator status check hook launched. URI: {uri}", req.RequestUri);
