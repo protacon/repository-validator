@@ -7,7 +7,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Octokit;
 using ValidationLibrary.AzureFunctions.GitHubDto;
 using ValidationLibrary.GitHub;
@@ -36,7 +35,9 @@ namespace ValidationLibrary.AzureFunctions
             if (starter is null) throw new ArgumentNullException(nameof(starter), "Durable orchestration client was null. Error using durable functions.");
             if (req == null || req.Content == null) throw new ArgumentNullException(nameof(req), "Request content was null. Unable to retrieve parameters.");
 
-            var instanceId = await starter.StartNewAsync(nameof(RunOrchestrator), req).ConfigureAwait(false);
+            var content = await req.Content.ReadAsAsync<PushData>().ConfigureAwait(false);
+
+            var instanceId = await starter.StartNewAsync(nameof(RunOrchestrator), content).ConfigureAwait(false);
             _logger.LogInformation($"Started orchestration with ID = '{instanceId}'.");
             return starter.CreateCheckStatusResponse(req, instanceId);
         }
@@ -46,18 +47,17 @@ namespace ValidationLibrary.AzureFunctions
         {
             if (context is null) throw new ArgumentNullException(nameof(context), "Durable orchestration context was null. Error running the orchestrator.");
 
-            var request = context.GetInput<HttpRequestMessage>();
-            return await context.CallActivityAsync<StatusCodeResult>(nameof(RunActivity), request);
+            var content = context.GetInput<PushData>();
+            return await context.CallActivityAsync<StatusCodeResult>(nameof(RunActivity), content);
         }
 
         [FunctionName(nameof(RunActivity))]
-        public async Task<StatusCodeResult> RunActivity([ActivityTrigger] HttpRequestMessage request)
+        public async Task<StatusCodeResult> RunActivity([ActivityTrigger] PushData content)
         {
             try
             {
-                if (request is null) throw new ArgumentNullException(nameof(request), "No request to execute the activity.");
+                if (content is null) throw new ArgumentNullException(nameof(content), "No content to execute the activity.");
 
-                var content = await request.Content.ReadAsAsync<PushData>().ConfigureAwait(false);
                 ValidateInput(content);
 
                 _logger.LogInformation("Doing validation. Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
@@ -73,7 +73,7 @@ namespace ValidationLibrary.AzureFunctions
             }
             catch (Exception exception)
             {
-                if (exception is ArgumentException || exception is JsonException)
+                if (exception is ArgumentException)
                 {
                     _logger.LogError(exception, "Invalid request received");
 
@@ -85,24 +85,29 @@ namespace ValidationLibrary.AzureFunctions
 
         private static void ValidateInput(PushData content)
         {
-            if (content == null)
+            if (content is null)
             {
                 throw new ArgumentNullException(nameof(content), "Content was null. Unable to retrieve parameters.");
             }
 
-            if (content.Repository == null)
+            if (content.Repository is null)
             {
-                throw new ArgumentException("No repository defined in content. Unable to validate repository");
+                throw new ArgumentException("No repository defined in content. Unable to validate repository.");
             }
 
-            if (content.Repository.Owner == null)
+            if (content.Repository.Owner is null)
             {
-                throw new ArgumentException("No repository owner defined. Unable to validate repository");
+                throw new ArgumentException("No repository owner defined. Unable to validate repository.");
             }
 
-            if (content.Repository.Name == null)
+            if (string.IsNullOrEmpty(content.Repository.Name))
             {
-                throw new ArgumentException("No repository name defined. Unable to validate repository");
+                throw new ArgumentException("No repository name defined. Unable to validate repository.");
+            }
+
+            if (string.IsNullOrEmpty(content.Repository.Owner.Login))
+            {
+                throw new ArgumentException("No repository owner login defined. Unable to validate repository.");
             }
         }
         private async Task PerformAutofixes(params ValidationReport[] results)

@@ -33,33 +33,36 @@ namespace ValidationLibrary.AzureFunctions.Tests
         [Test]
         public async Task Run_ReturnsBadRequestForMissingContent()
         {
-            var request = new HttpRequestMessage();
-            var result = await _repositoryValidator.RunActivity(request);
-            var casted = result as BadRequestResult;
-            Assert.NotNull(casted, "The repository validator run result was not a BadRequestResult as expected.");
-            Assert.AreEqual((int)HttpStatusCode.BadRequest, casted.StatusCode);
+            var request = new PushData();
+            var result = await _repositoryValidator.RunActivity(request) as BadRequestResult;
+            Assert.NotNull(result, "The repository validator run result was not a BadRequestResult as expected.");
+            Assert.AreEqual((int)HttpStatusCode.BadRequest, result.StatusCode);
         }
 
         [Test]
-        public async Task Run_ReturnsBadRequestForInvalidJson()
+        public async Task Run_ReturnsBadRequestForIncorrectJsonToPushData()
         {
-            var dynamic = new
+            var report = new ValidationReport
             {
-                repository = new
+                Results = new ValidationResult[0]
+            };
+
+            var content = new PushData
+            {
+                Repository = new GitHubDto.Repository
                 {
-                    name = "repository-validator-testing",
-                    owner = "protacon"
+                    Name = "repository-validator-testing",
+                    Owner = new Owner
+                    {
+                        Login = ""
+                    }
                 }
             };
 
-            var request = new HttpRequestMessage()
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(dynamic), System.Text.Encoding.UTF8, "application/json"),
-            };            
-            var result = await _repositoryValidator.RunActivity(request);
-            var casted = result as BadRequestResult;
-            Assert.NotNull(casted, "The repository validator run result was not a BadRequestResult as expected.");
-            Assert.AreEqual((int)HttpStatusCode.BadRequest, casted.StatusCode);
+            _mockValidationClient.ValidateRepository(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(report);
+            var result = await _repositoryValidator.RunActivity(content) as BadRequestResult;
+            Assert.NotNull(result, "The repository validator run result was not a BadRequestResult as expected.");
+            Assert.AreEqual((int)HttpStatusCode.BadRequest, result.StatusCode);
         }
 
         [Test]
@@ -70,26 +73,21 @@ namespace ValidationLibrary.AzureFunctions.Tests
                 Results = new ValidationResult[0]
             };
 
-            var dynamic = new
+            var content = new PushData
             {
-                repository = new
+                Repository = new GitHubDto.Repository
                 {
-                    name = "repository-validator-testing",
-                    owner = new
+                    Name = "repository-validator-testing",
+                    Owner = new Owner
                     {
-                        login = "protacon"
+                        Login = "protacon"
                     }
                 }
             };
-
-            var request = new HttpRequestMessage()
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(dynamic), System.Text.Encoding.UTF8, "application/json"),
-            };
             _mockValidationClient.ValidateRepository(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(report);
-            var result = await _repositoryValidator.RunActivity(request) as OkResult;
-            Assert.NotNull(result);
-            await _mockValidationClient.Received().ValidateRepository(dynamic.repository.owner.login, dynamic.repository.name, false);
+            var result = await _repositoryValidator.RunActivity(content) as OkResult;
+            Assert.NotNull(result, "The repository validator run result was not an OkResult as expected.");
+            await _mockValidationClient.Received().ValidateRepository(content.Repository.Owner.Login, content.Repository.Name, false);
         }
     }
 }
