@@ -29,7 +29,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
             _mockGitHubClient = Substitute.For<IGitHubClient>();
             _mockValidationClient = Substitute.For<IValidationClient>();
             _mockGitHubReporter = Substitute.For<IGitHubReporter>();
-            _repositoryValidator = new RepositoryValidatorEndpoint(Substitute.For<ILogger<RepositoryValidatorEndpoint>>(), _mockGitHubClient, _mockValidationClient, _mockGitHubReporter);
+            _repositoryValidator = new RepositoryValidatorEndpoint(_mockGitHubClient, _mockValidationClient, _mockGitHubReporter);
             _mockDurableClient = Substitute.For<IDurableOrchestrationClient>();
         }
 
@@ -49,12 +49,12 @@ namespace ValidationLibrary.AzureFunctions.Tests
                     Name = "repository-validator-testing",
                     Owner = new Owner
                     {
-                        Login = "pinja"
+                        Login = "protacon"
                     }
                 }
             };
 
-            var result = await _repositoryValidator.RunActivity(content) as OkResult;
+            var result = await _repositoryValidator.RunActivity(content, Substitute.For<ILogger>()) as OkResult;
 
             Assert.NotNull(result, "The repository validator run result was not an OkResult as expected.");
             Assert.AreEqual((int)HttpStatusCode.OK, result.StatusCode);
@@ -82,7 +82,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
                 }
             };
 
-            var result = await _repositoryValidator.RunActivity(content) as BadRequestResult;
+            var result = await _repositoryValidator.RunActivity(content, Substitute.For<ILogger>()) as BadRequestResult;
 
             Assert.NotNull(result, "The repository validator run result was not a BadRequestResult as expected.");
             Assert.AreEqual((int)HttpStatusCode.BadRequest, result.StatusCode);
@@ -108,7 +108,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
                     name = "repository-validator-testing",
                     owner = new
                     {
-                        login = "pinja"
+                        login = "protacon"
                     }
                 }
             };
@@ -118,7 +118,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
                 Content = new StringContent(JsonConvert.SerializeObject(dynamic), System.Text.Encoding.UTF8, "application/json"),
             };
 
-            var result = await _repositoryValidator.RepositoryValidatorTrigger(request, _mockDurableClient);
+            var result = await RepositoryValidatorEndpoint.RepositoryValidatorTrigger(request, _mockDurableClient, Substitute.For<ILogger>());
 
             Assert.AreEqual(result.StatusCode, HttpStatusCode.OK);
             await _mockDurableClient.Received().StartNewAsync(Arg.Any<string>(), Arg.Any<object>());
@@ -142,7 +142,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
                 repository = new
                 {
                     name = "repository-validator-testing",
-                    owner = "pinja"
+                    owner = "protacon"
                 }
             };
 
@@ -151,7 +151,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
                 Content = new StringContent(JsonConvert.SerializeObject(dynamic), System.Text.Encoding.UTF8, "application/json"),
             };
 
-            Assert.CatchAsync<JsonException>(() => _repositoryValidator.RepositoryValidatorTrigger(request, _mockDurableClient));
+            Assert.CatchAsync<JsonException>(() => RepositoryValidatorEndpoint.RepositoryValidatorTrigger(request, _mockDurableClient, Substitute.For<ILogger>()));
             await _mockDurableClient.DidNotReceive().StartNewAsync(Arg.Any<string>(), Arg.Any<object>());
             _mockDurableClient.DidNotReceive().CreateCheckStatusResponse(Arg.Any<HttpRequestMessage>(), InstanceId);
         }
