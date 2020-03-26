@@ -49,7 +49,7 @@ namespace ValidationLibrary.AzureFunctions
             if (context is null) throw new ArgumentNullException(nameof(context), "Durable orchestration context was null. Error running the orchestrator.");
 
             var content = context.GetInput<PushData>();
-            return await context.CallActivityAsync<StatusCodeResult>(nameof(RunActivity), content); // ConfigureAwait breaks threading...
+            return await context.CallActivityAsync<StatusCodeResult>(nameof(RunActivity), content).ConfigureAwait(true);
         }
 
         [FunctionName(nameof(RunActivity))]
