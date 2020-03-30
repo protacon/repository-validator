@@ -14,7 +14,7 @@ podTemplate(label: pod.label,
     def branch = (env.BRANCH_NAME)
     def resourceGroup = 'repository-validator-prod'
     def appName = 'ptcs-github-validator'
-    def gitHubOrganization = 'protacon'
+    def gitHubOrganization = 'by-pinja'
 
     def functionsProject = 'ValidationLibrary.AzureFunctions'
     def zipName = 'publish.zip'

@@ -23,7 +23,7 @@ namespace ValidationLibrary.Tests.Rules
             var mockReleaseClient = Substitute.For<IReleasesClient>();
             MockRepositoryClient.Release.Returns(mockReleaseClient);
             var release = new Release(null, null, null, null, 0, null, ExpectedJenkinsPtcsLibrary, null, null, null, false, false, DateTime.UtcNow, null, null, null, null, null);
-            MockRepositoryClient.Release.GetLatest("protacon", "jenkins-ptcs-library").Returns(Task.FromResult(release));
+            MockRepositoryClient.Release.GetLatest("by-pinja", "jenkins-ptcs-library").Returns(Task.FromResult(release));
         }
 
         [Test]
