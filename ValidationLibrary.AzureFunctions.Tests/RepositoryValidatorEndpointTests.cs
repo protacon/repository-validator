@@ -49,7 +49,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
                     Name = "repository-validator-testing",
                     Owner = new Owner
                     {
-                        Login = "protacon"
+                        Login = "by-pinja"
                     }
                 }
             };
@@ -108,7 +108,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
                     name = "repository-validator-testing",
                     owner = new
                     {
-                        login = "protacon"
+                        login = "by-pinja"
                     }
                 }
             };
@@ -142,7 +142,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
                 repository = new
                 {
                     name = "repository-validator-testing",
-                    owner = "protacon"
+                    owner = "by-pinja"
                 }
             };
 
