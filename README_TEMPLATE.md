@@ -11,11 +11,11 @@
     A SHORT DESCRIPTION ABOUT THE PROJECT
     <br />
     <br />
-    <a href="https://github.com/protacon/repo">View Demo</a>
+    <a href="https://github.com/by-pinja/repo">View Demo</a>
     ·
-    <a href="https://github.com/protacon/repo/issues">Report Bug</a>
+    <a href="https://github.com/by-pinja/repo/issues">Report Bug</a>
     ·
-    <a href="https://github.com/protacon/repo/issues">Request Feature</a>
+    <a href="https://github.com/by-pinja/repo/issues">Request Feature</a>
   </p>
 </div>
 
@@ -58,7 +58,7 @@ This is an example of how to list things you need to use the software and how to
  
 1. Clone the repo
 ```sh
-git clone https://github.com/protacon/repo.git
+git clone https://github.com/by-pinja/repo.git
 ```
 2. Start with Docker Compose
 ```sh
@@ -73,7 +73,7 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 
 ## Roadmap
 
-See the [open issues](https://github.com/protacon/repo/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/by-pinja/repo/issues) for a list of proposed features (and known issues).
 
 ## Contributing
 
@@ -85,7 +85,7 @@ See the [open issues](https://github.com/protacon/repo/issues) for a list of pro
 
 ## Contact
 
-Your Name - email@protacon.com
+Your Name - firstname.lastname@pinja.com
 
 ## Acknowledgements
 

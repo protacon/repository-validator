@@ -15,7 +15,7 @@
     Name of the web app
 
     .PARAMETER Organization
-    Organization/user containing the repository (default protacon)
+    Organization/user containing the repository (default by-pinja)
 
     .PARAMETER Repository
     Name of the repository to be validated  (default repository-validator)
@@ -24,7 +24,7 @@
 param(
     [Parameter(Mandatory)][string]$ResourceGroup,
     [Parameter()][string]$WebAppName = $ResourceGroup,
-    [Parameter()][string]$Organization = 'protacon',
+    [Parameter()][string]$Organization = 'by-pinja',
     [Parameter()][string]$Repository = 'repository-validator'
 )
 $ErrorActionPreference = "Stop"
