@@ -151,7 +151,8 @@ namespace ValidationLibrary.AzureFunctions.Tests
                 Content = new StringContent(JsonConvert.SerializeObject(dynamic), System.Text.Encoding.UTF8, "application/json"),
             };
 
-            Assert.CatchAsync<JsonException>(() => RepositoryValidatorEndpoint.RepositoryValidatorTrigger(request, _mockDurableClient, Substitute.For<ILogger>()));
+            var result = await RepositoryValidatorEndpoint.RepositoryValidatorTrigger(request, _mockDurableClient, Substitute.For<ILogger>());
+            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             await _mockDurableClient.DidNotReceive().StartNewAsync(Arg.Any<string>(), Arg.Any<object>());
             _mockDurableClient.DidNotReceive().CreateCheckStatusResponse(Arg.Any<HttpRequestMessage>(), InstanceId);
         }
