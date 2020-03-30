@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Octokit;
 using ValidationLibrary.AzureFunctions.GitHubDto;
 using ValidationLibrary.GitHub;
@@ -35,12 +37,22 @@ namespace ValidationLibrary.AzureFunctions
             if (starter is null) throw new ArgumentNullException(nameof(starter), "Durable orchestration client was null. Error using durable functions.");
             if (req == null || req.Content == null) throw new ArgumentNullException(nameof(req), "Request content was null. Unable to retrieve parameters.");
 
-            var content = await req.Content.ReadAsAsync<PushData>().ConfigureAwait(false);
-            logger.LogDebug("Request json valid.");
-            var instanceId = await starter.StartNewAsync(nameof(RunOrchestrator), content).ConfigureAwait(false);
+            try
+            {
+                var content = await req.Content.ReadAsAsync<PushData>().ConfigureAwait(false);
+                // Validation is done twice for developer convenience.
+                ValidateInput(content);
+                logger.LogDebug("Request json valid.");
+                var instanceId = await starter.StartNewAsync(nameof(RunOrchestrator), content).ConfigureAwait(false);
 
-            logger.LogInformation($"Started orchestration with ID = '{instanceId}'.");
-            return starter.CreateCheckStatusResponse(req, instanceId);
+                logger.LogInformation($"Started orchestration with ID = '{instanceId}'.");
+                return starter.CreateCheckStatusResponse(req, instanceId);
+            }
+            catch (Exception exception) when (exception is ArgumentException || exception is JsonSerializationException)
+            {
+                logger.LogError(exception, "Invalid request received, can't perform validation.");
+                return new HttpResponseMessage(HttpStatusCode.BadRequest);
+            }
         }
 
         [FunctionName(nameof(RunOrchestrator))]
@@ -58,12 +70,10 @@ namespace ValidationLibrary.AzureFunctions
             try
             {
                 logger.LogDebug("Executing validation activity.");
+                ValidateInput(content);
                 if (content is null) throw new ArgumentNullException(nameof(content), "No content to execute the activity.");
 
-                ValidateInput(content);
-
                 logger.LogInformation("Doing validation. Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
-
                 await _validationClient.Init().ConfigureAwait(false);
                 var report = await _validationClient.ValidateRepository(content.Repository.Owner.Login, content.Repository.Name, false).ConfigureAwait(false);
 
@@ -76,15 +86,11 @@ namespace ValidationLibrary.AzureFunctions
                 logger.LogInformation("Validation finished");
                 return new OkResult();
             }
-            catch (Exception exception)
+            catch (ArgumentException exception)
             {
-                if (exception is ArgumentException)
-                {
-                    logger.LogError(exception, "Invalid request received");
+                logger.LogError(exception, "Invalid request received");
 
-                    return new BadRequestResult();
-                }
-                throw;
+                return new BadRequestResult();
             }
         }
 
