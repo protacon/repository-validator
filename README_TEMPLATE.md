@@ -85,7 +85,7 @@ See the [open issues](https://github.com/by-pinja/repo/issues) for a list of pro
 
 ## Contact
 
-Your Name - email@protacon.com
+Your Name - firstname.lastname@pinja.com
 
 ## Acknowledgements
 
