@@ -82,9 +82,9 @@ namespace ValidationLibrary.AzureFunctions
             return new GitHubReportConfig
             {
                 GenericNotice =
-                    "These issues are created, closed and reopened by [repository validator](https://github.com/protacon/repository-validator) when commits are pushed to repository. " + Environment.NewLine +
+                    "These issues are created, closed and reopened by [repository validator](https://github.com/by-pinja/repository-validator) when commits are pushed to repository. " + Environment.NewLine +
                     Environment.NewLine +
-                    "If there are problems, please add an issue to [repository validator](https://github.com/protacon/repository-validator)" + Environment.NewLine +
+                    "If there are problems, please add an issue to [repository validator](https://github.com/by-pinja/repository-validator)" + Environment.NewLine +
                     Environment.NewLine +
                     "DO NOT change the name of this issue. Names are used to identify the issues created by automation." + Environment.NewLine,
                 Prefix = "[Automatic validation]"

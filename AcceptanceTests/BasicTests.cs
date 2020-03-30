@@ -40,7 +40,7 @@ namespace AcceptanceTests
                 repository = new
                 {
                     name = "repository-validator-testing",
-                    owner = "protacon"
+                    owner = "by-pinja"
                 }
             });
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
@@ -56,7 +56,7 @@ namespace AcceptanceTests
                     Name = "repository-validator-testing",
                     Owner = new Owner
                     {
-                        Login = "protacon"
+                        Login = "by-pinja"
                     }
                 }
             };

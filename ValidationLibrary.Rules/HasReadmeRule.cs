@@ -20,16 +20,16 @@ namespace ValidationLibrary.Rules
     /// more information about GitHub readmes
     /// 
     /// Automatic fix for this rule creates a pull request with a README.md template.
-    /// Template is based on https://raw.githubusercontent.com/protacon/repository-validator/master/README_TEMPLATE.md
+    /// Template is based on https://raw.githubusercontent.com/by-pinja/repository-validator/master/README_TEMPLATE.md
     /// </summary>
     public class HasReadmeRule : FixableRuleBase<HasReadmeRule>
     {
         protected override string PullRequestBody =>
                         "This Pull Request provides only a template README.md file for guidance. You should edit the file according to your project needs." +
                         Environment.NewLine + Environment.NewLine +
-                        "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
+                        "This Pull Request was created by [repository validator](https://github.com/by-pinja/repository-validator)." + Environment.NewLine +
                         Environment.NewLine +
-                        "To prevent automatic validation, see documentation from [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
+                        "To prevent automatic validation, see documentation from [repository validator](https://github.com/by-pinja/repository-validator)." + Environment.NewLine +
                         Environment.NewLine +
                         "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation.";
         private const string ReadmeFileName = "README.md";
@@ -43,7 +43,7 @@ namespace ValidationLibrary.Rules
         public HasReadmeRule(ILogger<HasReadmeRule> logger, GitUtils gitUtils, Uri templateFileUrl = null) : base(logger, gitUtils, "Missing Readme.md", $"[Automatic Validation] Create {ReadmeFileName}")
         {
             _logger = logger;
-            _templateFileUrl = templateFileUrl ?? new Uri("https://raw.githubusercontent.com/protacon/repository-validator/master/README_TEMPLATE.md");
+            _templateFileUrl = templateFileUrl ?? new Uri("https://raw.githubusercontent.com/by-pinja/repository-validator/master/README_TEMPLATE.md");
         }
 
         public override async Task Init(IGitHubClient ghClient)

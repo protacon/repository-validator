@@ -24,9 +24,9 @@ namespace ValidationLibrary.Rules
     public class HasNewestPtcsJenkinsLibRule : FixableRuleBase<HasNewestPtcsJenkinsLibRule>
     {
         protected override string PullRequestBody =>
-                        "This Pull Request was created by [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
+                        "This Pull Request was created by [repository validator](https://github.com/by-pinja/repository-validator)." + Environment.NewLine +
                         Environment.NewLine +
-                        "To prevent automatic validation, see documentation from [repository validator](https://github.com/protacon/repository-validator)." + Environment.NewLine +
+                        "To prevent automatic validation, see documentation from [repository validator](https://github.com/by-pinja/repository-validator)." + Environment.NewLine +
                         Environment.NewLine +
                         "DO NOT change the name of this Pull Request. Names are used to identify the Pull Requests created by automation." + Environment.NewLine +
                         Environment.NewLine +
@@ -49,7 +49,7 @@ namespace ValidationLibrary.Rules
 
         public override async Task Init(IGitHubClient ghClient)
         {
-            var versionFetcher = new ReleaseVersionFetcher(ghClient, "protacon", LibraryName);
+            var versionFetcher = new ReleaseVersionFetcher(ghClient, "by-pinja", LibraryName);
             var release = await versionFetcher.GetLatest().ConfigureAwait(false);
             _expectedVersion = release.TagName;
             _latestReleaseUrl = release.HtmlUrl;
@@ -65,7 +65,7 @@ namespace ValidationLibrary.Rules
 
             var isValid = IsValid(await GetJenkinsFileContent(client, repository, MainBranch).ConfigureAwait(false));
 
-            return new ValidationResult(RuleName, $"Update {LibraryName} to newest version. Newest version can be found in https://github.com/protacon/{LibraryName}/releases",
+            return new ValidationResult(RuleName, $"Update {LibraryName} to newest version. Newest version can be found in https://github.com/by-pinja/{LibraryName}/releases",
                 isValid, Fix);
         }
 

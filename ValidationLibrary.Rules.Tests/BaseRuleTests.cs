@@ -21,7 +21,7 @@ namespace ValidationLibrary.Tests.Rules
         [SetUp]
         public async Task Setup()
         {
-            Owner = new User(null, null, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, 0, null, 0, 0, false, null, 0, 0, null, "protacon", "protacon", null, 0, null, 0, 0, 0, null, new RepositoryPermissions(), false, null, null);
+            Owner = new User(null, null, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, 0, null, 0, 0, false, null, 0, 0, null, "by-pinja", "by-pinja", null, 0, null, 0, 0, 0, null, new RepositoryPermissions(), false, null, null);
 
             MockClient = Substitute.For<IGitHubClient>();
             MockRepositoryClient = Substitute.For<IRepositoriesClient>();

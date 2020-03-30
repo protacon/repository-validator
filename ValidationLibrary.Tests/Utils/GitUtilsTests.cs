@@ -94,7 +94,7 @@ namespace ValidationLibrary.Tests.Utils
 
         private User CreateUser()
         {
-            return new User(null, null, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, 0, null, 0, 0, false, null, 0, 0, null, "protacon", "protacon", null, 0, null, 0, 0, 0, null, new RepositoryPermissions(), false, null, null);
+            return new User(null, null, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, 0, null, 0, 0, false, null, 0, 0, null, "by-pinja", "by-pinja", null, 0, null, 0, 0, 0, null, new RepositoryPermissions(), false, null, null);
         }
     }
 }
