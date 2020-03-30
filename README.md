@@ -1,14 +1,16 @@
 # Repository Validator
+
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Build Status](https://jenkins.protacon.cloud/buildStatus/icon?job=www.github.com/repository-validator/master)](https://jenkins.protacon.cloud/blue/organizations/jenkins/www.github.com%2Frepository-validator/activity)
-[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=protacon/repository-validator)](https://dependabot.com)
+[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=by-pinja/repository-validator)](https://dependabot.com)
 
 Checks that organization repositories conforms to policies defined by organization
 
 For example, repositories should have
-  * Descriptions
-  * README.MD-files
-  * Licenses, if public
+
+* Descriptions
+* README.MD-files
+* Licenses, if public
 
 Read more about [Rules](rules.md)
 
