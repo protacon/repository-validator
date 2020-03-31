@@ -22,7 +22,7 @@ namespace AcceptanceTests
                 Assert.Ignore("Function app name or code not defined. Skipping acceptance tests.");
             }
 
-            _url = $"https://{name}.azurewebsites.net/api/RepositoryValidator";
+            _url = $"https://{name}.azurewebsites.net/api/RepositoryValidatorTrigger";
         }
 
         [Test]
@@ -61,7 +61,7 @@ namespace AcceptanceTests
                 }
             };
             var result = await SendRequest(data);
-            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.AreEqual(HttpStatusCode.Accepted, result.StatusCode);
         }
 
         private async Task<IRestResponse> SendRequest(object obj)
