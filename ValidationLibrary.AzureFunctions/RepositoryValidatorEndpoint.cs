@@ -30,7 +30,7 @@ namespace ValidationLibrary.AzureFunctions
 
         [FunctionName(nameof(RepositoryValidatorTrigger))]
         public static async Task<HttpResponseMessage> RepositoryValidatorTrigger(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req, [DurableClient] IDurableOrchestrationClient starter,
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "v1/github-endpoint")] HttpRequestMessage req, [DurableClient] IDurableOrchestrationClient starter,
             ILogger logger)
         {
             logger.LogDebug("Repository validation hook launched.");

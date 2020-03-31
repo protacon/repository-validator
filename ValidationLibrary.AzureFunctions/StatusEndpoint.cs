@@ -19,7 +19,7 @@ namespace ValidationLibrary.AzureFunctions
         }
 
         [FunctionName("StatusCheck")]
-        public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequestMessage req)
+        public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/status")] HttpRequestMessage req)
         {
             if (req is null)
             {

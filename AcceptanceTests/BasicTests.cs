@@ -22,7 +22,7 @@ namespace AcceptanceTests
                 Assert.Ignore("Function app name or code not defined. Skipping acceptance tests.");
             }
 
-            _url = $"https://{name}.azurewebsites.net/api/RepositoryValidatorTrigger";
+            _url = $"https://{name}.azurewebsites.net/api/v1/github-endpoint";
         }
 
         [Test]
