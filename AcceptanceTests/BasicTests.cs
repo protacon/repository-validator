@@ -22,7 +22,7 @@ namespace AcceptanceTests
                 Assert.Ignore("Function app name or code not defined. Skipping acceptance tests.");
             }
 
-            _url = $"https://{name}.azurewebsites.net/api/RepositoryValidator";
+            _url = $"https://{name}.azurewebsites.net/api/v1/github-endpoint";
         }
 
         [Test]
@@ -40,7 +40,7 @@ namespace AcceptanceTests
                 repository = new
                 {
                     name = "repository-validator-testing",
-                    owner = "protacon"
+                    owner = "by-pinja"
                 }
             });
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
@@ -56,12 +56,12 @@ namespace AcceptanceTests
                     Name = "repository-validator-testing",
                     Owner = new Owner
                     {
-                        Login = "protacon"
+                        Login = "by-pinja"
                     }
                 }
             };
             var result = await SendRequest(data);
-            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.AreEqual(HttpStatusCode.Accepted, result.StatusCode);
         }
 
         private async Task<IRestResponse> SendRequest(object obj)

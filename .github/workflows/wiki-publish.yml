@@ -25,9 +25,9 @@ jobs:
       - name: Upload Release Notes to Wiki
         uses: docker://decathlon/wiki-page-creator-action:2.0.1
         env:
-          ACTION_MAIL: noreply@protacon.com
+          ACTION_MAIL: noreply@pinja.com
           ACTION_NAME: CI
           GH_PAT: ${{ secrets.GH_PAT }}
           MD_FOLDER: wiki
-          OWNER: protacon
+          OWNER: by-pinja
           REPO_NAME: repository-validator

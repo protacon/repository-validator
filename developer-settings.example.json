@@ -1,7 +1,7 @@
 {
     "ResourceGroupName": "repo-dev",
     "Location": "North Europe",
-    "GitHubOrganization": "protacon",
+    "GitHubOrganization": "by-pinja",
     "GitHubToken": "mocktoken",
     "AzureAlarmHandlerUrl": "alert-webhook-target. leave empty if not in use, property needs still to be defined.",
     "Tags": {
