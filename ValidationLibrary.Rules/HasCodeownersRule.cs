@@ -11,6 +11,7 @@ namespace ValidationLibrary.Rules
     /// This rule checks that repository has CODEOWNERS defined in .github folder
     /// 
     /// Code owners should be defined for 2 reasons
+    /// 
     ///  1. Pull request reviewers are automatically added
     ///  1. Other people have have better visibility that who knows about the 
     ///  project.
