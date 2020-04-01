@@ -24,16 +24,14 @@ namespace ValidationLibrary.MarkdownGenerator
 
             var mb = new MarkdownBuilder();
 
-            mb.HeaderWithCode(2, typeName);
+            mb.HeaderWithCode(1, typeName);
             mb.AppendLine();
-
 
             foreach (var summaryLine in _commentLookup[typeName].FirstOrDefault()?.Summary)
             {
                 mb.AppendLine(summaryLine);
             }
 
-            mb.AppendLine();
             mb.AppendLine($"To ignore {typeName} validation, use following `repository-validator.json`");
             mb.AppendLine();
 
@@ -47,7 +45,6 @@ namespace ValidationLibrary.MarkdownGenerator
 
             mb.Code("json", sb.ToString());
 
-            mb.AppendLine();
             return mb.ToString();
         }
     }

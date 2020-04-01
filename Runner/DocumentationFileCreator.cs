@@ -21,8 +21,8 @@ namespace Runner
 
             var homeBuilder = new MarkdownBuilder();
             homeBuilder.Header(1, "Rules");
-            homeBuilder.AppendLine("This page lists all rules the Repository Validator can validate.");
             homeBuilder.AppendLine();
+            homeBuilder.AppendLine("This page lists all rules the Repository Validator can validate.");
 
             MakeSureFolderStructureExists(outputFolder);
 
@@ -39,8 +39,6 @@ namespace Runner
                     homeBuilder.ListLink(MarkdownBuilder.MarkdownCodeQuote(item.Name), $"{name}");
                     File.WriteAllText(path, item.ToString());
                 }
-
-                homeBuilder.AppendLine();
             }
 
             File.WriteAllText(Path.Combine(outputFolder, "Rules.md"), homeBuilder.ToString());
