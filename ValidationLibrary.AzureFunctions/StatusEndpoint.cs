@@ -11,7 +11,7 @@ namespace ValidationLibrary.AzureFunctions
     public class StatusEndpoint
     {
         private readonly ILogger<StatusEndpoint> _logger;
-        private IRepositoryValidator _validator;
+        private readonly IRepositoryValidator _validator;
         public StatusEndpoint(ILogger<StatusEndpoint> logger, IRepositoryValidator validator)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
