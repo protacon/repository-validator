@@ -92,8 +92,9 @@ namespace ValidationLibrary.AzureFunctions.Tests
         [Test]
         public async Task RunActivity_ValidatesTrigger()
         {
-            const string InstanceId = "7E467BDB-213F-407A-B86A-1954053D3C27";
+            const string InstanceId = "by-pinja_repository-validator-testing";
             _mockDurableClient.StartNewAsync(Arg.Any<string>(), Arg.Any<object>()).Returns(Task.FromResult(InstanceId));
+            _mockDurableClient.GetStatusAsync(Arg.Any<string>()).Returns(Task.FromResult<DurableOrchestrationStatus>(null));
 
             _mockDurableClient.CreateCheckStatusResponse(Arg.Any<HttpRequestMessage>(), InstanceId).Returns(new HttpResponseMessage
             {
@@ -121,14 +122,14 @@ namespace ValidationLibrary.AzureFunctions.Tests
             var result = await RepositoryValidatorEndpoint.RepositoryValidatorTrigger(request, _mockDurableClient, Substitute.For<ILogger>());
 
             Assert.AreEqual(result.StatusCode, HttpStatusCode.OK);
-            await _mockDurableClient.Received().StartNewAsync(Arg.Any<string>(), Arg.Any<object>());
+            await _mockDurableClient.Received().StartNewAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<object>());
             _mockDurableClient.Received().CreateCheckStatusResponse(Arg.Any<HttpRequestMessage>(), InstanceId);
         }
 
         [Test]
         public async Task RunActivity_InnvalidJsonThrowsError()
         {
-            const string InstanceId = "7E467BDB-213F-407A-B86A-1954053D3C27";
+            const string InstanceId = "test_repository-validator-testing";
             _mockDurableClient.StartNewAsync(Arg.Any<string>(), Arg.Any<object>()).Returns(Task.FromResult(InstanceId));
 
             _mockDurableClient.CreateCheckStatusResponse(Arg.Any<HttpRequestMessage>(), InstanceId).Returns(new HttpResponseMessage
