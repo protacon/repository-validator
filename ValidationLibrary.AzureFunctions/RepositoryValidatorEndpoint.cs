@@ -40,7 +40,6 @@ namespace ValidationLibrary.AzureFunctions
             try
             {
                 var content = await req.Content.ReadAsAsync<PushData>().ConfigureAwait(false);
-                // Validation is done twice for developer convenience.
                 ValidateInput(content);
                 logger.LogDebug("Request json valid.");
                 var instanceId = CreateInstanceId(content);
@@ -84,9 +83,10 @@ namespace ValidationLibrary.AzureFunctions
         {
             try
             {
+                if (content is null) throw new ArgumentNullException(nameof(content), "No content to execute the activity.");
+
                 logger.LogDebug("Executing validation activity.");
                 ValidateInput(content);
-                if (content is null) throw new ArgumentNullException(nameof(content), "No content to execute the activity.");
 
                 logger.LogInformation("Doing validation. Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
                 await _validationClient.Init().ConfigureAwait(false);
@@ -104,7 +104,6 @@ namespace ValidationLibrary.AzureFunctions
             catch (ArgumentException exception)
             {
                 logger.LogError(exception, "Invalid request received");
-
                 return new BadRequestResult();
             }
         }
