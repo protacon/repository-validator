@@ -128,16 +128,6 @@ namespace ValidationLibrary.AzureFunctions
                 throw new ArgumentNullException(nameof(content), "Content was null. Unable to retrieve parameters.");
             }
 
-            if (content.Repository is null)
-            {
-                throw new ArgumentException("No repository defined in content. Unable to validate repository.");
-            }
-
-            if (content.Repository.Owner is null)
-            {
-                throw new ArgumentException("No repository owner defined. Unable to validate repository.");
-            }
-
             if (string.IsNullOrEmpty(content.Repository.Name))
             {
                 throw new ArgumentException("No repository name defined. Unable to validate repository.");

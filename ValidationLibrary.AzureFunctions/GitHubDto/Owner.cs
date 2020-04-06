@@ -4,7 +4,7 @@ namespace ValidationLibrary.AzureFunctions.GitHubDto
 {
     public class Owner
     {
-        [JsonProperty(PropertyName = "login")]
+        [JsonProperty(PropertyName = "login", Required = Required.Always)]
         public string Login { get; set; }
     }
 }
