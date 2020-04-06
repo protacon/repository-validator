@@ -99,7 +99,7 @@ namespace ValidationLibrary.AzureFunctions.Tests
             _mockDurableClient.CreateCheckStatusResponse(Arg.Any<HttpRequestMessage>(), InstanceId).Returns(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("")
+                Content = new StringContent(string.Empty)
             });
 
             var dynamic = new
@@ -127,17 +127,8 @@ namespace ValidationLibrary.AzureFunctions.Tests
         }
 
         [Test]
-        public async Task RunActivity_InnvalidJsonThrowsError()
+        public async Task RunActivity_InvalidJsonThrowsError()
         {
-            const string InstanceId = "test_repository-validator-testing";
-            _mockDurableClient.StartNewAsync(Arg.Any<string>(), Arg.Any<object>()).Returns(Task.FromResult(InstanceId));
-
-            _mockDurableClient.CreateCheckStatusResponse(Arg.Any<HttpRequestMessage>(), InstanceId).Returns(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("")
-            });
-
             var dynamic = new
             {
                 repository = new
@@ -155,7 +146,84 @@ namespace ValidationLibrary.AzureFunctions.Tests
             var result = await RepositoryValidatorEndpoint.RepositoryValidatorTrigger(request, _mockDurableClient, Substitute.For<ILogger>());
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             await _mockDurableClient.DidNotReceive().StartNewAsync(Arg.Any<string>(), Arg.Any<object>());
-            _mockDurableClient.DidNotReceive().CreateCheckStatusResponse(Arg.Any<HttpRequestMessage>(), InstanceId);
+            _mockDurableClient.DidNotReceive().CreateCheckStatusResponse(Arg.Any<HttpRequestMessage>(), Arg.Any<string>());
+        }
+
+        [Test]
+        public async Task RunActivity_DoesntStartNewValidationIfExistingIsRunning()
+        {
+            var data = CreatePushData("test", "test");
+            var instanceId = CreateInstanceId(data);
+            _mockDurableClient.CreateCheckStatusResponse(Arg.Any<HttpRequestMessage>(), instanceId).Returns(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(string.Empty)
+            });
+
+            var status = new DurableOrchestrationStatus
+            {
+                RuntimeStatus = OrchestrationRuntimeStatus.Running
+            };
+            _mockDurableClient.GetStatusAsync(instanceId).Returns(Task.FromResult(status));
+
+            var request = new HttpRequestMessage()
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(data), System.Text.Encoding.UTF8, "application/json"),
+            };
+
+            var result = await RepositoryValidatorEndpoint.RepositoryValidatorTrigger(request, _mockDurableClient, Substitute.For<ILogger>());
+
+            Assert.AreEqual(result.StatusCode, HttpStatusCode.OK);
+            await _mockDurableClient.DidNotReceiveWithAnyArgs().StartNewAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<object>());
+        }
+
+        [Test]
+        public async Task RunActivity_RetriesForCompleted(
+            [Values(OrchestrationRuntimeStatus.Canceled, OrchestrationRuntimeStatus.Failed, OrchestrationRuntimeStatus.Terminated, OrchestrationRuntimeStatus.Completed)] OrchestrationRuntimeStatus runtimeStatus)
+        {
+            var data = CreatePushData("test", "test");
+            var instanceId = CreateInstanceId(data);
+            _mockDurableClient.CreateCheckStatusResponse(Arg.Any<HttpRequestMessage>(), instanceId).Returns(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(string.Empty)
+            });
+
+            var status = new DurableOrchestrationStatus
+            {
+                RuntimeStatus = runtimeStatus
+            };
+            _mockDurableClient.GetStatusAsync(instanceId).Returns(Task.FromResult(status));
+
+            var request = new HttpRequestMessage()
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(data), System.Text.Encoding.UTF8, "application/json"),
+            };
+
+            var result = await RepositoryValidatorEndpoint.RepositoryValidatorTrigger(request, _mockDurableClient, Substitute.For<ILogger>());
+
+            Assert.AreEqual(result.StatusCode, HttpStatusCode.OK);
+            await _mockDurableClient.Received().StartNewAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<object>());
+        }
+
+        private PushData CreatePushData(string organization, string name)
+        {
+            return new PushData
+            {
+                Repository = new GitHubDto.Repository
+                {
+                    Name = name,
+                    Owner = new Owner
+                    {
+                        Login = organization
+                    }
+                }
+            };
+        }
+
+        private static string CreateInstanceId(PushData content)
+        {
+            return $"{content.Repository?.Owner?.Login}_{content.Repository?.Name}";
         }
     }
 }

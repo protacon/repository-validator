@@ -43,7 +43,7 @@ namespace ValidationLibrary.AzureFunctions
                 // Validation is done twice for developer convenience.
                 ValidateInput(content);
                 logger.LogDebug("Request json valid.");
-                var instanceId = $"{content.Repository?.Owner?.Login}_{content.Repository?.Name}";
+                var instanceId = CreateInstanceId(content);
 
                 var existingInstance = await starter.GetStatusAsync(instanceId).ConfigureAwait(false);
                 if (existingInstance == null)
@@ -115,6 +115,11 @@ namespace ValidationLibrary.AzureFunctions
                 || status == OrchestrationRuntimeStatus.Failed
                 || status == OrchestrationRuntimeStatus.Terminated
                 || status == OrchestrationRuntimeStatus.Completed;
+        }
+
+        private static string CreateInstanceId(PushData content)
+        {
+            return $"{content.Repository?.Owner?.Login}_{content.Repository?.Name}";
         }
 
         private static void ValidateInput(PushData content)
