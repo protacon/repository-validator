@@ -54,11 +54,11 @@ namespace ValidationLibrary.AzureFunctions
                 else if (IsFinished(existingInstance.RuntimeStatus))
                 {
                     await starter.StartNewAsync(nameof(RunOrchestrator), instanceId, content).ConfigureAwait(false);
-                    logger.LogInformation("Orchestration with ID = '{instanceId}' already running, not creating a new one.", instanceId);
+                    logger.LogInformation("Orchestration with ID = '{instanceId}' status was {status}, starting a new one.", instanceId, existingInstance.RuntimeStatus);
                 }
                 else
                 {
-                    logger.LogInformation("Orchestration with ID = '{instanceId}' status was {status}, starting a new one.", instanceId, existingInstance.RuntimeStatus);
+                    logger.LogInformation("Orchestration with ID = '{instanceId}' status was {status}, already running, not creating a new one.", instanceId, existingInstance.RuntimeStatus);
                 }
                 return starter.CreateCheckStatusResponse(req, instanceId);
             }
