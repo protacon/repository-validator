@@ -98,24 +98,54 @@ namespace ValidationLibrary.AzureFunctions.Tests
         [Test]
         public async Task RunActivity_InvalidJsonThrowsError()
         {
-            var dynamic = new
-            {
-                repository = new
+            var invalidObjects = new dynamic[]{
+                new
                 {
-                    name = "repository-validator-testing",
-                    owner = "test"
+                    repository = new
+                    {
+                        name = "repository-validator-testing",
+                        owner = "test"
+                    }
+                },
+                new
+                {
+                    repository = new
+                    {
+                        name = "repository-validator-testing"
+                    }
+                },
+                new
+                {
+                    repository = new
+                    {
+                        name = "repository-validator-testing",
+                        owner = (object)null
+                    }
+                },
+                new
+                {
+                    repository = new
+                    {
+                        owner = new
+                        {
+                            login = "test"
+                        }
+                    }
                 }
             };
 
-            var request = new HttpRequestMessage()
+            foreach (var dynamic in invalidObjects)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(dynamic), System.Text.Encoding.UTF8, "application/json"),
-            };
+                var request = new HttpRequestMessage()
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(dynamic), System.Text.Encoding.UTF8, "application/json"),
+                };
 
-            var result = await RepositoryValidatorEndpoint.RepositoryValidatorTrigger(request, _mockDurableClient, Substitute.For<ILogger>());
-            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
-            await _mockDurableClient.DidNotReceive().StartNewAsync(Arg.Any<string>(), Arg.Any<object>());
-            _mockDurableClient.DidNotReceive().CreateCheckStatusResponse(Arg.Any<HttpRequestMessage>(), Arg.Any<string>());
+                var result = await RepositoryValidatorEndpoint.RepositoryValidatorTrigger(request, _mockDurableClient, Substitute.For<ILogger>());
+                Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+                await _mockDurableClient.DidNotReceive().StartNewAsync(Arg.Any<string>(), Arg.Any<object>());
+                _mockDurableClient.DidNotReceive().CreateCheckStatusResponse(Arg.Any<HttpRequestMessage>(), Arg.Any<string>());
+            }
         }
 
         [Test]

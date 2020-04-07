@@ -39,7 +39,8 @@ namespace ValidationLibrary.AzureFunctions
 
             try
             {
-                var content = await req.Content.ReadAsAsync<PushData>().ConfigureAwait(false);
+                var stringContent = await req.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var content = JsonConvert.DeserializeObject<PushData>(stringContent);
                 ValidateInput(content);
                 logger.LogDebug("Request json valid.");
                 var instanceId = CreateInstanceId(content);
@@ -64,6 +65,7 @@ namespace ValidationLibrary.AzureFunctions
             }
             catch (Exception exception) when (exception is ArgumentException || exception is JsonSerializationException)
             {
+                Console.WriteLine("Vittu {0}", exception.Message);
                 logger.LogError(exception, "Invalid request received, can't perform validation.");
                 return new HttpResponseMessage(HttpStatusCode.BadRequest);
             }
