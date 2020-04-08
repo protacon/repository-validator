@@ -40,12 +40,26 @@ namespace ValidationLibrary.AzureFunctions
             try
             {
                 var content = await req.Content.ReadAsAsync<PushData>().ConfigureAwait(false);
-                // Validation is done twice for developer convenience.
                 ValidateInput(content);
                 logger.LogDebug("Request json valid.");
-                var instanceId = await starter.StartNewAsync(nameof(RunOrchestrator), content).ConfigureAwait(false);
+                var instanceId = CreateInstanceId(content);
 
-                logger.LogInformation($"Started orchestration with ID = '{instanceId}'.");
+                var existingInstance = await starter.GetStatusAsync(instanceId).ConfigureAwait(false);
+                if (existingInstance == null)
+                {
+                    await starter.StartNewAsync(nameof(RunOrchestrator), instanceId, content).ConfigureAwait(false);
+
+                    logger.LogInformation("Started orchestration with ID = '{instanceId}'.", instanceId);
+                }
+                else if (IsFinished(existingInstance.RuntimeStatus))
+                {
+                    await starter.StartNewAsync(nameof(RunOrchestrator), instanceId, content).ConfigureAwait(false);
+                    logger.LogInformation("Orchestration with ID = '{instanceId}' status was {status}, starting a new one.", instanceId, existingInstance.RuntimeStatus);
+                }
+                else
+                {
+                    logger.LogInformation("Orchestration with ID = '{instanceId}' status was {status}, already running, not creating a new one.", instanceId, existingInstance.RuntimeStatus);
+                }
                 return starter.CreateCheckStatusResponse(req, instanceId);
             }
             catch (Exception exception) when (exception is ArgumentException || exception is JsonSerializationException)
@@ -69,9 +83,10 @@ namespace ValidationLibrary.AzureFunctions
         {
             try
             {
+                if (content is null) throw new ArgumentNullException(nameof(content), "No content to execute the activity.");
+
                 logger.LogDebug("Executing validation activity.");
                 ValidateInput(content);
-                if (content is null) throw new ArgumentNullException(nameof(content), "No content to execute the activity.");
 
                 logger.LogInformation("Doing validation. Repository {owner}/{repositoryName}", content.Repository?.Owner?.Login, content.Repository?.Name);
                 await _validationClient.Init().ConfigureAwait(false);
@@ -89,9 +104,21 @@ namespace ValidationLibrary.AzureFunctions
             catch (ArgumentException exception)
             {
                 logger.LogError(exception, "Invalid request received");
-
                 return new BadRequestResult();
             }
+        }
+
+        private static bool IsFinished(OrchestrationRuntimeStatus status)
+        {
+            return status == OrchestrationRuntimeStatus.Canceled
+                || status == OrchestrationRuntimeStatus.Failed
+                || status == OrchestrationRuntimeStatus.Terminated
+                || status == OrchestrationRuntimeStatus.Completed;
+        }
+
+        private static string CreateInstanceId(PushData content)
+        {
+            return $"{content.Repository?.Owner?.Login}_{content.Repository?.Name}";
         }
 
         private static void ValidateInput(PushData content)
