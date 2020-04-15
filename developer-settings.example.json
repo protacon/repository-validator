@@ -1,5 +1,5 @@
 {
-    "ResourceGroupName": "repo-dev",
+    "ResourceGroupName": "Keep below 20 characters excluding -. E.g. repo-dev-name",
     "Location": "North Europe",
     "GitHubOrganization": "by-pinja",
     "GitHubToken": "mocktoken",
