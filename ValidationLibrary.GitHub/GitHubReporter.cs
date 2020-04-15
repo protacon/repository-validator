@@ -84,17 +84,17 @@ namespace ValidationLibrary.GitHub
 
         private async Task CloseIfNeeded(ValidationReport report, ValidationResult result, IEnumerable<Issue> existingIssues)
         {
-            _logger.LogTrace("Closing issues if needed for rule {0}", result.RuleName);
+            _logger.LogTrace("Closing issues if needed for rule {rule}", result.RuleName);
             foreach (var existingIssue in existingIssues)
             {
-                _logger.LogTrace("Checking issue: #{0}, state: {1}", existingIssue.Number, existingIssue.State);
+                _logger.LogTrace("Checking issue: #{ruleName}, state: {issueState}", existingIssue.Number, existingIssue.State);
                 if (existingIssue.State == ItemState.Open)
                 {
-                    _logger.LogTrace("Found open issue #{0}", existingIssue.Number);
+                    _logger.LogTrace("Found open issue #{issueId}", existingIssue.Number);
                     await _client.Issue.Comment.Create(report.Owner, report.RepositoryName, existingIssue.Number, $"{_config.Prefix}: Issue fixed. Closing issue.").ConfigureAwait(false);
                     var update = new IssueUpdate() { State = ItemState.Closed };
                     await _client.Issue.Update(report.Owner, report.RepositoryName, existingIssue.Number, update).ConfigureAwait(false);
-                    _logger.LogInformation("Closed issue #{0} for {1}/{2}", existingIssue.Number, report.Owner, report.RepositoryName);
+                    _logger.LogInformation("Closed issue #{issueId} for {owner}/{repositoryName}", existingIssue.Number, report.Owner, report.RepositoryName);
                 }
             }
         }
@@ -103,12 +103,12 @@ namespace ValidationLibrary.GitHub
         {
             if (!existingIssues.Any())
             {
-                _logger.LogInformation("No issues found, creating new issue for {0}/{1}.", report.Owner, report.RepositoryName);
+                _logger.LogInformation("No issues found, creating new issue for {owner}/{repositoryName}.", report.Owner, report.RepositoryName);
                 await _client.Issue.Create(report.Owner, report.RepositoryName, CreateIssue(result)).ConfigureAwait(false);
             }
             else
             {
-                _logger.LogTrace("Found {0} existing issues.", existingIssues.Count());
+                _logger.LogTrace("Found {issueCount} existing issues.", existingIssues.Count());
                 var openIssue = existingIssues.FirstOrDefault(issue => issue.State == ItemState.Open);
                 if (openIssue != null)
                 {
@@ -121,7 +121,7 @@ namespace ValidationLibrary.GitHub
 
                 var update = new IssueUpdate() { State = ItemState.Open };
                 await _client.Issue.Update(report.Owner, report.RepositoryName, closedIssue.Number, update).ConfigureAwait(false);
-                _logger.LogInformation("Reopened issue #{0} for {1}/{2}", closedIssue.Number, report.Owner, report.RepositoryName);
+                _logger.LogInformation("Reopened issue #{issueId} for {owner}/{repositoryName}", closedIssue.Number, report.Owner, report.RepositoryName);
             }
         }
 
