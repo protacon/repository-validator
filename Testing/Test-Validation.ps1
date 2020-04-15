@@ -22,7 +22,7 @@
 param(
     [Parameter()][string]$Organization = 'by-pinja',
     [Parameter()][string]$Repository = 'repository-validator',
-    [Parameter(Mandatory)][string]$SettingsFile = 'developer-settings.json'
+    [Parameter()][string]$SettingsFile = 'developer-settings.json'
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
