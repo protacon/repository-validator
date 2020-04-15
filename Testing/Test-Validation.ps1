@@ -8,23 +8,21 @@
     production deployment to warm up the app and verify that validation
     endpoint returns correct answer
 
-    .PARAMETER ResourceGroup
-    Resource group name
-
-    .PARAMETER WebAppName
-    Name of the web app
-
     .PARAMETER Organization
     Organization/user containing the repository (default by-pinja)
 
     .PARAMETER Repository
     Name of the repository to be validated  (default repository-validator)
+
+    .PARAMETER SettinsFile
+    Settings file that contains environment settings.
+    Defaults to 'developer-settings.json'
 #>
 [CmdLetBinding()]
 param(
     [Parameter()][string]$Organization = 'by-pinja',
     [Parameter()][string]$Repository = 'repository-validator',
-    [Parameter()][string]$SettingsFile = 'developer-settings.json'
+    [Parameter(Mandatory)][string]$SettingsFile = 'developer-settings.json'
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest

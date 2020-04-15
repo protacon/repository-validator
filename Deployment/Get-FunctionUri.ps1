@@ -12,6 +12,9 @@
     
     .PARAMETER WebAppName
     Name of the target web app
+
+    .PARAMETER FunctionName
+    Name of the function web hook
     
     .EXAMPLE
     .\Publish.ps1 -ResourceGroup "github-test"
@@ -19,7 +22,7 @@
 param(
     [Parameter(Mandatory)][string]$ResourceGroup,
     [Parameter()][string]$WebAppName = $ResourceGroup,
-    [Parameter()][string]$FunctionName
+    [Parameter(Mandatory)][string]$FunctionName
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest

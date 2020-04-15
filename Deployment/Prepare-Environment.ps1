@@ -12,7 +12,7 @@
     Defaults to 'developer-settings.json'
 #>
 param(
-    [Parameter()][string]$SettingsFile = 'developer-settings.json'
+    [Parameter(Mandatory)][string]$SettingsFile = 'developer-settings.json'
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
