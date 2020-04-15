@@ -1,28 +1,32 @@
 <#
     .SYNOPSIS
-    Retrieves function uri that needs to be configured to Slack API
-
+    Retrieves function uri.
+    
+    .DESCRIPTION
     This assumes that user has already logged in with az login.
-
     NOTE: Invoke-RestMethod may fail if wrong SecurityProtocol is used.
     Tls12 should work
-
-    .PARAMETER WebApp
-    PSSite web app
-
+    
+    .PARAMETER ResourceGroup
+    Name of the resource group that has the web app deployed
+    
+    .PARAMETER WebAppName
+    Name of the target web app
+    
     .EXAMPLE
-    .\Publish.ps1 -ResourceGroup "github-test" -WebAppName "test-app"
-#>
+    .\Publish.ps1 -ResourceGroup "github-test"
+ #>
 param(
-    [Parameter(Mandatory)][Microsoft.Azure.Commands.WebApps.Models.PSSite]$WebApp,
-    [Parameter()][string]$FunctionName = 'RepositoryValidator'
+    [Parameter(Mandatory)][string]$ResourceGroup,
+    [Parameter()][string]$WebAppName = $ResourceGroup,
+    [Parameter()][string]$FunctionName
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
-
+    
 . "./Deployment/FunctionUtil.ps1"
 
-$kuduCreds = Get-KuduCredentials -App $WebApp
-$code = Get-FunctionKey $WebApp.Name $FunctionName $kuduCreds
-$url = Get-InvokeUrl $WebApp.Name $FunctionName $kuduCreds
+$kuduCreds = Get-KuduCredentials $WebAppName $ResourceGroup
+$code = Get-FunctionKey $WebAppName $FunctionName $kuduCreds
+$url = Get-InvokeUrl $WebAppName $FunctionName $kuduCreds
 return $url + "?code=" + $code

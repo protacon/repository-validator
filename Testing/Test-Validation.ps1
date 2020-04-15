@@ -22,20 +22,18 @@
 #>
 [CmdLetBinding()]
 param(
-    [Parameter(Mandatory)][string]$ResourceGroup,
-    [Parameter()][string]$WebAppName = $ResourceGroup,
     [Parameter()][string]$Organization = 'by-pinja',
-    [Parameter()][string]$Repository = 'repository-validator'
+    [Parameter()][string]$Repository = 'repository-validator',
+    [Parameter()][string]$SettingsFile = 'developer-settings.json'
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$webApp = Get-AzWebApp `
-    -ResourceGroupName $ResourceGroup `
-    -Name $WebAppName
+Write-Host "Reading settings from file $SettingsFile"
+$settingsJson = Get-Content -Raw -Path $SettingsFile | ConvertFrom-Json
 
 $validationAddress = ./Deployment/Get-FunctionUri.ps1 `
-    -WebApp $webApp `
+    -ResourceGroup $settingsJson.ResourceGroupName `
     -FunctionName 'RepositoryValidatorTrigger'
 
 # This should match the webhook content sent by github, but we are only using
@@ -53,7 +51,7 @@ Write-Host 'Send validation request'
 Invoke-RestMethod -Method POST -Uri $validationAddress -Body $params -ContentType 'application/json;charset=UTF-8'
 
 $statusCheckAddress = ./Deployment/Get-FunctionUri.ps1 `
-    -WebApp $webApp `
+    -ResourceGroup $settingsJson.ResourceGroupName `
     -FunctionName 'StatusCheck'
 
 Write-Host 'Send status check request'
