@@ -7,7 +7,7 @@
     SettingsFile (default developer-settings.json) should contain all
     relevant information.
 
-    This assumes that user has already logged in to the Azure Powershell Module.
+    This assumes that the user has already logged in to the Azure Powershell Module.
 
     .PARAMETER SettinsFile
     Settings file that contains environment settings.
