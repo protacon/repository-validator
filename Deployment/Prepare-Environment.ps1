@@ -5,7 +5,9 @@
     .DESCRIPTION
     Creates and prepares and environment for development and testing.
     SettingsFile (default developer-settings.json) should contain all
-    relat
+    relevant information.
+
+    This assumes that user has already logged in to the Azure Powershell Module.
 
     .PARAMETER SettinsFile
     Settings file that contains environment settings.
