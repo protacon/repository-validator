@@ -23,11 +23,27 @@ function Get-FunctionKey() {
         [Parameter(Mandatory)][string]$FunctionName,
         [Parameter(Mandatory)][string]$EncodedCreds
     )
+    return Get-Key $AppName $EncodedCreds "https://$AppName.azurewebsites.net/admin/functions/$FunctionName/keys"
+}
 
+function Get-DefaultKey() {
+    param(
+        [Parameter(Mandatory)][string]$AppName,
+        [Parameter(Mandatory)][string]$EncodedCreds
+    )
+    return Get-Key $AppName $EncodedCreds "https://$AppName.azurewebsites.net/admin/host/keys"
+}
+
+function Get-Key() {
+    param(
+        [Parameter(Mandatory)][string]$AppName,
+        [Parameter(Mandatory)][string]$EncodedCreds,
+        [Parameter(Mandatory)][string]$Uri
+    )
     $jwt = Get-Token -AppName $AppName -EncodedCreds $EncodedCreds
 
     $keys = Invoke-RestMethod -Method GET -Headers @{Authorization = ("Bearer {0}" -f $jwt) } `
-        -Uri "https://$AppName.azurewebsites.net/admin/functions/$FunctionName/keys" 
+        -Uri $Uri
 
     $code = $keys.keys[0].value
     return $code

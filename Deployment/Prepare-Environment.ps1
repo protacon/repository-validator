@@ -10,8 +10,7 @@
     This assumes that the user has already logged in to the Azure Powershell Module.
 
     .PARAMETER SettinsFile
-    Settings file that contains environment settings.
-    Defaults to 'developer-settings.json'
+    Settings file that contains environment settings. Defaults to 'developer-settings.json'
 #>
 param(
     [Parameter()][string]$SettingsFile = 'developer-settings.json'
