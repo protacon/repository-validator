@@ -6,7 +6,7 @@
     This functions can be used the test Azure Functions validation endpoint
     without making changes in GitHub. This is also used as the last step of
     production deployment to warm up the app and verify that validation
-    endpoint returns correct answer
+    endpoint returns correct answer.
 
     .PARAMETER ResourceGroup
     Resource group name
@@ -30,12 +30,9 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$webApp = Get-AzWebApp `
-    -ResourceGroupName $ResourceGroup `
-    -Name $WebAppName
-
 $validationAddress = ./Deployment/Get-FunctionUri.ps1 `
-    -WebApp $webApp `
+    -ResourceGroup $ResourceGroup `
+    -WebAppName $WebAppName `
     -FunctionName 'RepositoryValidatorTrigger'
 
 # This should match the webhook content sent by github, but we are only using
@@ -53,7 +50,8 @@ Write-Host 'Send validation request'
 Invoke-RestMethod -Method POST -Uri $validationAddress -Body $params -ContentType 'application/json;charset=UTF-8'
 
 $statusCheckAddress = ./Deployment/Get-FunctionUri.ps1 `
-    -WebApp $webApp `
+    -ResourceGroup $ResourceGroup `
+    -WebAppName $WebAppName `
     -FunctionName 'StatusCheck'
 
 Write-Host 'Send status check request'
