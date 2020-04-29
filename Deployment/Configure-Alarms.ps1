@@ -37,13 +37,9 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$webApp = Get-AzWebApp `
-    -ResourceGroupName $AlertHandlingResourceGroup `
-    -Name $AlertHandlingWebAppName
-
-$addressTemplate = .\Deployment\Get-FunctionUri.ps1  `
-    -WebApp $webApp `
-    -FunctionName $AlertHandlingFunction
+$addressTemplate = .\Deployment\Get-FunctionUri.ps1 `
+    -FunctionName $AlertHandlingFunction `
+    -ResourceGroup $AlertHandlingResourceGroup
 
 $address = $addressTemplate -Replace '{channel}', $AlertSlackChannel
 
