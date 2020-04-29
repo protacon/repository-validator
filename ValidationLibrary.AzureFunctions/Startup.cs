@@ -46,7 +46,7 @@ namespace ValidationLibrary.AzureFunctions
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            IConfiguration config = new ConfigurationBuilder()
+            var config = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .Build();
 
@@ -56,8 +56,7 @@ namespace ValidationLibrary.AzureFunctions
                 .AddValidationRules(config)
                 .AddTransient<IGitHubClient, GitHubClient>(services =>
                 {
-                    var githubConfig = new GitHubConfiguration();
-                    config.GetSection("GitHub").Bind(githubConfig);
+                    var githubConfig = config.GetSection("GitHub").Get<GitHubConfiguration>();
 
                     ValidateConfig(githubConfig);
                     return CreateClient(githubConfig);

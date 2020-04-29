@@ -2,26 +2,27 @@
     .SYNOPSIS
     Retrieves necessary values from Azure and creates .runsettings-file
 
-    .PARAMETER ResourceGroup
-    Name of the resource group that has the web app deployed
+    .DESCRIPTION
+    The Azure environment should already exist and the webapp already deployed.
 
+    .PARAMETER ResourceGroup
+    Name of the resource group that has the web app deployed.
+    
     .PARAMETER WebAppName
     Name of the target web app. If not set, resource group name is used.
 #>
 param(
     [Parameter(Mandatory)][string]$ResourceGroup,
-    [Parameter()][string]$WebAppName = $ResourceGroup)
-
+    [Parameter()][string]$WebAppName = $ResourceGroup
+)
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 . "./Deployment/FunctionUtil.ps1"
 
-$webApp = Get-AzWebApp -ResourceGroupName $ResourceGroup -Name $WebAppName
-
 Write-Host "Fetch credentials..."
-$kuduCreds = Get-KuduCredentials $webApp
-$code = Get-DefaultCode -AppName $WebAppName -EncodedCreds $kuduCreds
+$kuduCreds = Get-KuduCredentials $WebAppName $ResourceGroup
+$code = Get-DefaultKey $WebAppName $kuduCreds
 
 [xml]$document = New-Object System.Xml.XmlDocument
 $declaration = $document.CreateXmlDeclaration('1.0', 'UTF-8', $null)
