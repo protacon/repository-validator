@@ -184,7 +184,7 @@ namespace ValidationLibrary.GitHub.Tests
 
         private Repository CreateRepository(string owner, string name, bool hasIssues, bool archived)
         {
-            return new Repository(null, null, null, null, null, null, null, 0, null, null, name, $"{owner}/{name}", false, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, hasIssues, false, false, false, 0, 0, null, null, null, archived);
+            return new Repository(null, null, null, null, null, null, null, 0, null, null, name, $"{owner}/{name}", false, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, hasIssues, false, false, false, 0, 0, null, null, null, archived, 0);
         }
     }
 }

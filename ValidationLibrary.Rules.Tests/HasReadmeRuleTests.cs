@@ -23,7 +23,7 @@ namespace ValidationLibrary.Tests.Rules
         }
 
         [Test]
-        public async Task IsValid_ReturnsOkWhenReadmeExists([Values("ReAdMe.md", "rEaDmE.txt", "README", "readme", "ReAdMe.doc")]string readMeName)
+        public async Task IsValid_ReturnsOkWhenReadmeExists([Values("ReAdMe.md", "rEaDmE.txt", "README", "readme", "ReAdMe.doc")] string readMeName)
         {
             var readme = CreateContent(readMeName, "random content");
             IReadOnlyList<RepositoryContent> contents = new[] { readme };
@@ -36,7 +36,7 @@ namespace ValidationLibrary.Tests.Rules
         }
 
         [Test]
-        public async Task IsValid_ReturnsFalseWhenReadmeDoesNotExist([Values("aREADME.md", "rEaDmE.txta", "README.", "readm", "ReAdMea.doc", "")]string readMeName)
+        public async Task IsValid_ReturnsFalseWhenReadmeDoesNotExist([Values("aREADME.md", "rEaDmE.txta", "README.", "readm", "ReAdMea.doc", "")] string readMeName)
         {
             var contents = new List<RepositoryContent>();
             if (!string.IsNullOrEmpty(readMeName))
@@ -77,7 +77,7 @@ namespace ValidationLibrary.Tests.Rules
 
         private Repository CreateRepository(string name)
         {
-            return new Repository(null, null, null, null, null, null, null, 0, null, Owner, name, null, false, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, false, false, false, false, 0, 0, null, null, null, false);
+            return new Repository(null, null, null, null, null, null, null, 0, null, Owner, name, null, false, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, false, false, false, false, 0, 0, null, null, null, false, 0);
         }
     }
 }

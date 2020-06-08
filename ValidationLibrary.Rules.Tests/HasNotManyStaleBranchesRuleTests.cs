@@ -50,7 +50,7 @@ namespace ValidationLibrary.Tests.Rules
                 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow,
                 null, null, null, null, false, false,
                 false, false, 0, 0, null, null,
-                null, false);
+                null, false, 0);
         }
 
         private IReadOnlyList<Branch> CreateBranchList(int count, Repository repository)
