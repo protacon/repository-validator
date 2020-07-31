@@ -199,12 +199,12 @@ namespace Runner
 
         private static void ValidateConfig(GitHubConfiguration gitHubConfiguration)
         {
-            if (gitHubConfiguration.Organization == null)
+            if (string.IsNullOrWhiteSpace(gitHubConfiguration.Organization))
             {
                 throw new ArgumentNullException(nameof(gitHubConfiguration.Organization), "Organization was missing.");
             }
 
-            if (gitHubConfiguration.Token == null)
+            if (string.IsNullOrWhiteSpace(gitHubConfiguration.Token))
             {
                 throw new ArgumentNullException(nameof(gitHubConfiguration.Token), "Token was missing.");
             }
