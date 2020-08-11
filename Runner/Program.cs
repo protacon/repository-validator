@@ -38,15 +38,11 @@ namespace Runner
                 .Build();
 
             using var di = BuildDependencyInjection(config);
-            var logger = di.GetService<ILogger<Program>>();
-            var githubConfig = di.GetService<GitHubConfiguration>();
-            var ghClient = di.GetService<IGitHubClient>();
-            var repositoryValidator = di.GetService<IRepositoryValidator>();
-            var client = di.GetService<ValidationClient>();
-            var documentCreator = di.GetService<DocumentationFileCreator>();
 
-            async Task Scanner(IEnumerable<string> repositories, Options options)
+            async Task Scanner(IEnumerable<string> repositories, Options options, IGitHubClient ghClient, GitHubConfiguration githubConfig)
             {
+                var logger = di.GetService<ILogger<Program>>();
+                var client = di.GetService<ValidationClient>();
                 await client.Init();
 
                 var start = DateTime.UtcNow;
@@ -89,18 +85,21 @@ namespace Runner
             await Parser.Default
                 .ParseArguments<ScanSelectedOptions, ScanAllOptions, GenerateDocumentationOptions>(args)
                 .MapResult(
-                    async (ScanSelectedOptions options) => await Scanner(options.Repositories, options),
+                    async (ScanSelectedOptions options) => await Scanner(options.Repositories, options, di.GetService<IGitHubClient>(), di.GetService<GitHubConfiguration>()),
                     async (ScanAllOptions options) =>
                     {
+                        var githubConfig = di.GetService<GitHubConfiguration>();
+                        var ghClient = di.GetService<IGitHubClient>();
                         var allNonArchivedRepositories = ghClient
                             .Repository
                             .GetAllForOrg(githubConfig.Organization)
                             .Result
                             .Where(repository => !repository.Archived);
-                        await Scanner(allNonArchivedRepositories.Select(r => r.Name).ToArray(), options);
+                        await Scanner(allNonArchivedRepositories.Select(r => r.Name).ToArray(), options, ghClient, githubConfig);
                     },
                     async (GenerateDocumentationOptions options) =>
                     {
+                        var documentCreator = di.GetService<DocumentationFileCreator>();
                         documentCreator.GenerateDocumentation(options.OutputFolder);
 
                         await Task.CompletedTask;
