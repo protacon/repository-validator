@@ -47,7 +47,7 @@ namespace ValidationLibrary.Tests.Rules
                 null, null, null, null, null, null,
                 null, 0, null, owner, name, $"{owner}/{name}",
                 false, null, null, null, false, false, 0,
-                0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow,
+                0, MainBranch, 0, null, DateTime.UtcNow, DateTime.UtcNow,
                 null, null, null, null, false, false,
                 false, false, 0, 0, null, null,
                 null, false, 0);

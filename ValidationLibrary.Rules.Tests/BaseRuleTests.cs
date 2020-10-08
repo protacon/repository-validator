@@ -16,7 +16,7 @@ namespace ValidationLibrary.Tests.Rules
         protected IRepositoriesClient MockRepositoryClient { get; set; }
         protected IRepositoryContentsClient MockRepositoryContentClient { get; set; }
 
-        protected const string MainBranch = "master";
+        protected const string MainBranch = "main";
 
         [SetUp]
         public async Task Setup()

@@ -16,7 +16,6 @@ namespace ValidationLibrary.Rules
     {
         public string RuleName { get; }
         protected abstract string PullRequestBody { get; }
-        protected const string MainBranch = "master";
         private readonly ILogger<FixableRuleBase<T>> _logger;
         private readonly GitUtils _gitUtils;
         private readonly string _pullRequestTitle;
@@ -90,8 +89,8 @@ namespace ValidationLibrary.Rules
 
         private async Task CreateNewPullRequest(IGitHubClient client, Repository repository, Reference latest)
         {
-            var master = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, $"heads/{MainBranch}").ConfigureAwait(false);
-            var pullRequest = new NewPullRequest(_pullRequestTitle, latest.Ref, master.Ref)
+            var mainBranch = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, $"heads/{repository.DefaultBranch}").ConfigureAwait(false);
+            var pullRequest = new NewPullRequest(_pullRequestTitle, latest.Ref, mainBranch.Ref)
             {
                 Body = PullRequestBody
             };
