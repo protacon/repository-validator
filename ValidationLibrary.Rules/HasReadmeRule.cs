@@ -59,7 +59,7 @@ namespace ValidationLibrary.Rules
 
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}",
                 nameof(HasReadmeRule), RuleName, gitHubRepository.FullName);
-            var hasReadmeWithContent = await HasReadmeWithContent(client, gitHubRepository, MainBranch).ConfigureAwait(false);
+            var hasReadmeWithContent = await HasReadmeWithContent(client, gitHubRepository, gitHubRepository.DefaultBranch).ConfigureAwait(false);
 
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Readme has content: {readmeHasContent}",
                 nameof(HasReadmeRule), RuleName, gitHubRepository.FullName, hasReadmeWithContent);
@@ -72,8 +72,7 @@ namespace ValidationLibrary.Rules
             {
                 { "ClassName", nameof(HasReadmeRule) },
                 { "PullRequestTitle", _branchName },
-                { "ReadMeTemplateFileLocation", _templateFileUrl.OriginalString },
-                { "MainBranch", MainBranch }
+                { "ReadMeTemplateFileLocation", _templateFileUrl.OriginalString }
             };
         }
 

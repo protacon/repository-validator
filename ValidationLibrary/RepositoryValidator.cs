@@ -43,7 +43,7 @@ namespace ValidationLibrary
                 throw new ArgumentNullException(nameof(gitHubRepository));
             }
 
-            _logger.LogTrace("Validating repository {repositoryName}", gitHubRepository.FullName);
+            _logger.LogTrace("Validating repository {repositoryName}, default branch: {branch}", gitHubRepository.FullName, gitHubRepository.DefaultBranch);
             var config = await GetConfig(gitHubRepository).ConfigureAwait(false);
 
             var filteredRules = overrideRuleIgnore ? Rules : Rules.Where(rule =>

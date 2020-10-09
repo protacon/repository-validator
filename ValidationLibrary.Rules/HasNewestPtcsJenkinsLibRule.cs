@@ -64,7 +64,7 @@ namespace ValidationLibrary.Rules
 
             _logger.LogTrace("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}", nameof(HasNewestPtcsJenkinsLibRule), RuleName, repository.FullName);
 
-            var isValid = IsValid(await GetJenkinsFileContent(client, repository, MainBranch).ConfigureAwait(false));
+            var isValid = IsValid(await GetJenkinsFileContent(client, repository, repository.DefaultBranch).ConfigureAwait(false));
 
             return new ValidationResult(RuleName, $"Update {LibraryName} to newest version. Newest version can be found in https://github.com/by-pinja/{LibraryName}/releases",
                 isValid, Fix);
@@ -76,8 +76,7 @@ namespace ValidationLibrary.Rules
             {
                 { "ClassName", nameof(HasNewestPtcsJenkinsLibRule) },
                 { "PullRequestTitle", RuleName },
-                { "LatestJenkinsLibraryVersion", _expectedVersion },
-                { "MainBranch", MainBranch }
+                { "LatestJenkinsLibraryVersion", _expectedVersion }
             };
         }
 

@@ -23,8 +23,6 @@ namespace ValidationLibrary.Rules
     {
         public string RuleName => "Missing CODEOWNERS";
 
-        private const string MainBranch = "master";
-
         private readonly ILogger<HasCodeownersRule> _logger;
 
         public HasCodeownersRule(ILogger<HasCodeownersRule> logger)
@@ -67,8 +65,7 @@ namespace ValidationLibrary.Rules
             return new Dictionary<string, string>
             {
                 { "ClassName", nameof(HasCodeownersRule) },
-                { "RuleName", RuleName },
-                { "MainBranch", MainBranch }
+                { "RuleName", RuleName }
             };
         }
 
@@ -79,7 +76,7 @@ namespace ValidationLibrary.Rules
 
         private async Task<RepositoryContent> GetCodeownersContent(IGitHubClient client, Repository repository)
         {
-            var contents = await GetContents(client, repository, MainBranch).ConfigureAwait(false);
+            var contents = await GetContents(client, repository, repository.DefaultBranch).ConfigureAwait(false);
             var codeownersFile = contents.FirstOrDefault(content => content.Name.Equals("CODEOWNERS", StringComparison.InvariantCultureIgnoreCase));
             var path = "CODEOWNERS";
 
@@ -88,7 +85,7 @@ namespace ValidationLibrary.Rules
                 var directory = contents.FirstOrDefault(content => content.Name.Equals(".github", StringComparison.InvariantCultureIgnoreCase));
                 if (directory != null)
                 {
-                    var directoryContents = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, directory.Name, MainBranch).ConfigureAwait(false);
+                    var directoryContents = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, directory.Name, repository.DefaultBranch).ConfigureAwait(false);
                     codeownersFile = directoryContents.FirstOrDefault(content => content.Name.Equals("CODEOWNERS", StringComparison.InvariantCultureIgnoreCase));
                     path = ".github/CODEOWNERS";
                 }
@@ -99,7 +96,7 @@ namespace ValidationLibrary.Rules
                 var directory = contents.FirstOrDefault(content => content.Name.Equals("docs", StringComparison.InvariantCultureIgnoreCase));
                 if (directory != null)
                 {
-                    var directoryContents = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, directory.Name, MainBranch).ConfigureAwait(false);
+                    var directoryContents = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, directory.Name, repository.DefaultBranch).ConfigureAwait(false);
                     codeownersFile = directoryContents.FirstOrDefault(content => content.Name.Equals("CODEOWNERS", StringComparison.InvariantCultureIgnoreCase));
                     path = "docs/CODEOWNERS";
                 }
@@ -111,7 +108,7 @@ namespace ValidationLibrary.Rules
                 _logger.LogDebug("Rule {ruleClass} / {ruleName}, No CODEOWNERS found.", nameof(HasCodeownersRule), RuleName);
                 return null;
             }
-            var matchingFile = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, path, MainBranch).ConfigureAwait(false);
+            var matchingFile = await client.Repository.Content.GetAllContentsByRef(repository.Owner.Login, repository.Name, path, repository.DefaultBranch).ConfigureAwait(false);
             return matchingFile[0];
         }
 
