@@ -15,8 +15,7 @@ namespace ValidationLibrary.Tests.Rules
         protected override void OnSetup()
         {
             _rule = new HasReadmeRule(
-                Substitute.For<ILogger<HasReadmeRule>>(),
-                new GitUtils(Substitute.For<ILogger<GitUtils>>()));
+                Substitute.For<ILogger<HasReadmeRule>>());
 
             var mockReleaseClient = Substitute.For<IReleasesClient>();
             MockRepositoryClient.Release.Returns(mockReleaseClient);
