@@ -53,16 +53,26 @@ namespace ValidationLibrary.Tests
         }
 
         [Test]
-        public async Task Validate_ValidatesWithAllRulesIfNoneAreIgnoredAndConfigIsNotFound()
+        public async Task Validate_ValidationWithAllRulesIfNoneAreIgnoredAndConfigIsNotFound()
         {
+            var repository = CreateRepository("testOwner", "mock-repository", true, false);
             _mockRepositoryContentsClient
-                .GetAllContents("testOwner", "mock-repositry", ConfigFileName)
+                .GetAllContents("testOwner", "mock-repository", ConfigFileName)
                 .Returns<Task<IReadOnlyList<RepositoryContent>>>(x => { throw new NotFoundException("no message", HttpStatusCode.NotFound); });
+            foreach (var rule in _mockRules)
+            {
+                var singleRuleValidationResult = new ValidationResult($"Rule {Guid.NewGuid()}", "With vasara", false, (c, r) => Task.CompletedTask);
+                rule.IsValid(_mockClient, repository).Returns(Task.FromResult(singleRuleValidationResult));
+            }
 
-            var repository = CreateRepository("testOwner", "mock-repositry", true, false);
             var result = await _repositoryValidator.Validate(repository, false);
-            Assert.NotNull(result);
 
+            Assert.NotNull(result);
+            Assert.AreEqual(3, result.Results.Length);
+            foreach (var resultItem in result.Results)
+            {
+                Assert.NotNull(resultItem);
+            }
             foreach (var mockRule in _mockRules)
             {
                 await mockRule.Received().IsValid(_mockClient, repository);
