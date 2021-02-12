@@ -11,5 +11,11 @@ namespace Runner.Tests
             // This is just a quick dumb test for DI
             await Program.Main(new string[0]);
         }
+
+        [Test]
+        public async Task Main_DocumentationGeneration()
+        {
+            await Program.Main(new string[] { "generate-document" });
+        }
     }
 }
