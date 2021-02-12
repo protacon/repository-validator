@@ -75,8 +75,11 @@ namespace ValidationLibrary.Rules
                 if (staleCount >= StaleCountLimit) break;
             }
 
+
+            var howToFix = $"Remove branches, that have not been updated in 90 days or more. Stale branches are listed in {gitHubRepository.HtmlUrl}/branches/stale. " +
+            $"We also recommend automatically removing merged branches, this can be enabled from {gitHubRepository.HtmlUrl}/settings#merge-button-settings -page.";
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Not too many stale branches: {isValid}", nameof(HasNotManyStaleBranchesRule), RuleName, gitHubRepository.FullName, staleCount < StaleCountLimit);
-            return new ValidationResult(RuleName, $"Remove branches, that have not been updated in 90 days or more. Stale branches are listed in {gitHubRepository.HtmlUrl}/branches/stale", staleCount < StaleCountLimit, DoNothing);
+            return new ValidationResult(RuleName, howToFix, staleCount < StaleCountLimit, DoNothing);
         }
 
         public Dictionary<string, string> GetConfiguration()
