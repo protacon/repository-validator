@@ -23,7 +23,6 @@ namespace ValidationLibrary.Tests
         [SetUp]
         public void SetUp()
         {
-
             var mockLogger = Substitute.For<ILogger<RepositoryValidator>>();
 
             _mockClient = Substitute.For<IGitHubClient>();
