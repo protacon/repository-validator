@@ -18,7 +18,6 @@ namespace ValidationLibrary.Tests
 
         private IValidationRule[] _mockRules;
         private IGitHubClient _mockClient;
-        //private IRepositoriesClient _mockRepositoriesClient;
         private IRepositoryContentsClient _mockRepositoryContentsClient;
 
         [SetUp]
@@ -38,7 +37,6 @@ namespace ValidationLibrary.Tests
 
             _repositoryValidator = new RepositoryValidator(mockLogger, _mockClient, _mockRules);
 
-            //_mockRepositoriesClient = Substitute.For<IRepositoriesClient>();
             _mockRepositoryContentsClient = Substitute.For<IRepositoryContentsClient>();
             _mockClient.Repository.Content.Returns(_mockRepositoryContentsClient);
         }
