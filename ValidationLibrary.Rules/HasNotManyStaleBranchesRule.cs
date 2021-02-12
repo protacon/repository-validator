@@ -76,7 +76,7 @@ namespace ValidationLibrary.Rules
             }
 
             _logger.LogDebug("Rule {ruleClass} / {ruleName}, Validating repository {repositoryName}. Not too many stale branches: {isValid}", nameof(HasNotManyStaleBranchesRule), RuleName, gitHubRepository.FullName, staleCount < StaleCountLimit);
-            return new ValidationResult(RuleName, "Remove branches, that have not been updated in 90 days or more.", staleCount < StaleCountLimit, DoNothing);
+            return new ValidationResult(RuleName, $"Remove branches, that have not been updated in 90 days or more. Stale branches are listed in {gitHubRepository.HtmlUrl}/branches/stale", staleCount < StaleCountLimit, DoNothing);
         }
 
         public Dictionary<string, string> GetConfiguration()

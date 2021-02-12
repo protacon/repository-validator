@@ -125,7 +125,7 @@ namespace Runner
                 logger.LogInformation($"{report.Owner}/{report.RepositoryName}");
                 foreach (var error in report.Results)
                 {
-                    logger.LogInformation("Rule: '{ruleName}' Is valid: {isValid}", error.RuleName, error.IsValid);
+                    logger.LogInformation("Rule: '{ruleName}' Is valid: {isValid}{fix}", error.RuleName, error.IsValid, error.IsValid ? string.Empty : $", {error.HowToFix}");
                 }
             }
         }
