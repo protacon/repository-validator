@@ -17,12 +17,14 @@
     Resource group hosting the Repository Validator solution
 #>
 param(
-    [Parameter(Mandatory)][string]$AlertTargetResourceGroup,
-    [Parameter(Mandatory)][string]$AlertTargetGroupName,
+    [Parameter()][string]$AlertTargetResourceGroup,
+    [Parameter()][string]$AlertTargetGroupName,
     [Parameter(Mandatory)][string]$ResourceGroup
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+
+$resourceGroupObject = Get-AzResourceGroup -Name $ResourceGroup
 
 Write-Host 'Retrieving resources and creating criterias'
 $alertParameters = @(
@@ -40,26 +42,47 @@ $alertParameters = @(
     }
 )
 
-Write-Host 'Retrieving alert action group...'
-$alertTargetActual = Get-AzActionGroup -ResourceGroupName $AlertTargetResourceGroup -Name $AlertTargetGroupName
-$alertRef = New-AzActionGroup -ActionGroupId $alertTargetActual.Id
+if ($AlertTargetResourceGroup) {
+    Write-Host 'Retrieving alert action group...'
+    $alertTargetActual = Get-AzActionGroup -ResourceGroupName $AlertTargetResourceGroup -Name $AlertTargetGroupName
+    $alertRef = New-AzActionGroup -ActionGroupId $alertTargetActual.Id
 
-Write-Host 'Creating alerts'
-Foreach ($alertParameter in $alertParameters) {
-    Write-Host "Creating alert for $($alertParameter.Name)"
-    $resource = $alertParameter.Resource
-
-    Add-AzMetricAlertRuleV2 `
-        -Name $alertParameter.Name `
-        -ResourceGroupName $ResourceGroup `
-        -WindowSize 0:5 `
-        -Frequency 0:5 `
-        -TargetResourceScope $resource.ResourceId `
-        -TargetResourceType $resource.ResourceType `
-        -TargetResourceRegion "northeurope" `
-        -Description $alertParameter.Description `
-        -Severity 4 `
-        -ActionGroup $alertRef `
-        -Condition $alertParameter.Criteria
+    Write-Host 'Creating alerts'
+    Foreach ($alertParameter in $alertParameters) {
+        Write-Host "Creating alert for $($alertParameter.Name)"
+        $resource = $alertParameter.Resource
+        Add-AzMetricAlertRuleV2 `
+            -Name $alertParameter.Name `
+            -ResourceGroupName $ResourceGroup `
+            -WindowSize 0:5 `
+            -Frequency 0:5 `
+            -TargetResourceScope $resource.ResourceId `
+            -TargetResourceType $resource.ResourceType `
+            -TargetResourceRegion $resourceGroupObject.Location `
+            -Description $alertParameter.Description `
+            -Severity 4 `
+            -ActionGroup $alertRef `
+            -Condition $alertParameter.Criteria
+    }
 }
+else {
+    Write-Host 'Creating alerts without target'
+    Foreach ($alertParameter in $alertParameters) {
+        Write-Host "Creating alert for $($alertParameter.Name)"
+        $resource = $alertParameter.Resource
+        Add-AzMetricAlertRuleV2 `
+            -Name $alertParameter.Name `
+            -ResourceGroupName $ResourceGroup `
+            -WindowSize 0:5 `
+            -Frequency 0:5 `
+            -TargetResourceScope $resource.ResourceId `
+            -TargetResourceType $resource.ResourceType `
+            -TargetResourceRegion $resourceGroupObject.Location `
+            -Description $alertParameter.Description `
+            -Severity 4 `
+            -Condition $alertParameter.Criteria
+    }
+}
+
+
 Write-Host 'Alerts created'
