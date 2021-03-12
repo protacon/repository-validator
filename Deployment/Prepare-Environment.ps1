@@ -55,5 +55,7 @@ if ($settingsJson.AzureAlarmHandlerUrl) {
         -AlertTargetGroupName 'repo-alerts'
 }
 else {
-    Write-Host 'No Azure Alarm Webhook specified, not creating alarm group'
+    Write-Host 'No Azure Alarm Webhook specified, creating only alarms'
+    .\Deployment\Add-Alerts.ps1 `
+        -ResourceGroup $settingsJson.ResourceGroupName
 }
