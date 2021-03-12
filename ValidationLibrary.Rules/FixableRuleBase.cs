@@ -78,7 +78,9 @@ namespace ValidationLibrary.Rules
             {
                 _logger.LogInformation("Rule {ruleClass} / {ruleName}, Branch {branchName} did not exists, creating branch.",
                      typeof(T).Name, RuleName, branchName);
-                var branchReference = await client.Git.Reference.CreateBranch(repository.Owner.Login, repository.Name, branchName).ConfigureAwait(false);
+                var baseBranch = await client.Git.Reference.Get(repository.Owner.Login, repository.Name, $"heads/{repository.DefaultBranch}").ConfigureAwait(false);
+                var newReference = new NewReference("refs/heads/" + branchName, baseBranch.Object.Sha);
+                var branchReference = await client.Git.Reference.Create(repository.Owner.Login, repository.Name, newReference).ConfigureAwait(false);
                 return await client.Git.Commit.Get(repository.Owner.Login, repository.Name, branchReference.Object.Sha).ConfigureAwait(false);
             }
 

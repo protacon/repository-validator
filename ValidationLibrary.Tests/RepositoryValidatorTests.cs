@@ -81,7 +81,7 @@ namespace ValidationLibrary.Tests
         private Repository CreateRepository(string owner, string name, bool hasIssues, bool archived)
         {
             var user = new User(null, null, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, 0, null, 0, 0, false, null, 0, 0, null, owner, null, null, 0, null, 0, 0, 0, null, new RepositoryPermissions(), false, null, null);
-            return new Repository(null, null, null, null, null, null, null, 0, null, user, name, $"{owner}/{name}", false, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, hasIssues, false, false, false, 0, 0, null, null, null, archived, 0);
+            return new Repository(null, null, null, null, null, null, null, 0, null, user, name, $"{owner}/{name}", false, null, null, null, false, false, 0, 0, null, 0, null, DateTime.UtcNow, DateTime.UtcNow, null, null, null, null, hasIssues, false, false, false, 0, 0, null, null, null, archived, 0, false, RepositoryVisibility.Public);
         }
     }
 }

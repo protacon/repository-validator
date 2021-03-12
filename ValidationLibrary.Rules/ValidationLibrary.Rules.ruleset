@@ -5,11 +5,6 @@
     <Description Resource="MinimumRecommendedRules_Description" />
   </Localization>
   <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
-    <Rule Id="CA1303" Action="Hidden" />
-    <Rule Id="CA2208" Action="Hidden" />
-    <Rule Id="CA1016" Action="Hidden" />
-    <Rule Id="CA1056" Action="Hidden" />
-    <Rule Id="CA1819" Action="Hidden" />
     <Rule Id="CS1591" Action="Hidden" />
   </Rules>
 </RuleSet>
